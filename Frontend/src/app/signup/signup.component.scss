@@ -1,0 +1,13 @@
+.mat-toolbar{
+    margin: -24px;
+    width: auto;
+    margin-bottom:10px;
+}
+
+mat-form-field{ //Thêm khoảng cách vào bên trong mỗi ô nhập liệu
+    padding: 5px;
+}
+
+mat-hint{//validation error
+    color:red;
+}
