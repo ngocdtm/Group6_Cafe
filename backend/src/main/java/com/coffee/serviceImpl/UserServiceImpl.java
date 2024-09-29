@@ -1,5 +1,7 @@
 package com.coffee.serviceImpl;
 
+import com.coffee.JWT.CustomerUsersDetailsService;
+import com.coffee.JWT.JwtUtil;
 import com.coffee.POJO.User;
 import com.coffee.constents.CafeConstants;
 import com.coffee.dao.UserDao;
@@ -21,6 +23,15 @@ import java.util.*;
 public class UserServiceImpl implements UserService {
     @Autowired
     UserDao userDao;
+
+    @Autowired
+    AuthenticationManager authenticationManager;
+
+    @Autowired
+    CustomerUsersDetailsService customerUsersDetailsService;
+
+    @Autowired
+    JwtUtil jwtUtil;
 
     @Override
     public ResponseEntity<String> signUp(Map<String, String> requestMap) {
@@ -62,6 +73,29 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
+    @Override
+    public ResponseEntity<String> login(Map<String, String> requestMap) {
+        log.info("Inside login");
+        try{
+            Authentication auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(requestMap.get("email"), requestMap.get("password"))
+            );
+            if(auth.isAuthenticated()) {
+                if(customerUsersDetailsService.getUserDetail().getStatus().equalsIgnoreCase("true")){
+                    return new ResponseEntity<String>("{\"token\":\""+
+                            jwtUtil.generateToken(customerUsersDetailsService.getUserDetail().getEmail(),
+                                    customerUsersDetailsService.getUserDetail().getRole()) + "\"}",
+                            HttpStatus.OK);
+                }
+                else{
+                    return new ResponseEntity<String>("{\"message\":\""+"wait for admin approval."+"\"}", HttpStatus.BAD_REQUEST);
+                }
+            }
+        } catch (Exception ex) {
+            log.error("{}",ex);
+        }
+        return new ResponseEntity<String>("{\"message\":\""+"Bad Credentials."+"\"}", HttpStatus.BAD_REQUEST);
 
+    }
 
 }
