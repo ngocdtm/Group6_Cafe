@@ -8,5 +8,5 @@ import org.springframework.data.repository.query.Param;
 public interface UserDao extends JpaRepository<User, Integer> {//kho lưu trữ jpa
     User findByEmailId(@Param("email") String email);
 
-
+    User findByEmail(String email);
 }
