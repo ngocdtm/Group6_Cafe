@@ -18,6 +18,7 @@ import { HttpClientModule, HTTP_INTERCEPTORS  } from '@angular/common/http';
 import { SignupComponent } from './signup/signup.component';
 import { NgxUiLoaderConfig, NgxUiLoaderModule, SPINNER } from 'ngx-ui-loader';
 import { ForgotPasswordComponent } from './forgot-password/forgot-password.component';
+import { LoginComponent } from './login/login.component';
 
 // https://tdev.app/ngx-ui-loader/demo/spinners
 // rotating-plane
@@ -41,7 +42,8 @@ const ngxUiLoaderConfig: NgxUiLoaderConfig ={
     AppHeaderComponent,
     AppSidebarComponent,
     SignupComponent,
-    ForgotPasswordComponent
+    ForgotPasswordComponent,
+    LoginComponent
    ],
   imports: [
     BrowserModule,
