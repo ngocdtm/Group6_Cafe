@@ -17,6 +17,7 @@ import { AppSidebarComponent } from './layouts/full/sidebar/sidebar.component';
 import { HttpClientModule, HTTP_INTERCEPTORS  } from '@angular/common/http';
 import { SignupComponent } from './signup/signup.component';
 import { NgxUiLoaderConfig, NgxUiLoaderModule, SPINNER } from 'ngx-ui-loader';
+import { TokenInterceptorInterceptor } from './services/token-interceptor.interceptor';
 
 // https://tdev.app/ngx-ui-loader/demo/spinners
 // rotating-plane
@@ -53,7 +54,7 @@ const ngxUiLoaderConfig: NgxUiLoaderConfig ={
     HttpClientModule,
     NgxUiLoaderModule.forRoot(ngxUiLoaderConfig)
   ],
-  providers: [],
+  providers: [HttpClientModule,{provide:HTTP_INTERCEPTORS,useClass:TokenInterceptorInterceptor,multi:true}],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
