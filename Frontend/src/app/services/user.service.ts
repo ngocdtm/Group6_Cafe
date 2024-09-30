@@ -19,6 +19,16 @@ export class UserService {
     )
   }
 
+  forgotPassword(data:any){
+    return this.httpClient.post(this.url+
+      "/user/forgotPassword",data,{
+      headers:new HttpHeaders().set('Content-Type','application/json')
+    })
+  }
+
+  login(data:any){
+    return this.httpClient.post(this.url+
+      "/user/login",data,{
   checkToken(){
     return this.httpClient.get(this.url+"/user/checkToken");
   }
