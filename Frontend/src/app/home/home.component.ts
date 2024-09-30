@@ -44,4 +44,5 @@ export class HomeComponent implements OnInit {
     dialogConfig.width = "550px";
     this.dialog.open(LoginComponent,dialogConfig);
   }
+  
 }
