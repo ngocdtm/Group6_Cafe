@@ -14,7 +14,7 @@ import java.util.Objects;
 
 @Service
 @Slf4j
-public class CustomerUsersDetailsService implements UserDetailsService {
+public class  CustomerUsersDetailsService implements UserDetailsService {
 
     @Autowired
     UserDao userDao;
