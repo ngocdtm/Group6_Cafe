@@ -181,40 +181,40 @@ public class BillServiceImpl implements BillService {
     }
 
 
-//    @Override
-//    public ResponseEntity<List<Bill>> getBills() {
-//        List<Bill> list = new ArrayList<>();
-//        if(jwtFilter.isAdmin()){
-//            list = billDao.getAllBills();
-//        }else{
-//            list = billDao.getBillByUserName(jwtFilter.getCurrentUser());
-//        }
-//        return new ResponseEntity<>(list, HttpStatus.OK);
-//    }
-//
-//    @Override
-//    public ResponseEntity<byte[]> getPdf(Map<String, Object> requestMap) {
-//        log.info("Inside getPdf: requestMap {}", requestMap);
-//        try{
-//            byte[] byteArray = new byte[0];
-//            if(!requestMap.containsKey("uuid") && validateRequestMap(requestMap))
-//                return new ResponseEntity<>(byteArray, HttpStatus.BAD_REQUEST);
-//            String filePath = CafeConstants.STORE_LOCATION + "\\" + (String) requestMap.get("uuid") + ".pdf";
-//            if(CafeUtils.isFileExist(filePath)){
-//                byteArray = getByteArray(filePath);
-//                return new ResponseEntity<>(byteArray, HttpStatus.OK);
-//            } else{
-//                requestMap.put("isGenerate", false);
-//                generateReport(requestMap);
-//                byteArray = getByteArray(filePath);
-//                return new ResponseEntity<>(byteArray, HttpStatus.OK);
-//            }
-//
-//        }catch (Exception e){
-//            e.printStackTrace();
-//        }
-//        return null;
-//    }
+    @Override
+    public ResponseEntity<List<Bill>> getBills() {
+        List<Bill> list = new ArrayList<>();
+        if(jwtFilter.isAdmin()){
+            list = billDao.getAllBills();
+        }else{
+            list = billDao.getBillByUserName(jwtFilter.getCurrentUser());
+        }
+        return new ResponseEntity<>(list, HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<byte[]> getPdf(Map<String, Object> requestMap) {
+        log.info("Inside getPdf: requestMap {}", requestMap);
+        try{
+            byte[] byteArray = new byte[0];
+            if(!requestMap.containsKey("uuid") && validateRequestMap(requestMap))
+                return new ResponseEntity<>(byteArray, HttpStatus.BAD_REQUEST);
+            String filePath = CafeConstants.STORE_LOCATION + "\\" + (String) requestMap.get("uuid") + ".pdf";
+            if(CafeUtils.isFileExist(filePath)){
+                byteArray = getByteArray(filePath);
+                return new ResponseEntity<>(byteArray, HttpStatus.OK);
+            } else{
+                requestMap.put("isGenerate", false);
+                generateReport(requestMap);
+                byteArray = getByteArray(filePath);
+                return new ResponseEntity<>(byteArray, HttpStatus.OK);
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     private byte[] getByteArray(String filePath) throws Exception {
         File initialFile = new File(filePath);
@@ -223,25 +223,25 @@ public class BillServiceImpl implements BillService {
         targetStream.close();
         return byteArray;
     }
-//
-//    @Override
-//    public ResponseEntity<String> deleteBill(Integer id) {
-//        try{
-//            if(jwtFilter.isAdmin()){
-//                Optional optional = billDao.findById(id);
-//                if(!optional.isEmpty()){
-//                    billDao.deleteById(id);
-//                    return CafeUtils.getResponseEntity("Bill deleted successfully", HttpStatus.OK);
-//                }
-//                else{
-//                    return CafeUtils.getResponseEntity("Bill id doesn't exist", HttpStatus.OK);
-//                }
-//            }else{
-//                return CafeUtils.getResponseEntity(CafeConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
-//            }
-//        }catch (Exception e){
-//            e.printStackTrace();
-//        }
-//        return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
-//    }
+
+    @Override
+    public ResponseEntity<String> deleteBill(Integer id) {
+        try{
+            if(jwtFilter.isAdmin()){
+                Optional optional = billDao.findById(id);
+                if(!optional.isEmpty()){
+                    billDao.deleteById(id);
+                    return CafeUtils.getResponseEntity("Bill deleted successfully", HttpStatus.OK);
+                }
+                else{
+                    return CafeUtils.getResponseEntity("Bill id doesn't exist", HttpStatus.OK);
+                }
+            }else{
+                return CafeUtils.getResponseEntity(CafeConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }
