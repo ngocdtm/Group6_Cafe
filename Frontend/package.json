@@ -23,7 +23,6 @@
     "@angular/platform-browser": "~11.2.10",
     "@angular/platform-browser-dynamic": "~11.2.10",
     "@angular/router": "~11.2.10",
-    "@types/file-saver": "^2.0.7",
     "file-saver": "^2.0.5",
     "jwt-decode": "^4.0.0",
     "ngx-ui-loader": "^11.0.0",
@@ -34,6 +33,7 @@
   "devDependencies": {
     "@angular/cli": "^11.1.2",
     "@angular/compiler-cli": "~11.2.10",
+    "@types/file-saver": "^2.0.7",
     "@types/jasmine": "~3.6.0",
     "@types/node": "^12.11.1",
     "codelyzer": "^0.0.28",
