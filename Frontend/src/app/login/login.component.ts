@@ -1,10 +1,10 @@
-import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { MatDialogRef } from '@angular/material/dialog';
-import { Router } from '@angular/router';
-import { NgxUiLoaderService } from 'ngx-ui-loader';
-import { SnackbarService } from '../services/snackbar.service';
-import { UserService } from '../services/user.service';
+import {Component, OnInit} from '@angular/core';
+import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {UserService} from "../services/user.service";
+import {MatDialogRef} from "@angular/material/dialog";
+import {NgxUiLoaderService} from "ngx-ui-loader";
+import {SnackbarService} from "../services/snackbar.service";
+import {Router} from "@angular/router";
 import { GlobalConstants } from '../shared/global_constants';
 
 @Component({
@@ -12,7 +12,7 @@ import { GlobalConstants } from '../shared/global_constants';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit{
 
   hide=true;
   loginForm:any = FormGroup;
