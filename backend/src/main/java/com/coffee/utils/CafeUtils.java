@@ -43,12 +43,12 @@ public class CafeUtils {
         return new HashMap<>();
     }
 
-    public static Boolean isFileExist(String path){
+    public static Boolean isFileExist(String path) {
         log.info("Inside isFileExist {}", path);
-        try{
+        try {
             File file = new File(path);
             return (file != null && file.exists()) ? Boolean.TRUE : Boolean.FALSE;
-        }catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
