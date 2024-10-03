@@ -1,4 +1,5 @@
 package com.coffee.service;
+
 import com.coffee.wrapper.UserWrapper;
 import org.springframework.http.ResponseEntity;
 
@@ -10,14 +11,13 @@ public interface UserService {
 
     ResponseEntity<String> login(Map<String, String> requestMap);
 
+    ResponseEntity<List<UserWrapper>> getAllUser();
+
+    ResponseEntity<String> update(Map<String, String> requestMap);
+
     ResponseEntity<String> checkToken();
 
     ResponseEntity<String> changePassword(Map<String, String> requestMap);
 
     ResponseEntity<String> forgotPassword(Map<String, String> requestMap);
-
-    ResponseEntity<List<UserWrapper>> getAllUser();
-
-    ResponseEntity<String> update(Map<String, String> requestMap);
-
 }

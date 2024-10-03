@@ -7,8 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface ProductService {
-
-    ResponseEntity<String> addNewProduct(Map<String, String> requestMap);
+    ResponseEntity<String> addProduct(Map<String, String> requestMap);
 
     ResponseEntity<List<ProductWrapper>> getAllProduct();
 
@@ -20,7 +19,5 @@ public interface ProductService {
 
     ResponseEntity<List<ProductWrapper>> getByCategory(Integer id);
 
-    ResponseEntity<ProductWrapper> getProductById(Integer id);
-
-
+    ResponseEntity<ProductWrapper> getById(Integer id);
 }
