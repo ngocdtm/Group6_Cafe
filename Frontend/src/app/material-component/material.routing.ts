@@ -30,7 +30,7 @@ export const MaterialRoutes: Routes = [
         component:ManageOrderComponent,
         canActivate:[RouteGuardService],
         data:{
-            expectedRole: ['admin']
+            expectedRole: ['admin', 'user']
         }
     }
 ];
