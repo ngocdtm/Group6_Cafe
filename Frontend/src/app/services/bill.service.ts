@@ -9,26 +9,29 @@ import { environment } from 'src/environments/environment';
 export class BillService {
 
   url = environment.apiUrl;
-  constructor(private httpClient:HttpClient) {}
 
-  generateReport(data:any){
-    return this.httpClient.post(this.url+"/bill/generateReport",data,{
-      headers:new HttpHeaders().set('Content-Type',"application/json")
+  constructor(private httpClient:HttpClient) { }
+
+  generateBill(data:any){
+    return this.httpClient.post(`${this.url}/api/v1/bill/generateBill`, data,{
+      headers: new HttpHeaders().set('Content-Type', 'application/json')
     })
   }
 
-  getPdf(data:any):Observable<Blob>{
-    return this.httpClient.post(this.url+"/bill/getPdf",data,{responseType:'blob'});
+  getPdf(data: any){
+    return this.httpClient.post(`${this.url}/api/v1/bill/getPdf`, data, {
+      headers: new HttpHeaders().set('Content-Type', 'application/json'),
+      responseType: 'blob' as 'json'
+    });
   }
 
   getBills(){
-    return this.httpClient.get(this.url+"/bill/getBIlls");
+    return this.httpClient.get(`${this.url}/api/v1/bill/getBill`)
   }
 
   delete(id:any){
-    return this.httpClient.post(this.url + 
-      "/bill/delete/" + id,{
+    return this.httpClient.post(`${this.url}/api/v1/bill/delete/${id}`,{
       headers: new HttpHeaders().set('Content-Type', 'application/json')
-    });
+    })
   }
 }

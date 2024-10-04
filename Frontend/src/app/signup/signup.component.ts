@@ -1,12 +1,11 @@
+import { SnackbarService } from './../services/snackbar.service';
+import { UserService } from './../services/user.service';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Route, Router } from '@angular/router';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatDialogRef } from '@angular/material/dialog';
+import { Router } from '@angular/router';
 import { NgxUiLoaderService } from 'ngx-ui-loader';
-import { UserService } from '../services/user.service';
-import { SnackbarService } from '../services/snackbar.service';
-import { GlobalConstants } from '../shared/global_constants';
-
+import { GlobalConstants } from '../shared/global-constants';
 
 @Component({
   selector: 'app-signup',
@@ -14,63 +13,61 @@ import { GlobalConstants } from '../shared/global_constants';
   styleUrls: ['./signup.component.scss']
 })
 export class SignupComponent implements OnInit {
-
   password = true;
   confirmPassword = true;
   signupForm:any = FormGroup;
   responseMessage:any;
 
-  constructor(private formBuilder:FormBuilder,//Để tạo form
-    private router:Router,//Để điều hướng
-    private userService:UserService,//Để gọi API đăng ký(giao tiếp vs api)
-    private snackBarService:SnackbarService,//Để hiển thị thông báo
-    public dialogRef:MatDialogRef<SignupComponent>,// Để đóng hộp thoại (dialog) khi cần
-    private ngxService:NgxUiLoaderService//Để hiển thị loader khi thực hiện các thao tác bất đồng bộ
+  constructor(private formBuilder: FormBuilder,
+    private router: Router,
+    private userService: UserService,
+    private snackbarService: SnackbarService,
+    public dialogRef: MatDialogRef<SignupComponent>,
+    private ngxService: NgxUiLoaderService
   ) { }
 
   ngOnInit(): void {
-  this.signupForm = this.formBuilder.group({//Được khởi tạo dưới dạng một group (FormGroup)
-    name:[null,[Validators.required, Validators.pattern(GlobalConstants.nameRegex)]],
-    email:[null,[Validators.required, Validators.pattern(GlobalConstants.emailRegex)]],
-    contactNumber:[null,[Validators.required, Validators.pattern(GlobalConstants.contactNumberRegex)]],
-    password: [null,[Validators.required]],
-    confirmPassword:[null,[Validators.required]]
-  })
+    this.signupForm = this.formBuilder.group({
+      name:[null,[Validators.required, Validators.pattern(GlobalConstants.nameRegex)]],
+      email:[null,[Validators.required, Validators.pattern(GlobalConstants.emailRegex)]],
+      phoneNumber:[null,[Validators.required, Validators.pattern(GlobalConstants.phoneNumberRegex)]],
+      password:[null,[Validators.required]],
+      confirmPassword:[null,[Validators.required]]
+    });
   }
-  validateSubmit(){// kiểm tra xem mật khẩu và mật khẩu xác nhận có trùng khớp hay không
+
+  validateSubmit(){
     if(this.signupForm.controls['password'].value != this.signupForm.controls['confirmPassword'].value){
-      return true;
-    }
-    else{
+       return true;
+    }else{
       return false;
     }
   }
 
-  handleSubmit(){//Phương thức này được gọi khi người dùng bấm nút đăng ký
-    this.ngxService.start();///Hiển thị loader khi bắt đầu gửi dữ liệu
-    var formData = this.signupForm.value;//Lấy dữ liệu từ form
-    var data = {//tạo đối tượng 
+  handleSubmit(){
+    this.ngxService.start();
+    var formData = this.signupForm.value;
+    var data = {
       name: formData.name,
       email: formData.email,
-      contactNumber: formData.contactNumber,
+      phoneNumber: formData.phoneNumber,
       password: formData.password
     }
-
-    this.userService.signup(data).subscribe((respone:any)=>{//Gọi phương thức signup() từ UserService để gửi dữ liệu lên API
+    this.userService.singup(data).subscribe((response:any)=>{
       this.ngxService.stop();
       this.dialogRef.close();
-      this.responseMessage = respone?.message;
-      this.snackBarService.openSnackBar(this.responseMessage,"");// Hiển thị thông báo thành công
-      this.router.navigate(['/']);//Điều hướng người dùng đến trang chủ
+      this.responseMessage = response ?.message;
+      this.snackbarService.openSnackBar(this.responseMessage,"");
+      this.router.navigate(['/']);
     },(error)=>{
       this.ngxService.stop();
-      if(error.error?.message){
-        this.responseMessage = error.error?.message;
+      if(error.errror?.message){
+        this.responseMessage = error.errror?.message;
+      }else{
+        this.responseMessage = GlobalConstants.genericError;
       }
-      else{
-        this.responseMessage = GlobalConstants.genericError;//Hiển thị thông báo lỗi nhận từ API hoặc thông báo lỗi chung 
-      }
-      this.snackBarService.openSnackBar(this.responseMessage, GlobalConstants.error);
+      this.snackbarService.openSnackBar(this.responseMessage, GlobalConstants.error);
     })
+
   }
 }

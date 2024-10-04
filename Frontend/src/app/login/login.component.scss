@@ -1,13 +1,9 @@
 .mat-toolbar{
-    margin: 0px;
-    width: auto;
-    margin-bottom: 10px;
-  }
-  
-  .mat-form-field{
-    padding: 5px;
-  }
-  
-  .mat-hint{
-    color:red;
-  }
+  margin: -24px;
+  margin-bottom: 10px;
+  width: auto;
+}
+
+mat-form-field{
+  padding: 5px;
+}

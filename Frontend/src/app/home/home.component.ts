@@ -4,7 +4,7 @@ import { SignupComponent } from '../signup/signup.component';
 import { ForgotPasswordComponent } from '../forgot-password/forgot-password.component';
 import { LoginComponent } from '../login/login.component';
 import { UserService } from '../services/user.service';
-import { Route, Router } from '@angular/router';
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -12,15 +12,14 @@ import { Route, Router } from '@angular/router';
 })
 export class HomeComponent implements OnInit {
 
-  constructor(
-    private dialog:MatDialog,
-    private userServices : UserService,
-    private router : Router
-  ) {}
+  constructor(private dialog:MatDialog,
+    private userService: UserService,
+    private router: Router,
 
+  ) { }
 
   ngOnInit(): void {
-    this.userServices.checkToken().subscribe((response:any)=>{
+    this.userService.checkToken().subscribe((response:any)=>{
       this.router.navigate(['/cafe/dashboard']);
     },(error:any)=>{
       console.log(error);
@@ -30,19 +29,18 @@ export class HomeComponent implements OnInit {
   handleSignupAction(){
     const dialogConfig = new MatDialogConfig();
     dialogConfig.width = "550px";
-    this.dialog.open(SignupComponent,dialogConfig);
-
+    this.dialog.open(SignupComponent, dialogConfig);
   }
 
-  handleForgotPasswordAction(){
+  handleforgotPasswordAction(){
     const dialogConfig = new MatDialogConfig();
     dialogConfig.width = "550px";
-    this.dialog.open(ForgotPasswordComponent,dialogConfig);
+    this.dialog.open(ForgotPasswordComponent, dialogConfig);
   }
 
   handleLoginAction(){
     const dialogConfig = new MatDialogConfig();
     dialogConfig.width = "550px";
-    this.dialog.open(LoginComponent,dialogConfig);
+    this.dialog.open(LoginComponent, dialogConfig);
   }
 }

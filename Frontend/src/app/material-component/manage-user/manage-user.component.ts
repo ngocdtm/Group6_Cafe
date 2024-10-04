@@ -3,7 +3,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { NgxUiLoaderService } from 'ngx-ui-loader';
 import { SnackbarService } from 'src/app/services/snackbar.service';
 import { UserService } from 'src/app/services/user.service';
-import { GlobalConstants } from 'src/app/shared/global_constants';
+import { GlobalConstants } from 'src/app/shared/global-constants';
 
 @Component({
   selector: 'app-manage-user',
@@ -12,7 +12,7 @@ import { GlobalConstants } from 'src/app/shared/global_constants';
 })
 export class ManageUserComponent implements OnInit {
 
-  displayedColumns: string[] = ['name', 'email', 'contactNumber', 'status'];
+  displayedColumns: string[] = ['name', 'email', 'phoneNumber', 'status'];
   dataSource:any;
   responseMessage:any;
 
@@ -68,5 +68,4 @@ export class ManageUserComponent implements OnInit {
       this.snackbarService.openSnackBar(this.responseMessage, GlobalConstants.error);
     })
   }
-
 }

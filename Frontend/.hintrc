@@ -8,18 +8,6 @@
       {
         "label": "off"
       }
-    ],
-    "axe/name-role-value": [
-      "default",
-      {
-        "button-name": "off"
-      }
-    ],
-    "axe/keyboard": [
-      "default",
-      {
-        "nested-interactive": "off"
-      }
     ]
   }
 }

@@ -1,14 +1,14 @@
 import { Component, OnInit } from '@angular/core';
-import { MatDialog, MatDialogActions, MatDialogConfig } from '@angular/material/dialog';
+import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { MatTableDataSource } from '@angular/material/table';
-import { GlobalConstants } from 'src/app/shared/global_constants';
-import { ViewBillProductsComponent } from '../dialog/view-bill-products/view-bill-products.component';
-import { ConfirmationComponent } from '../dialog/confirmation/confirmation.component';
-import { BillService } from 'src/app/services/bill.service';
-import { NgxUiLoaderService } from 'ngx-ui-loader';
-import { SnackbarService } from 'src/app/services/snackbar.service';
 import { Router } from '@angular/router';
-import * as saveAs from 'file-saver';
+import { NgxUiLoaderService } from 'ngx-ui-loader';
+import { BillService } from 'src/app/services/bill.service';
+import { SnackbarService } from 'src/app/services/snackbar.service';
+import { GlobalConstants } from 'src/app/shared/global-constants';
+import { ViewBillProductsComponent } from '../dialog/view-bill-products/view-bill-products.component';
+import { ConfirmationComponent } from '../dialog/confirmation/confirmation.component';;
+import  { saveAs } from 'file-saver';
 
 @Component({
   selector: 'app-view-bill',
@@ -17,7 +17,7 @@ import * as saveAs from 'file-saver';
 })
 export class ViewBillComponent implements OnInit {
 
-  displayedColumns: string[] = ['name', 'email', 'contactNumber', 'paymentMethod', 'total', 'view'];
+  displayedColumns: string[] = ['name', 'email', 'phoneNumber', 'paymentMethod', 'total', 'view'];
   dataSource:any = [];
   responseMessage:any;
 
@@ -39,7 +39,7 @@ export class ViewBillComponent implements OnInit {
       this.dataSource = new MatTableDataSource(response);
     },(error:any)=>{
       this.ngxService.stop();
-      console.log(error);
+      console.log(error.error?.message);
       if(error.error?.message){
         this.responseMessage = error.error?.message;
       }else{
@@ -58,7 +58,7 @@ export class ViewBillComponent implements OnInit {
     const dialogConfig = new MatDialogConfig();
     dialogConfig.data = {
       data:values
-    }
+    };
     dialogConfig.width = "100%";
     const dialogRef = this.dialog.open(ViewBillProductsComponent,dialogConfig);
     this.router.events.subscribe(()=>{
@@ -97,17 +97,18 @@ export class ViewBillComponent implements OnInit {
     });
   }
 
-  downloadReportAction(values:any){
+  downloadBillAction(values:any){
     this.ngxService.start();
     var data = {
       name: values.name,
       email: values.email,
       uuid: values.uuid,
-      contactNumber: values.contactNumber,
+      phoneNumber: values.phoneNumber,
       paymentMethod: values.paymentMethod,
       total: values.total.toString(),
       productDetails: values.productDetails
     }
+
     this.downloadFile(values.uuid,data);
   }
 
@@ -122,5 +123,4 @@ export class ViewBillComponent implements OnInit {
       this.snackbarService.openSnackBar('Error downloading file', 'Error');
     });
   }
-
 }
