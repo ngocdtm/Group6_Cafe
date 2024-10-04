@@ -13,6 +13,6 @@ public class CafeConstants {
     public static final String EMAIL = "email";
 
     public static final String UNAUTHORIZED_ACCESS = "Unauthorized access";
-    public static final String STORE_LOCATION = "src/main/resources/bill_pdf";
+    public static final String STORE_LOCATION = "C:\\BILL";
 
 }
