@@ -20,6 +20,8 @@ public class ProductWrapper {
 
     String categoryName;
 
+    String imagePath;
+
     public ProductWrapper(){
 
     }

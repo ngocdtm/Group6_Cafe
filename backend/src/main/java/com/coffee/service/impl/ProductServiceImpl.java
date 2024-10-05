@@ -6,6 +6,7 @@ import com.coffee.entity.Category;
 import com.coffee.entity.Product;
 import com.coffee.repository.ProductRepository;
 import com.coffee.security.JwtRequestFilter;
+import com.coffee.service.FileStorageService;
 import com.coffee.service.ProductService;
 import com.coffee.utils.CafeUtils;
 import com.coffee.wrapper.ProductWrapper;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,9 @@ import java.util.Optional;
 
 @Service
 public class ProductServiceImpl implements ProductService {
+
+    @Autowired
+    private FileStorageService fileStorageService;
 
     @Autowired
     ProductRepository productRepository;
@@ -64,6 +69,7 @@ public class ProductServiceImpl implements ProductService {
         product.setName(requestMap.get("name"));
         product.setDescription(requestMap.get("description"));
         product.setPrice(Integer.valueOf(requestMap.get("price")));
+        product.setImagePath(requestMap.get("image_path"));
         return product;
     }
 
@@ -163,5 +169,82 @@ public class ProductServiceImpl implements ProductService {
         return new ResponseEntity<>(new ProductWrapper(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @Override
+    public ResponseEntity<String> deleteImage(Integer id) {
+        try {
+            if(jwtRequestFilter.isAdmin()) {
+                Optional<Product> optional = productRepository.findById(id);
+                if(optional.isPresent()) {
+                    Product product = optional.get();
+
+                    if(product.getImagePath() != null) {
+                        fileStorageService.deleteFile(product.getImagePath());
+                        product.setImagePath(null);
+                        productRepository.save(product);
+                    }
+
+                    return CafeUtils.getResponseEntity(
+                            "Image deleted successfully",
+                            HttpStatus.OK
+                    );
+                }
+                return CafeUtils.getResponseEntity(
+                        "Product id does not exist",
+                        HttpStatus.NOT_FOUND
+                );
+            }
+            return CafeUtils.getResponseEntity(
+                    CafeConstants.UNAUTHORIZED_ACCESS,
+                    HttpStatus.UNAUTHORIZED
+            );
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        }
+        return CafeUtils.getResponseEntity(
+                CafeConstants.SOMETHING_WENT_WRONG,
+                HttpStatus.INTERNAL_SERVER_ERROR
+        );
+    }
+
+    @Override
+    public ResponseEntity<String> uploadImage(Integer id, MultipartFile file) {
+        try {
+            if(jwtRequestFilter.isAdmin()) {
+                Optional<Product> optional = productRepository.findById(id);
+                if(optional.isPresent()) {
+                    Product product = optional.get();
+
+                    // Delete old image if exists
+                    if(product.getImagePath() != null) {
+                        fileStorageService.deleteFile(product.getImagePath());
+                    }
+
+                    // Store new image
+                    String fileName = fileStorageService.storeFile(file, id.toString());
+                    product.setImagePath(fileName);
+                    productRepository.save(product);
+
+                    return CafeUtils.getResponseEntity(
+                            "Image uploaded successfully",
+                            HttpStatus.OK
+                    );
+                }
+                return CafeUtils.getResponseEntity(
+                        "Product id does not exist",
+                        HttpStatus.NOT_FOUND
+                );
+            }
+            return CafeUtils.getResponseEntity(
+                    CafeConstants.UNAUTHORIZED_ACCESS,
+                    HttpStatus.UNAUTHORIZED
+            );
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        }
+        return CafeUtils.getResponseEntity(
+                CafeConstants.SOMETHING_WENT_WRONG,
+                HttpStatus.INTERNAL_SERVER_ERROR
+        );
+    }
 
 }
