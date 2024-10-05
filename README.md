@@ -13,4 +13,4 @@
 
 5) Sử dụng phần mềm để open project backend, frontend tương ứng
 
-
+6) Sau khi mọi người mở frontend : chạy lệnh "npm i" và tiếp theo "ng s"
