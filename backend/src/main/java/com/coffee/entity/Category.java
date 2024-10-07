@@ -25,7 +25,7 @@ public class Category implements Serializable {
     @Column(name = "id")
     private Integer id;
 
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)//nullable = false tức ko đc phép null thuộc tính này
     private String name;
 
 }

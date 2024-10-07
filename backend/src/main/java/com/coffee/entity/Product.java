@@ -10,7 +10,7 @@ import java.io.Serializable;
 
 @NamedQuery(name = "Product.getAllProduct", query = "SELECT new com.coffee.wrapper.ProductWrapper(p.id,p.name,p.description,p.price,p.status,p.category.id,p.category.name) FROM Product p")
 @NamedQuery(name = "Product.updateProductStatus", query = "UPDATE Product p SET p.status=:status WHERE p.id=:id")
-@NamedQuery(name = "Product.getProductByCategory", query = "SELECT new com.coffee.wrapper.ProductWrapper(p.id,p.name) FROM Product p WHERE p.category.id=:id AND p.status='true'")
+@NamedQuery(name = "Product.getProductByCategory", query = "SELECT new com.coffee.wrapper.ProductWrapper(p.id,p.name,p.description,p.price,p.status,p.category.id,p.category.name) FROM Product p WHERE p.category.id=:id AND p.status='true'")
 @NamedQuery(name = "Product.getProductById", query = "SELECT new com.coffee.wrapper.ProductWrapper(p.id,p.name,p.description,p.price) FROM Product p WHERE p.id=:id")
 
 @Data
@@ -28,7 +28,7 @@ public class Product implements Serializable {
     @Column(name = "id")
     private Integer id;
 
-    @Column(name = "name")
+    @Column(name = "name",nullable = false, length = 350)
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
