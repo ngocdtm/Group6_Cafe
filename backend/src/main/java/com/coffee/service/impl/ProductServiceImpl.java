@@ -4,6 +4,7 @@ package com.coffee.service.impl;
 import com.coffee.constants.CafeConstants;
 import com.coffee.entity.Category;
 import com.coffee.entity.Product;
+import com.coffee.entity.User;
 import com.coffee.repository.ProductRepository;
 import com.coffee.security.JwtRequestFilter;
 import com.coffee.service.FileStorageService;
@@ -16,10 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -38,8 +36,14 @@ public class ProductServiceImpl implements ProductService {
         try{
             if(jwtRequestFilter.isAdmin()){
                 if(validateProductMap(requestMap, false)){
-                    productRepository.save(getProductFromMap(requestMap, false));
-                    return CafeUtils.getResponseEntity("Product Added successfully", HttpStatus.OK);
+                    Product product = productRepository.findByNameProduct(requestMap.get(CafeConstants.NAMEPRODUCT));
+                    if (Objects.isNull(product)) {
+                        productRepository.save(getProductFromMap(requestMap, false));
+                        return CafeUtils.getResponseEntity("Product Added successfully", HttpStatus.OK);
+                    }
+                    else {
+                        return CafeUtils.getResponseEntity(CafeConstants.NAMEPRODUCT_ALREADY_EXIST, HttpStatus.BAD_REQUEST);
+                    }
                 }
                 return CafeUtils.getResponseEntity(CafeConstants.INVALID_DATA, HttpStatus.BAD_REQUEST);
             }else{
@@ -88,12 +92,18 @@ public class ProductServiceImpl implements ProductService {
         try{
             if(jwtRequestFilter.isAdmin()){
                 if(validateProductMap(requestMap, true)){
+                    Product productName = productRepository.findByNameProduct(requestMap.get(CafeConstants.NAMEPRODUCT));
                     Optional<Product> optional = productRepository.findById(Integer.valueOf(requestMap.get("id")));
                     if(optional.isPresent()){
                         Product product = getProductFromMap(requestMap, true);
                         product.setStatus(optional.get().getStatus());
-                        productRepository.save(product);
-                        return CafeUtils.getResponseEntity("Product updated successfully", HttpStatus.OK);
+                        if (Objects.isNull(productName)) {
+                            productRepository.save(product);
+                            return CafeUtils.getResponseEntity("Product updated successfully", HttpStatus.OK);
+                        }
+                        else {
+                            return CafeUtils.getResponseEntity(CafeConstants.NAMEPRODUCT_ALREADY_EXIST, HttpStatus.BAD_REQUEST);
+                        }
                     }else {
                         return CafeUtils.getResponseEntity("product id does not exist", HttpStatus.OK);
                     }

@@ -9,6 +9,7 @@ import java.io.Serial;
 import java.io.Serializable;
 
 @NamedQuery(name = "Category.getAllCategory", query = "SELECT c FROM Category c WHERE c.id IN (SELECT p.category FROM Product p WHERE p.status='true')")
+@NamedQuery(name = "Category.findByNameCategory", query = "SELECT c FROM Category c WHERE c.name=:name")
 
 @Data
 @Entity

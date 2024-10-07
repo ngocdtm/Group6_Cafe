@@ -2,6 +2,7 @@
 package com.coffee.repository;
 
 import com.coffee.entity.Product;
+import com.coffee.entity.User;
 import com.coffee.wrapper.ProductWrapper;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -16,6 +17,8 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Query("SELECT NEW com.coffee.wrapper.ProductWrapper(p.id, p.name, p.description, " +
             "p.price, p.status, p.category.id, p.category.name) FROM Product p")
     List<ProductWrapper> getAllProduct();
+
+    Product findByNameProduct(@Param("name") String name);
 
     @Transactional
     @Modifying
