@@ -8,6 +8,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { GlobalConstants } from 'src/app/shared/global-constants';
 import { ProductComponent } from '../dialog/product/product.component';
 import { ConfirmationComponent } from '../dialog/confirmation/confirmation.component';
+import { identity } from 'rxjs';
 
 @Component({
   selector: 'app-manage-product',
@@ -19,40 +20,63 @@ export class ManageProductComponent implements OnInit {
   displayedColumns: string[] = ['name', 'categoryName', 'description', 'price', 'edit'];
   dataSource:any;
   responseMessage:any;
+  categories: Set<string> = new Set();
+  selectedCategory: string = '';
+  searchText: string = '';
+
 
   constructor(private productService:ProductService,
     private ngxService:NgxUiLoaderService,
     private dialog:MatDialog,
     private snackbarService:SnackbarService,
     private router:Router
-  ) { }
+  ) {   this.dataSource = new MatTableDataSource(); }
 
   ngOnInit(): void {
     this.ngxService.start();
     this.tableData();
   }
-
-  tableData(){
-    this.productService.getProduct().subscribe((response:any)=>{
-      this.ngxService.stop();
-      this.dataSource = new MatTableDataSource(response);
-    },(error:any)=>{
-      this.ngxService.stop();
-      console.log(error.error?.message);
-      if(error.error?.message){
-        this.responseMessage = error.error?.message;
-      }else{
+  tableData() {
+    this.productService.getProduct().subscribe(
+      (response: any) => {
+        this.ngxService.stop();
+        this.dataSource.data = response;
+        // Extract unique categories
+        this.categories = new Set(response.map((product: any) => product.categoryName));
+        this.applyFilters();
+      },
+      (error: any) => {
+        this.ngxService.stop();
+        console.error(error.error?.message);
         this.responseMessage = GlobalConstants.genericError;
+        this.snackbarService.openSnackBar(this.responseMessage, GlobalConstants.error);
       }
-      this.snackbarService.openSnackBar(this.responseMessage, GlobalConstants.error);
-    })
+    );
   }
 
-  applyFilter(event:Event){
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+  applyFilters() {
+    this.dataSource.filterPredicate = (data: any, filter: string) => {
+      const searchTerms = JSON.parse(filter);
+      return data.name.toLowerCase().indexOf(searchTerms.searchText.toLowerCase()) !== -1 &&
+             (searchTerms.category === '' || data.categoryName === searchTerms.category);
+    };
+    
+    const filterValue = JSON.stringify({
+      searchText: this.searchText,
+      category: this.selectedCategory
+    });
+    
+    this.dataSource.filter = filterValue;
   }
 
+  onSearch(event: Event) {
+    this.searchText = (event.target as HTMLInputElement).value;
+    this.applyFilters();
+  }
+
+  onCategoryChange() {
+    this.applyFilters();
+  }
   handleAddAction(){
     const dialogConfig = new MatDialogConfig();
     dialogConfig.data = {
