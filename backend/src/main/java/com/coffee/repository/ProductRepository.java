@@ -2,7 +2,6 @@
 package com.coffee.repository;
 
 import com.coffee.entity.Product;
-import com.coffee.entity.User;
 import com.coffee.wrapper.ProductWrapper;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

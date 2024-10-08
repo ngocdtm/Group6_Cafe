@@ -2,7 +2,6 @@ package com.coffee.service.impl;
 
 import com.coffee.constants.CafeConstants;
 import com.coffee.entity.Category;
-import com.coffee.entity.Product;
 import com.coffee.repository.CategoryRepository;
 import com.coffee.security.JwtRequestFilter;
 import com.coffee.service.CategoryService;

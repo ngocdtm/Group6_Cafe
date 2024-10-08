@@ -1,7 +1,6 @@
 package com.coffee.repository;
 
 import com.coffee.entity.Category;
-import com.coffee.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.query.Param;
 

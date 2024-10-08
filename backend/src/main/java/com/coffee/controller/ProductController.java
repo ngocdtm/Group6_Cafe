@@ -36,7 +36,7 @@ public class ProductController {
     )
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/add")
-    public ResponseEntity<String> addProduct(@RequestBody Map<String, String> requestMap){
+    public ResponseEntity<String> addProduct(@RequestBody(required = true)  Map<String, String> requestMap){
         try{
             return productService.addProduct(requestMap);
         }catch(Exception ex){

@@ -14,6 +14,10 @@ public class CafeConstants {
 
     public static final String NAMECATEGORY_ALREADY_EXIST = "NAMECATEGORY already exists";
 
+    public static final String NAMECOUPON_ALREADY_EXIST = "NAMECOUPON already exists";
+
+    public static final String COUPON = "name";
+
     public static final String EMAIL = "email";
 
     public static final String NAMEPRODUCT = "name";
