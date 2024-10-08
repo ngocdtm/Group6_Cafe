@@ -8,7 +8,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { GlobalConstants } from 'src/app/shared/global-constants';
 import { ProductComponent } from '../dialog/product/product.component';
 import { ConfirmationComponent } from '../dialog/confirmation/confirmation.component';
-import { identity } from 'rxjs';
+import { ViewDetailProductComponent } from '../view-detail-product/view-detail-product.component';
 
 @Component({
   selector: 'app-manage-product',
@@ -17,7 +17,7 @@ import { identity } from 'rxjs';
 })
 export class ManageProductComponent implements OnInit {
 
-  displayedColumns: string[] = ['name', 'categoryName', 'description', 'price', 'edit'];
+  displayedColumns: string[] = ['name', 'categoryName', 'description', 'price', 'edit', 'view'];
   dataSource:any;
   responseMessage:any;
   categories: Set<string> = new Set();
@@ -53,7 +53,17 @@ export class ManageProductComponent implements OnInit {
       }
     );
   }
-
+  handleViewAction(values:any){
+    const dialogConfig = new MatDialogConfig();
+    dialogConfig.data = {
+      data:values
+    };
+    dialogConfig.width = "100%";
+    const dialogRef = this.dialog.open(ViewDetailProductComponent,dialogConfig);
+    this.router.events.subscribe(()=>{
+      dialogRef.close();
+    });
+  }
   applyFilters() {
     this.dataSource.filterPredicate = (data: any, filter: string) => {
       const searchTerms = JSON.parse(filter);
