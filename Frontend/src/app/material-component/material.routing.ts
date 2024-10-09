@@ -5,6 +5,7 @@ import { ManageProductComponent } from './manage-product/manage-product.componen
 import { ManageOrderComponent } from './manage-order/manage-order.component';
 import { ViewBillComponent } from './view-bill/view-bill.component';
 import { ManageUserComponent } from './manage-user/manage-user.component';
+import { ManageCouponComponent } from './manage-coupon/manage-coupon.component';
 
 
 export const MaterialRoutes: Routes = [
@@ -43,6 +44,14 @@ export const MaterialRoutes: Routes = [
   {
     path: 'user',
     component:ManageUserComponent,
+    canActivate:[RouteGuardService],
+    data:{
+      expectedRole: ['admin']
+    }
+  },
+  {
+    path: 'coupon',
+    component:ManageCouponComponent,
     canActivate:[RouteGuardService],
     data:{
       expectedRole: ['admin']

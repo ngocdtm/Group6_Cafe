@@ -1,0 +1,28 @@
+.mat-toolbar {
+  margin: -24px;
+  margin-bottom: 10px;
+  width: auto;
+}
+
+mat-form-field {
+  padding: 5px;
+}
+
+/* Ensure consistent height for all form fields */
+::ng-deep .mat-form-field-flex {
+  align-items: center;
+  min-height: 48px;
+}
+
+/* Adjust datepicker toggle position */
+::ng-deep .mat-datepicker-toggle {
+  position: relative;
+  top: -0.25em;
+}
+
+/* Ensure consistent input padding */
+::ng-deep .mat-form-field-infix {
+  padding: 0.25em 0;
+}
+
+
