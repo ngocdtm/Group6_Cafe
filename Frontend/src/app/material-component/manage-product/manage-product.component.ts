@@ -56,8 +56,9 @@ export class ManageProductComponent implements OnInit {
           ...product,
           images: product.images || []
         })));
+        // Extract unique categories
+        this.categories = new Set(response.map((product: any) => product.categoryName));
         this.applyFilters();
-        // this.categories = new Set(response.map((product: any) => ({ product.categoryName})));
       },
       (error: any) => {
         this.ngxService.stop();
