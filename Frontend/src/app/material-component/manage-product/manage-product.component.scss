@@ -1,12 +1,30 @@
-.float-right{
+.float-right {
   float: right;
 }
 
-mat-card{
+mat-card {
   padding: 20px;
 }
 
-table{
+table {
   width: 100%;
 }
 
+th.mat-header-cell {
+  vertical-align: middle;
+  padding: 0 8px;
+}
+
+td.mat-cell {
+  padding: 8px;
+  vertical-align: middle;
+}
+
+.image-count {
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+.responsive_table {
+  overflow-x: auto;
+}

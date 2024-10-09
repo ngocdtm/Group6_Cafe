@@ -3,17 +3,16 @@ package com.coffee.service;
 import com.coffee.wrapper.ProductWrapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.util.List;
 import java.util.Map;
 
 public interface ProductService {
-    ResponseEntity<String> addProduct(Map<String, String> requestMap);
+    ResponseEntity<String> addProduct(List<MultipartFile> files, String name, Integer categoryId, String description, Integer price);
 
     ResponseEntity<List<ProductWrapper>> getAllProduct();
 
-    ResponseEntity<String> updateProduct(Map<String, String> requestMap);
-
+    ResponseEntity<String> updateProduct(List<MultipartFile> files, Integer id, String name,
+                                         Integer categoryId, String description, Integer price, List<Integer> deletedImageIds);
     ResponseEntity<String> deleteProduct(Integer id);
 
     ResponseEntity<String> updateStatus(Map<String, String> requestMap);
@@ -22,7 +21,5 @@ public interface ProductService {
 
     ResponseEntity<ProductWrapper> getById(Integer id);
 
-    ResponseEntity<String> uploadImage(Integer id, MultipartFile file);
-
-    ResponseEntity<String> deleteImage(Integer id);
+    ResponseEntity<String> deleteProductImage(Integer productId, Integer imageId);
 }
