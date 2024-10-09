@@ -25,6 +25,7 @@ public class ProductWrapper {
 
     List<ProductImageWrapper> images;
 
+
     public ProductWrapper(){
         this.imagePaths = new ArrayList<>();
     }

@@ -53,10 +53,10 @@ export class ProductComponent implements OnInit {
 
   private initForm(): void {
     this.productForm = this.formBuilder.group({
-      name: [null, [Validators.required, Validators.pattern(GlobalConstants.nameRegex)]],
-      categoryId: [null, [Validators.required]],
-      description: [null, [Validators.required]],
-      price: [null, [Validators.required]],
+      name:[null,[Validators.required]],
+      categoryId:[null,[Validators.required]],
+      description:[null,[Validators.required]],
+      price:[null,[Validators.required]],
     });
   }
 

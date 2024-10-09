@@ -23,6 +23,7 @@ import java.util.List;
 @NamedQuery(name = "Product.getProductById",
         query = "SELECT new com.coffee.wrapper.ProductWrapper(p.id, p.name, p.description, p.price, p.status, p.category.id, p.category.name) " +
                 "FROM Product p WHERE p.id=:id")
+@NamedQuery(name = "Product.findByNameProduct", query = "SELECT p FROM Product p WHERE p.name=:name")
 
 @Data
 @Entity
@@ -39,7 +40,7 @@ public class Product implements Serializable {
     @Column(name = "id")
     private Integer id;
 
-    @Column(name = "name")
+    @Column(name = "name",nullable = false, length = 350)
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)

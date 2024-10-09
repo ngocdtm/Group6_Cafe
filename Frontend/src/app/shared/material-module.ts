@@ -96,7 +96,7 @@
          ObserversModule,
          OverlayModule,
          PlatformModule,
-         PortalModule
+         PortalModule,
      ]
  })
  export class MaterialModule { }

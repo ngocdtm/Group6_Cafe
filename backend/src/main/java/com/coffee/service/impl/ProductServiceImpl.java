@@ -26,6 +26,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Collectors;
 
+
 @Service
 public class ProductServiceImpl implements ProductService {
 
@@ -67,6 +68,17 @@ public class ProductServiceImpl implements ProductService {
                     }
 
                     return CafeUtils.getResponseEntity("Product Added successfully", HttpStatus.OK);
+// khasc
+                if(validateProductMap(requestMap, false)){
+                    Product product = productRepository.findByNameProduct(requestMap.get(CafeConstants.NAMEPRODUCT));
+                    if (Objects.isNull(product)) {
+                        productRepository.save(getProductFromMap(requestMap, false));
+                        return CafeUtils.getResponseEntity("Product Added successfully", HttpStatus.OK);
+                    }
+                    else {
+                        return CafeUtils.getResponseEntity(CafeConstants.NAMEPRODUCT_ALREADY_EXIST, HttpStatus.BAD_REQUEST);
+                    }
+// towsi 
                 }
                 return CafeUtils.getResponseEntity(CafeConstants.INVALID_DATA, HttpStatus.BAD_REQUEST);
             } else {
@@ -127,6 +139,7 @@ public class ProductServiceImpl implements ProductService {
                                                 Integer categoryId, String description, Integer price, List<Integer> deletedImageIds) {
         try {
             if(jwtRequestFilter.isAdmin()) {
+              Product productName = productRepository.findByNameProduct(requestMap.get(CafeConstants.NAMEPRODUCT));
                 Optional<Product> optional = productRepository.findById(id);
                 if(optional.isPresent()) {
                     Product product = optional.get();
@@ -171,9 +184,13 @@ public class ProductServiceImpl implements ProductService {
                             productImageRepository.save(productImage);
                         }
                     }
-
-                    productRepository.save(product);
-                    return CafeUtils.getResponseEntity("Product updated successfully", HttpStatus.OK);
+                      if (Objects.isNull(productName)) {
+                            productRepository.save(product);
+                            return CafeUtils.getResponseEntity("Product updated successfully", HttpStatus.OK);
+                        }
+                        else {
+                            return CafeUtils.getResponseEntity(CafeConstants.NAMEPRODUCT_ALREADY_EXIST, HttpStatus.BAD_REQUEST);
+                        }
                 } else {
                     return CafeUtils.getResponseEntity("Product id does not exist", HttpStatus.BAD_REQUEST);
                 }
