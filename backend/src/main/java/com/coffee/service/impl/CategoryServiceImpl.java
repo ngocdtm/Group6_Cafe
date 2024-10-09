@@ -13,7 +13,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -30,14 +33,14 @@ public class CategoryServiceImpl implements CategoryService {
         try{
             if(jwtRequestFilter.isAdmin()){
                 if(validateCategoryMap(requestMap, false)){
-                    Category category = categoryRepository.findByNameCategory(requestMap.get(CafeConstants.NAMECATEGORY));
-                    if (Objects.isNull(category)) {
+
+                    String categoryName = requestMap.get("name");
+                    if(categoryRepository.findByNameCategory(categoryName).isPresent()) {
+                        return CafeUtils.getResponseEntity("Category name already exists", HttpStatus.BAD_REQUEST);
+                    }
+
                     categoryRepository.save(getCategoryFromMap(requestMap, false));
                     return CafeUtils.getResponseEntity("Category added successfully", HttpStatus.OK);
-                    }
-                    else {
-                        return CafeUtils.getResponseEntity(CafeConstants.NAMECATEGORY_ALREADY_EXIST, HttpStatus.BAD_REQUEST);
-                    }
                 }
             }else{
                 return CafeUtils.getResponseEntity(CafeConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
@@ -82,16 +85,19 @@ public class CategoryServiceImpl implements CategoryService {
         try{
             if(jwtRequestFilter.isAdmin()){
                 if(validateCategoryMap(requestMap, true)){
-                    Category categoryName = categoryRepository.findByNameCategory(requestMap.get(CafeConstants.NAMECATEGORY));
                     Optional<Category> optional = categoryRepository.findById(Integer.parseInt(requestMap.get("id")));
                     if(optional.isPresent()){
-                        if (Objects.isNull(categoryName)) {
-                        categoryRepository.save(getCategoryFromMap(requestMap, true));
+                        Category category = optional.get();
+                        String newName = requestMap.get("name");
+                        if(!category.getName().equals(newName)) {
+                            Optional<Category> existingCategory = categoryRepository.findByNameCategory(newName);
+                            if(existingCategory.isPresent() && !existingCategory.get().getId().equals(category.getId())) {
+                                return CafeUtils.getResponseEntity("Category name already exists", HttpStatus.BAD_REQUEST);
+                            }
+                            category.setName(newName);
+                        }
+                        categoryRepository.save(category);
                         return CafeUtils.getResponseEntity("Category updated successfully", HttpStatus.OK);
-                        }
-                        else {
-                            return CafeUtils.getResponseEntity(CafeConstants.NAMECATEGORY_ALREADY_EXIST, HttpStatus.BAD_REQUEST);
-                        }
                     }else{
                         return CafeUtils.getResponseEntity("Category id does not exist", HttpStatus.OK);
                     }

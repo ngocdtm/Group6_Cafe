@@ -23,6 +23,7 @@ import java.util.List;
 @NamedQuery(name = "Product.getProductById",
         query = "SELECT new com.coffee.wrapper.ProductWrapper(p.id, p.name, p.description, p.price, p.status, p.category.id, p.category.name) " +
                 "FROM Product p WHERE p.id=:id")
+
 @NamedQuery(name = "Product.findByNameProduct", query = "SELECT p FROM Product p WHERE p.name=:name")
 
 @Data
