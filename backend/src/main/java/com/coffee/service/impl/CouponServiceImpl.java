@@ -13,8 +13,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 @Slf4j
@@ -64,22 +66,15 @@ public class CouponServiceImpl implements CouponService {
         coupon.setCode(requestMap.get("code"));
         coupon.setDiscount(Long.parseLong(requestMap.get("discount")));
         // Parse the date
-        String expirationString = requestMap.get("expiration");
-        LocalDate expirationDate;
+        String expirationDateString = requestMap.get("expirationDate");
+        if (expirationDateString != null && !expirationDateString.isEmpty()) { try
+        { DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            LocalDate expirationDate = LocalDate.parse(expirationDateString, formatter); coupon.setExpirationDate(expirationDate); }
+        catch (DateTimeParseException e) {
+            e.printStackTrace(); // Handle the parse exception, maybe set a default date or return null } }
+        }}
 
-        if (expirationString.length() == 7) {
-            // Assume format is "ddMMyyyy" with single-digit day
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dMMyyyy");
-            expirationDate = LocalDate.parse(expirationString, formatter);
-        } else if (expirationString.length() == 8) {
-            // Assume format is "ddMMyyyy" with two-digit day
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("ddMMyyyy");
-            expirationDate = LocalDate.parse(expirationString, formatter);
-        } else {
-            throw new IllegalArgumentException("Invalid date format. Expected ddMMyyyy or dMMyyyy.");
-        }
-        coupon.setExpirationDate(expirationDate);
-        return coupon;
+            return coupon;
     }
 
     @Override
