@@ -52,10 +52,12 @@ export class ManageProductComponent implements OnInit {
     this.productService.getProduct().subscribe(
       (response: any) => {
         this.ngxService.stop();
-        this.dataSource.data = response;
-        // Extract unique categories
-        this.categories = new Set(response.map((product: any) => ({ product.categoryName, images: product.images })));
+        this.dataSource = new MatTableDataSource(response.map((product: any) => ({
+          ...product,
+          images: product.images || []
+        })));
         this.applyFilters();
+        // this.categories = new Set(response.map((product: any) => ({ product.categoryName})));
       },
       (error: any) => {
         this.ngxService.stop();

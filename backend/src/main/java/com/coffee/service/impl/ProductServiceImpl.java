@@ -1,4 +1,3 @@
-/// Trước khi sửa 23:03
 package com.coffee.service.impl;
 
 import com.coffee.constants.CafeConstants;
@@ -26,7 +25,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
 @Service
 public class ProductServiceImpl implements ProductService {
 
@@ -47,6 +45,11 @@ public class ProductServiceImpl implements ProductService {
         try {
             if(jwtRequestFilter.isAdmin()){
                 if(files != null && !files.isEmpty() && name != null && categoryId != null && description != null && price != null){
+                    // Check if product name already exists
+                    if(productRepository.findByNameProduct(name).isPresent()) {
+                        return CafeUtils.getResponseEntity("Product name already exists", HttpStatus.BAD_REQUEST);
+                    }
+
                     Category category = new Category();
                     category.setId(categoryId);
 
@@ -68,17 +71,6 @@ public class ProductServiceImpl implements ProductService {
                     }
 
                     return CafeUtils.getResponseEntity("Product Added successfully", HttpStatus.OK);
-// khasc
-                if(validateProductMap(requestMap, false)){
-                    Product product = productRepository.findByNameProduct(requestMap.get(CafeConstants.NAMEPRODUCT));
-                    if (Objects.isNull(product)) {
-                        productRepository.save(getProductFromMap(requestMap, false));
-                        return CafeUtils.getResponseEntity("Product Added successfully", HttpStatus.OK);
-                    }
-                    else {
-                        return CafeUtils.getResponseEntity(CafeConstants.NAMEPRODUCT_ALREADY_EXIST, HttpStatus.BAD_REQUEST);
-                    }
-// towsi 
                 }
                 return CafeUtils.getResponseEntity(CafeConstants.INVALID_DATA, HttpStatus.BAD_REQUEST);
             } else {
@@ -88,27 +80,6 @@ public class ProductServiceImpl implements ProductService {
             ex.printStackTrace();
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    private boolean validateProductMap(Map<String, String> requestMap, boolean validateId) {
-        return requestMap.containsKey("name") && (requestMap.containsKey("id") || !validateId);
-    }
-
-    private Product getProductFromMap(Map<String, String> requestMap, boolean isAdd) {
-        Category category = new Category();
-        category.setId(Integer.valueOf(requestMap.get("categoryId")));
-
-        Product product = new Product();
-        if(isAdd) {
-            product.setId(Integer.valueOf(requestMap.get("id")));
-        }else{
-            product.setStatus(("true"));
-        }
-        product.setCategory(category);
-        product.setName(requestMap.get("name"));
-        product.setDescription(requestMap.get("description"));
-        product.setPrice(Integer.valueOf(requestMap.get("price")));
-        return product;
     }
 
     @Override
@@ -139,15 +110,19 @@ public class ProductServiceImpl implements ProductService {
                                                 Integer categoryId, String description, Integer price, List<Integer> deletedImageIds) {
         try {
             if(jwtRequestFilter.isAdmin()) {
-              Product productName = productRepository.findByNameProduct(requestMap.get(CafeConstants.NAMEPRODUCT));
                 Optional<Product> optional = productRepository.findById(id);
                 if(optional.isPresent()) {
                     Product product = optional.get();
 
-                    // Update basic information if provided
-                    if(name != null) {
+                    // Check if the new name already exists for a different product
+                    if(name != null && !name.equals(product.getName())) {
+                        Optional<Product> existingProduct = productRepository.findByNameProduct(name);
+                        if(existingProduct.isPresent() && !existingProduct.get().getId().equals(id)) {
+                            return CafeUtils.getResponseEntity("Product name already exists", HttpStatus.BAD_REQUEST);
+                        }
                         product.setName(name);
                     }
+
                     if(categoryId != null) {
                         Category category = new Category();
                         category.setId(categoryId);
@@ -184,13 +159,9 @@ public class ProductServiceImpl implements ProductService {
                             productImageRepository.save(productImage);
                         }
                     }
-                      if (Objects.isNull(productName)) {
-                            productRepository.save(product);
-                            return CafeUtils.getResponseEntity("Product updated successfully", HttpStatus.OK);
-                        }
-                        else {
-                            return CafeUtils.getResponseEntity(CafeConstants.NAMEPRODUCT_ALREADY_EXIST, HttpStatus.BAD_REQUEST);
-                        }
+
+                    productRepository.save(product);
+                    return CafeUtils.getResponseEntity("Product updated successfully", HttpStatus.OK);
                 } else {
                     return CafeUtils.getResponseEntity("Product id does not exist", HttpStatus.BAD_REQUEST);
                 }
