@@ -19,10 +19,6 @@ import { ForgotPasswordComponent } from './forgot-password/forgot-password.compo
 import { LoginComponent } from './login/login.component';
 import { TokenInterceptorInterceptor } from './services/token-interceptor.interceptor';
 import { DatePipe } from '@angular/common';
-<<<<<<< HEAD
-import { ImagePreviewDialogComponent } from './image-preview-dialog/image-preview-dialog.component';
-=======
->>>>>>> cf00a40c5600510fb42a44d381423478a8f66271
 
 const ngxUiLoaderConfig: NgxUiLoaderConfig = {
     text:"Loading...",
@@ -46,10 +42,6 @@ const ngxUiLoaderConfig: NgxUiLoaderConfig = {
     SignupComponent,
     ForgotPasswordComponent,
     LoginComponent,
-<<<<<<< HEAD
-    ImagePreviewDialogComponent,
-=======
->>>>>>> cf00a40c5600510fb42a44d381423478a8f66271
    ],
   imports: [
     BrowserModule,
@@ -63,22 +55,7 @@ const ngxUiLoaderConfig: NgxUiLoaderConfig = {
     HttpClientModule,
     NgxUiLoaderModule.forRoot(ngxUiLoaderConfig)
   ],
-<<<<<<< HEAD
-<<<<<<< HEAD
-  providers: [
-    HttpClientModule,
-    {
-      provide: HTTP_INTERCEPTORS, 
-      useClass: TokenInterceptorInterceptor,
-      multi:true
-    }
-  ],
-=======
   providers: [DatePipe,HttpClientModule,{provide:HTTP_INTERCEPTORS, useClass:TokenInterceptorInterceptor,multi:true}],
->>>>>>> main
-=======
-  providers: [DatePipe,HttpClientModule,{provide:HTTP_INTERCEPTORS, useClass:TokenInterceptorInterceptor,multi:true}],
->>>>>>> cf00a40c5600510fb42a44d381423478a8f66271
   bootstrap: [AppComponent]
 })
 export class AppModule { }
