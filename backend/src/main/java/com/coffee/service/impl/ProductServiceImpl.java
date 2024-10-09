@@ -26,6 +26,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Collectors;
 
+
 @Service
 public class ProductServiceImpl implements ProductService {
 
@@ -45,7 +46,7 @@ public class ProductServiceImpl implements ProductService {
     public ResponseEntity<String> addProduct(List<MultipartFile> files, String name, Integer categoryId, String description, Integer price) {
         try {
             if(jwtRequestFilter.isAdmin()){
-                if(files != null && !files.isEmpty() && name != null && categoryId != null && description != null && price != null){
+                if(files != null && !files.isEmpty() && name != null && categoryId != null && description != null && price != null) {
                     Category category = new Category();
                     category.setId(categoryId);
 
@@ -58,7 +59,7 @@ public class ProductServiceImpl implements ProductService {
 
                     product = productRepository.save(product);
 
-                    for(MultipartFile file : files) {
+                    for (MultipartFile file : files) {
                         String fileName = saveImage(file);
                         ProductImage productImage = new ProductImage();
                         productImage.setImagePath(fileName);
@@ -76,27 +77,6 @@ public class ProductServiceImpl implements ProductService {
             ex.printStackTrace();
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    private boolean validateProductMap(Map<String, String> requestMap, boolean validateId) {
-        return requestMap.containsKey("name") && (requestMap.containsKey("id") || !validateId);
-    }
-
-    private Product getProductFromMap(Map<String, String> requestMap, boolean isAdd) {
-        Category category = new Category();
-        category.setId(Integer.valueOf(requestMap.get("categoryId")));
-
-        Product product = new Product();
-        if(isAdd) {
-            product.setId(Integer.valueOf(requestMap.get("id")));
-        }else{
-            product.setStatus(("true"));
-        }
-        product.setCategory(category);
-        product.setName(requestMap.get("name"));
-        product.setDescription(requestMap.get("description"));
-        product.setPrice(Integer.valueOf(requestMap.get("price")));
-        return product;
     }
 
     @Override
@@ -171,9 +151,6 @@ public class ProductServiceImpl implements ProductService {
                             productImageRepository.save(productImage);
                         }
                     }
-
-                    productRepository.save(product);
-                    return CafeUtils.getResponseEntity("Product updated successfully", HttpStatus.OK);
                 } else {
                     return CafeUtils.getResponseEntity("Product id does not exist", HttpStatus.BAD_REQUEST);
                 }

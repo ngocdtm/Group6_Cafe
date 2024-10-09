@@ -1,0 +1,78 @@
+<mat-toolbar color="primary">
+    <mat-toolbar-row fxLayout="row">
+      <span>{{dialogData.action}} Coupon</span>
+      <span class="spacer"></span>
+      <button class="mat-dialog-close" mat-icon-button mat-dialog-close>
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-toolbar-row>
+</mat-toolbar>
+
+<mat-dialog-content class="mat-typography">
+  <form [formGroup]="couponForm">
+    <div fxFlex fxLayout="columns">
+
+      <div fxLayout="row wrap" fxFlex="25">
+        <mat-form-field appearance="standard" fxFlex>
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" required>
+          <mat-error *ngIf="couponForm.controls.name.touched && couponForm.controls.name.invalid">
+            <span *ngIf="couponForm.controls.name.errors.required">This field is mandatory.</span>
+            <span *ngIf="couponForm.controls.name.errors.pattern">This field is invalid.</span>
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      
+      <div fxLayout="row wrap" fxFlex="25">
+        <mat-form-field appearance="standard" fxFlex>
+          <mat-label>Code</mat-label>
+          <input matInput formControlName="code" required>
+          <mat-error *ngIf="couponForm.controls.code.touched && couponForm.controls.code.invalid">
+            <span *ngIf="couponForm.controls.code.errors.required">This field is mandatory.</span>
+            <span *ngIf="couponForm.controls.code.errors.pattern">This field is invalid.</span>
+          </mat-error>
+        </mat-form-field>
+      </div>
+      
+      <div fxLayout="row wrap" fxFlex="25">
+        <mat-form-field appearance="standard" fxFlex>
+          <mat-label>Discount %</mat-label>
+          <input matInput type="number" placeholder="Discount" formControlName="discount" required>
+          <mat-error *ngIf="couponForm.controls.discount.touched && couponForm.controls.discount.invalid">
+            <span *ngIf="couponForm.controls.discount.errors.required">This field is mandatory.</span>
+            <span *ngIf="couponForm.controls.discount.errors.pattern">This field is invalid.</span>
+          </mat-error>
+        </mat-form-field>
+      </div>
+      
+      <div fxLayout="row wrap" fxFlex="25">
+        <mat-form-field appearance="standard" fxFlex>
+          <mat-label>Expiration Date</mat-label>
+          <input matInput [matDatepicker]="picker" formControlName="expirationDate" required>
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+          <mat-hint>MM-dd-yyyy</mat-hint>
+          <mat-error *ngIf="couponForm.controls.expirationDate.touched && couponForm.controls.expirationDate.invalid">
+            <span *ngIf="couponForm.controls.expirationDate.errors.required">This field is mandatory.</span>
+          </mat-error>
+        </mat-form-field>
+      </div>
+      
+      
+      
+      
+
+      </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-raised-button="primary" type="submit" (click)="handleSubmit()" [disabled]="!(couponForm.valid && couponForm.dirty)">
+  <mat-icon>save</mat-icon> {{action}}
+</button>
+
+<button mat-raised-button color="warn" mat-dialog-close>
+  <mat-icon>cancel</mat-icon> Close
+</button>
+</mat-dialog-actions>

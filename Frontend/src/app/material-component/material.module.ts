@@ -17,7 +17,13 @@ import { ProductComponent } from './dialog/product/product.component';
 import { ManageOrderComponent } from './manage-order/manage-order.component';
 import { ViewBillComponent } from './view-bill/view-bill.component';
 import { ManageUserComponent } from './manage-user/manage-user.component';
+<<<<<<< HEAD
 import { ImagePreviewDialogComponent } from './dialog/image-preview-dialog/image-preview-dialog.component';
+=======
+import { ViewDetailProductComponent } from './view-detail-product/view-detail-product.component';
+import { ManageCouponComponent } from './manage-coupon/manage-coupon.component';
+import { CouponComponent } from './dialog/coupon/coupon.component';
+>>>>>>> main
 
 @NgModule({
   imports: [
@@ -42,7 +48,13 @@ import { ImagePreviewDialogComponent } from './dialog/image-preview-dialog/image
     ManageOrderComponent,
     ViewBillComponent,
     ManageUserComponent,
+<<<<<<< HEAD
     ImagePreviewDialogComponent
+=======
+    ViewDetailProductComponent,
+    ManageCouponComponent,
+    CouponComponent,
+>>>>>>> main
   ]
 })
 export class MaterialComponentsModule {}
