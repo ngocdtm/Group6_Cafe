@@ -28,7 +28,7 @@ public class CafeConstants {
 
     public static final String STORE_LOCATION = "D:\\Project_Web Application\\Group6_Cafe\\backend\\bill";
 
-    //public static final String STORE_LOCATION = "C:\\BILL";
+    //  public static final String STORE_LOCATION = "C:\\BILL";
 
 
 }

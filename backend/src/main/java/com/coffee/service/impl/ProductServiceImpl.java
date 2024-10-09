@@ -79,6 +79,27 @@ public class ProductServiceImpl implements ProductService {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    private boolean validateProductMap(Map<String, String> requestMap, boolean validateId) {
+        return requestMap.containsKey("name") && (requestMap.containsKey("id") || !validateId);
+    }
+
+    private Product getProductFromMap(Map<String, String> requestMap, boolean isAdd) {
+        Category category = new Category();
+        category.setId(Integer.valueOf(requestMap.get("categoryId")));
+
+        Product product = new Product();
+        if(isAdd) {
+            product.setId(Integer.valueOf(requestMap.get("id")));
+        }else{
+            product.setStatus(("true"));
+        }
+        product.setCategory(category);
+        product.setName(requestMap.get("name"));
+        product.setDescription(requestMap.get("description"));
+        product.setPrice(Integer.valueOf(requestMap.get("price")));
+        return product;
+    }
+
     @Override
     public ResponseEntity<List<ProductWrapper>> getAllProduct() {
         try {

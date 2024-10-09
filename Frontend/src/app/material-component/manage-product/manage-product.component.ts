@@ -9,6 +9,7 @@ import { GlobalConstants } from 'src/app/shared/global-constants';
 import { ProductComponent } from '../dialog/product/product.component';
 import { ConfirmationComponent } from '../dialog/confirmation/confirmation.component';
 import { ImagePreviewDialogComponent } from '../dialog/image-preview-dialog/image-preview-dialog.component';
+import { ViewDetailProductComponent } from '../view-detail-product/view-detail-product.component';
 
 @Component({
   selector: 'app-manage-product',
@@ -17,9 +18,14 @@ import { ImagePreviewDialogComponent } from '../dialog/image-preview-dialog/imag
 })
 export class ManageProductComponent implements OnInit {
 
-  displayedColumns: string[] = ['images', 'name', 'categoryName', 'description', 'price', 'edit'];
+  displayedColumns: string[] = ['images', 'name', 'categoryName', 'description', 'price', 'edit', 'view'];
+  
   dataSource:any;
   responseMessage:any;
+  categories: Set<string> = new Set();
+  selectedCategory: string = '';
+  searchText: string = '';
+
 
   constructor(
     public productService:ProductService,
@@ -27,7 +33,7 @@ export class ManageProductComponent implements OnInit {
     private dialog:MatDialog,
     private snackbarService:SnackbarService,
     private router:Router
-  ) { }
+  ) {   this.dataSource = new MatTableDataSource(); }
 
   ngOnInit(): void {
     this.ngxService.start();
@@ -50,25 +56,52 @@ export class ManageProductComponent implements OnInit {
           ...product,
           images: product.images || []
         })));
+        this.applyFilters();
+        // this.categories = new Set(response.map((product: any) => ({ product.categoryName})));
       },
       (error: any) => {
         this.ngxService.stop();
         console.log(error.error?.message);
-        if (error.error?.message) {
-          this.responseMessage = error.error?.message;
-        } else {
-          this.responseMessage = GlobalConstants.genericError;
-        }
+        console.error(error.error?.message);
+        this.responseMessage = GlobalConstants.genericError;
         this.snackbarService.openSnackBar(this.responseMessage, GlobalConstants.error);
       }
     );
   }
-  
-  applyFilter(event:Event){
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+  handleViewAction(values:any){
+    const dialogConfig = new MatDialogConfig();
+    dialogConfig.data = {
+      data:values
+    };
+    dialogConfig.width = "100%";
+    const dialogRef = this.dialog.open(ViewDetailProductComponent,dialogConfig);
+    this.router.events.subscribe(()=>{
+      dialogRef.close();
+    });
+  }
+  applyFilters() {
+    this.dataSource.filterPredicate = (data: any, filter: string) => {
+      const searchTerms = JSON.parse(filter);
+      return data.name.toLowerCase().indexOf(searchTerms.searchText.toLowerCase()) !== -1 &&
+             (searchTerms.category === '' || data.categoryName === searchTerms.category);
+    };
+    
+    const filterValue = JSON.stringify({
+      searchText: this.searchText,
+      category: this.selectedCategory
+    });
+    
+    this.dataSource.filter = filterValue;
   }
 
+  onSearch(event: Event) {
+    this.searchText = (event.target as HTMLInputElement).value;
+    this.applyFilters();
+  }
+
+  onCategoryChange() {
+    this.applyFilters();
+  }
   handleAddAction(){
     const dialogConfig = new MatDialogConfig();
     dialogConfig.data = {
