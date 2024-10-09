@@ -1,7 +1,8 @@
-
 package com.coffee.wrapper;
 
 import lombok.Data;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 public class ProductWrapper {
@@ -20,13 +21,17 @@ public class ProductWrapper {
 
     String categoryName;
 
-    String imagePath;
+    List<String> imagePaths;
+
+    List<ProductImageWrapper> images;
 
     public ProductWrapper(){
-
+        this.imagePaths = new ArrayList<>();
     }
 
-    public ProductWrapper(Integer id, String name, String description, Integer price, String status, Integer categoryId, String categoryName){
+    // Constructor chung cho tất cả các trường hợp
+    public ProductWrapper(Integer id, String name, String description, Integer price,
+                          String status, Integer categoryId, String categoryName) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -34,17 +39,6 @@ public class ProductWrapper {
         this.status = status;
         this.categoryId = categoryId;
         this.categoryName = categoryName;
-    }
-
-    public ProductWrapper(Integer id, String name){
-        this.id = id;
-        this.name = name;
-    }
-
-    public ProductWrapper(Integer id, String name, String description, Integer price){
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.price = price;
+        this.imagePaths = new ArrayList<>();
     }
 }

@@ -1,6 +1,7 @@
 package com.coffee.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,14 +13,16 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
+import org.springframework.beans.factory.annotation.Value;
 import java.io.IOException;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private CustomUserDetailsService userDetailsService;
+    @Value("${cafe.app.jwtSecret}")
+    private String jwtSecret;
+
+    private final CustomUserDetailsService userDetailsService;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -27,6 +30,21 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     Claims claims = null;
 
     private String username = null;
+
+    public JwtRequestFilter(CustomUserDetailsService userDetailsService) {
+        this.userDetailsService = userDetailsService;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        return path.startsWith("/uploads/") ||
+                path.startsWith("/images/") ||
+                path.startsWith("/api/v1/product/images/") ||
+                path.equals("/api/v1/user/login") ||
+                path.equals("/api/v1/user/signup") ||
+                path.equals("/api/v1/user/forgotPassword");
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {

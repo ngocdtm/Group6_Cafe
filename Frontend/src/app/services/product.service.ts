@@ -8,42 +8,46 @@ import { environment } from 'src/environments/environment';
 export class ProductService {
 
   url = environment.apiUrl;
+  imageUrl = environment.imageUrl;
 
   constructor(private httpClient:HttpClient) { }
 
-  add(data:any){
-    return this.httpClient.post(`${this.url}/api/v1/product/add`, data,{
+  getImageUrl(imagePath: string): string {
+    if (!imagePath) return '';
+    return `${this.url}/api/v1/product/images/${imagePath}`;
+  }
+  
+  add(formData: FormData) {
+    return this.httpClient.post(`${this.url}/api/v1/product/add`, formData);
+  }
+
+  update(formData: FormData) {
+    return this.httpClient.post(`${this.url}/api/v1/product/update`, formData);
+  }
+
+  getProduct() {
+    return this.httpClient.get(`${this.url}/api/v1/product/get`);
+  }
+
+  updateStatus(data:any) {
+    return this.httpClient.post(`${this.url}/api/v1/product/updateStatus`, data, {
       headers: new HttpHeaders().set('Content-Type', 'application/json')
-    })
+    });
   }
 
-  update(data:any){
-    return this.httpClient.post(`${this.url}/api/v1/product/update`, data,{
-      headers: new HttpHeaders().set('Content-Type', 'application/json')
-    })
+  delete(id:any) {
+    return this.httpClient.post(`${this.url}/api/v1/product/delete/${id}`, {});
   }
 
-  getProduct(){
-    return this.httpClient.get(`${this.url}/api/v1/product/get`)
+  deleteImage(productId: number, imageId: number) {
+    return this.httpClient.delete(`${this.url}/api/v1/product/deleteImage/${productId}/${imageId}`);
   }
 
-  updateStatus(data:any){
-    return this.httpClient.post(`${this.url}/api/v1/product/updateStatus`, data,{
-      headers: new HttpHeaders().set('Content-Type', 'application/json')
-    })
+  getProductsByCategory(id:any) {
+    return this.httpClient.get(`${this.url}/api/v1/product/getByCategory/${id}`);
   }
 
-  delete(id:any){
-    return this.httpClient.post(`${this.url}/api/v1/product/delete/${id}`,{
-      headers: new HttpHeaders().set('Content-Type', 'application/json')
-    })
-  }
-
-  getProductsByCategory(id:any){
-    return this.httpClient.get(`${this.url}/api/v1/product/getByCategory/${id}`)
-  }
-
-  getById(id:any){
-    return this.httpClient.get(`${this.url}/api/v1/product/getById/${id}`)
+  getById(id:any) {
+    return this.httpClient.get(`${this.url}/api/v1/product/getById/${id}`);
   }
 }
