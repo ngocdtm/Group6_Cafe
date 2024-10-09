@@ -8,6 +8,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { GlobalConstants } from 'src/app/shared/global-constants';
 import { ProductComponent } from '../dialog/product/product.component';
 import { ConfirmationComponent } from '../dialog/confirmation/confirmation.component';
+import { ImagePreviewDialogComponent } from '../dialog/image-preview-dialog/image-preview-dialog.component';
 import { ViewDetailProductComponent } from '../view-detail-product/view-detail-product.component';
 
 @Component({
@@ -17,7 +18,8 @@ import { ViewDetailProductComponent } from '../view-detail-product/view-detail-p
 })
 export class ManageProductComponent implements OnInit {
 
-  displayedColumns: string[] = ['name', 'categoryName', 'description', 'price', 'edit', 'view'];
+  displayedColumns: string[] = ['images', 'name', 'categoryName', 'description', 'price', 'edit', 'view'];
+  
   dataSource:any;
   responseMessage:any;
   categories: Set<string> = new Set();
@@ -25,7 +27,8 @@ export class ManageProductComponent implements OnInit {
   searchText: string = '';
 
 
-  constructor(private productService:ProductService,
+  constructor(
+    public productService:ProductService,
     private ngxService:NgxUiLoaderService,
     private dialog:MatDialog,
     private snackbarService:SnackbarService,
@@ -36,17 +39,27 @@ export class ManageProductComponent implements OnInit {
     this.ngxService.start();
     this.tableData();
   }
+
+  viewImages(product: any): void {
+    const images = product.images.map((image: any) => this.productService.getImageUrl(image.imagePath));
+    this.dialog.open(ImagePreviewDialogComponent, {
+      width: '80%',
+      data: { images: images }
+    });
+  }
+  
   tableData() {
     this.productService.getProduct().subscribe(
       (response: any) => {
         this.ngxService.stop();
         this.dataSource.data = response;
         // Extract unique categories
-        this.categories = new Set(response.map((product: any) => product.categoryName));
+        this.categories = new Set(response.map((product: any) => ({ product.categoryName, images: product.images })));
         this.applyFilters();
       },
       (error: any) => {
         this.ngxService.stop();
+        console.log(error.error?.message);
         console.error(error.error?.message);
         this.responseMessage = GlobalConstants.genericError;
         this.snackbarService.openSnackBar(this.responseMessage, GlobalConstants.error);
