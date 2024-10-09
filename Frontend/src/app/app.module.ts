@@ -19,6 +19,7 @@ import { ForgotPasswordComponent } from './forgot-password/forgot-password.compo
 import { LoginComponent } from './login/login.component';
 import { TokenInterceptorInterceptor } from './services/token-interceptor.interceptor';
 import { DatePipe } from '@angular/common';
+import { ImagePreviewDialogComponent } from './image-preview-dialog/image-preview-dialog.component';
 
 const ngxUiLoaderConfig: NgxUiLoaderConfig = {
     text:"Loading...",
@@ -42,6 +43,7 @@ const ngxUiLoaderConfig: NgxUiLoaderConfig = {
     SignupComponent,
     ForgotPasswordComponent,
     LoginComponent,
+    ImagePreviewDialogComponent,
    ],
   imports: [
     BrowserModule,
