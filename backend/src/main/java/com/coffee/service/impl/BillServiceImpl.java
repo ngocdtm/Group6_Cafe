@@ -3,9 +3,7 @@ package com.coffee.service.impl;
 
 import com.coffee.constants.CafeConstants;
 import com.coffee.entity.Bill;
-import com.coffee.entity.Category;
 import com.coffee.entity.Coupon;
-import com.coffee.entity.Product;
 import com.coffee.repository.BillRepository;
 import com.coffee.repository.CouponRepository;
 import com.coffee.security.JwtRequestFilter;
@@ -61,8 +59,6 @@ public class BillServiceImpl implements BillService {
                 }
             }
 
-
-
             String fileName;
             if(validateRequestMap(requestMap)){
                 if(requestMap.containsKey("isGenerate") && Boolean.TRUE.equals(!(Boolean) requestMap.get("isGenerate"))){
@@ -98,7 +94,7 @@ public class BillServiceImpl implements BillService {
                 }
                 doc.add(table);
 
-                Paragraph footer = new Paragraph("Total Amount: " + requestMap.get("total") + "\n"
+                Paragraph footer = new Paragraph("Total Amount: " + requestMap.get("totalAfterDiscount") + "\n"
                         + "Thank You For Visiting!!", getFont("Data"));
                 doc.add(footer);
                 doc.close();
@@ -267,6 +263,11 @@ public class BillServiceImpl implements BillService {
                 return ResponseEntity.badRequest().body(Map.of("message", "Coupon is expired"));
             }
 
+            // Check if coupon has been used before
+            if (billRepository.existsByCouponCode(couponCode)) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Coupon has already been used"));
+            }
+
             Integer discountAmount = (totalAmount * coupon.getDiscount().intValue()) / 100;
             Integer totalAfterDiscount = totalAmount - discountAmount;
 
@@ -275,6 +276,7 @@ public class BillServiceImpl implements BillService {
             response.put("totalAfterDiscount", totalAfterDiscount);
             response.put("discountAmount", discountAmount);
             response.put("discount", coupon.getDiscount());
+            response.put("code", couponCode);
 
             return ResponseEntity.ok(response);
         } catch (Exception ex) {
