@@ -52,7 +52,19 @@
           </mat-error>
         </mat-form-field>
       </div>
+        <!-- Add new form field for coupon code -->
+    <mat-form-field appearance="standard" fxFlex>
+      <mat-label>Coupon Code</mat-label>
+      <input matInput formControlName="code">
+    </mat-form-field>
+  
+    <button mat-flat-button color="accent" (click)="applyCoupon()" [disabled]="!manageOrderForm.get('code').value">
+      Apply Coupon
+    </button>
     </div>
+
+  
+
   </form>
 </mat-card>
 <hr>
@@ -111,9 +123,13 @@
 </form>
 <div>
   <button mat-flat-button color="primary" [disabled]="validateProductAdd()" (click)="add()">Add</button>
-  <button mat-flat-button color="primary" class="float-right">
-    <mat-icon>monetization_on</mat-icon> Total: {{total}}
-  </button>
+   
+    <button mat-flat-button color="accent" class="float-right" *ngIf="totalAfterDiscount !== total">
+      <mat-icon>local_offer</mat-icon> Total After Discount: {{totalAfterDiscount}}
+    </button>
+    <button mat-flat-button color="primary" class="float-right">
+      <mat-icon>monetization_on</mat-icon> Total Before Discount: {{total}}
+    </button> 
 </div>
 </mat-card>
 <hr>
