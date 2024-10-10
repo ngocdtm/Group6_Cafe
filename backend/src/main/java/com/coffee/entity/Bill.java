@@ -45,9 +45,19 @@ public class Bill implements Serializable {
     @Column(name = "total")
     private Integer total;
 
+    @Column(name = "totalAfterDiscount")
+    private Integer totalAfterDiscount;
+
+    @Column(name = "discount")
+    private Integer discount;
+
     @Column(name = "productDetails", columnDefinition = "TEXT")
     private String productDetails;
 
     @Column(name = "createdBy")
     private String createdBy;
+
+    @Column(name = "code")
+    private String code;
+
 }

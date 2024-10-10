@@ -3,7 +3,11 @@ package com.coffee.service.impl;
 
 import com.coffee.constants.CafeConstants;
 import com.coffee.entity.Bill;
+import com.coffee.entity.Category;
+import com.coffee.entity.Coupon;
+import com.coffee.entity.Product;
 import com.coffee.repository.BillRepository;
+import com.coffee.repository.CouponRepository;
 import com.coffee.security.JwtRequestFilter;
 import com.coffee.service.BillService;
 import com.coffee.utils.CafeUtils;
@@ -11,6 +15,7 @@ import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.io.IOUtils;
 import org.json.JSONArray;
@@ -20,10 +25,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
-import java.util.ArrayList;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -36,10 +40,29 @@ public class BillServiceImpl implements BillService {
     @Autowired
     JwtRequestFilter jwtRequestFilter;
 
+    @Autowired
+    CouponRepository couponRepository;
+
     @Override
     public ResponseEntity<String> generateBill(Map<String, Object> requestMap) {
         log.info("Inside Generate Report");
         try{
+            String code = (String) requestMap.get("code");
+            Integer total = (Integer) requestMap.get("total");
+
+            // Apply discount if coupon is provided
+            if (code != null && !code.isEmpty()) {
+                ResponseEntity<Map<String, Object>> discountResponse = applyCoupon(Map.of("code", code, "total", total));
+                if (discountResponse.getStatusCode() == HttpStatus.OK) {
+                    Map<String, Object> discountInfo = discountResponse.getBody();
+                    requestMap.put("total", discountInfo.get("total"));
+                    requestMap.put("totalAfterDiscount", discountInfo.get("totalAfterDiscount"));
+                    requestMap.put("discount", discountInfo.get("discount"));
+                }
+            }
+
+
+
             String fileName;
             if(validateRequestMap(requestMap)){
                 if(requestMap.containsKey("isGenerate") && Boolean.TRUE.equals(!(Boolean) requestMap.get("isGenerate"))){
@@ -229,4 +252,46 @@ public class BillServiceImpl implements BillService {
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+    @Override
+    public ResponseEntity<Map<String, Object>>  applyCoupon(Map<String, Object> requestMap) {
+        try {
+            String couponCode = (String) requestMap.get("code");
+            Integer totalAmount = (Integer) requestMap.get("total");
+
+            Coupon coupon = couponRepository.findByCode(couponCode);
+            if (coupon == null) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Invalid coupon code"));
+            }
+
+            if (couponIsExpired(coupon)) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Coupon is expired"));
+            }
+
+            Integer discountAmount = (totalAmount * coupon.getDiscount().intValue()) / 100;
+            Integer totalAfterDiscount = totalAmount - discountAmount;
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("total", totalAmount);
+            response.put("totalAfterDiscount", totalAfterDiscount);
+            response.put("discountAmount", discountAmount);
+            response.put("discount", coupon.getDiscount());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", CafeConstants.SOMETHING_WENT_WRONG));
+    }
+
+
+    private boolean couponIsExpired(Coupon coupon) {
+        LocalDate currentDate = LocalDate.now();
+        LocalDate expirationDate = coupon.getExpirationDate();
+        return expirationDate != null && currentDate.isAfter(expirationDate);
+    }
 }
+
+
+
+
