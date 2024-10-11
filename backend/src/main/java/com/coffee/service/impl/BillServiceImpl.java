@@ -45,19 +45,7 @@ public class BillServiceImpl implements BillService {
     public ResponseEntity<String> generateBill(Map<String, Object> requestMap) {
         log.info("Inside Generate Report");
         try{
-            String code = (String) requestMap.get("code");
-            Integer total = (Integer) requestMap.get("total");
 
-            // Apply discount if coupon is provided
-            if (code != null && !code.isEmpty()) {
-                ResponseEntity<Map<String, Object>> discountResponse = applyCoupon(Map.of("code", code, "total", total));
-                if (discountResponse.getStatusCode() == HttpStatus.OK) {
-                    Map<String, Object> discountInfo = discountResponse.getBody();
-                    requestMap.put("total", discountInfo.get("total"));
-                    requestMap.put("totalAfterDiscount", discountInfo.get("totalAfterDiscount"));
-                    requestMap.put("discount", discountInfo.get("discount"));
-                }
-            }
 
             String fileName;
             if(validateRequestMap(requestMap)){
@@ -94,7 +82,7 @@ public class BillServiceImpl implements BillService {
                 }
                 doc.add(table);
 
-                Paragraph footer = new Paragraph("Total Amount: " + requestMap.get("totalAfterDiscount") + "\n"
+                Paragraph footer = new Paragraph("Total Before Discount Amount: " + requestMap.get("total") + "\n"+ "Total After Discount Amount: " + requestMap.get("totalAfterDiscount")+"\n"
                         + "Thank You For Visiting!!", getFont("Data"));
                 doc.add(footer);
                 doc.close();
@@ -168,7 +156,8 @@ public class BillServiceImpl implements BillService {
             bill.setEmail((String) requestMap.get("email"));
             bill.setPhoneNumber((String) requestMap.get("phoneNumber"));
             bill.setPaymentMethod((String) requestMap.get("paymentMethod"));
-            bill.setTotal(Integer.valueOf((String) requestMap.get("total")));
+            bill.setTotal((Integer) requestMap.get("total"));
+            bill.setTotalAfterDiscount((Integer) requestMap.get("totalAfterDiscount"));
             bill.setProductDetails((String) requestMap.get("productDetails"));
             bill.setCreatedBy(jwtRequestFilter.getCurrentUser());
             billRepository.save(bill);
