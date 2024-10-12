@@ -11,17 +11,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 @NamedQuery(name = "Product.getAllProduct",
-        query = "SELECT new com.coffee.wrapper.ProductWrapper(p.id, p.name, p.description, p.price, p.status, p.category.id, p.category.name) FROM Product p")
+        query = "SELECT new com.coffee.wrapper.ProductWrapper(p.id, p.name, p.description, p.price, p.originalPrice, p.status, p.category.id, p.category.name) FROM Product p")
 
 @NamedQuery(name = "Product.updateProductStatus",
         query = "UPDATE Product p SET p.status=:status WHERE p.id=:id")
 
 @NamedQuery(name = "Product.getProductByCategory",
-        query = "SELECT new com.coffee.wrapper.ProductWrapper(p.id, p.name, p.description, p.price, p.status, p.category.id, p.category.name) " +
+        query = "SELECT new com.coffee.wrapper.ProductWrapper(p.id, p.name, p.description, p.price, p.originalPrice, p.status, p.category.id, p.category.name) " +
                 "FROM Product p WHERE p.category.id=:id AND p.status='true'")
 
 @NamedQuery(name = "Product.getProductById",
-        query = "SELECT new com.coffee.wrapper.ProductWrapper(p.id, p.name, p.description, p.price, p.status, p.category.id, p.category.name) " +
+        query = "SELECT new com.coffee.wrapper.ProductWrapper(p.id, p.name, p.description, p.price, p.originalPrice, p.status, p.category.id, p.category.name) " +
                 "FROM Product p WHERE p.id=:id")
 
 @NamedQuery(name = "Product.findByNameProduct", query = "SELECT p FROM Product p WHERE p.name=:name")
@@ -51,7 +51,7 @@ public class Product implements Serializable {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "original_price")
+    @Column(name = "originalPrice")
     private Integer originalPrice;
 
     @Column(name = "price")
