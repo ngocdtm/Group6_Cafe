@@ -52,6 +52,16 @@
         </mat-form-field>
       </div>
 
+      <div fxLayout="row wrap">
+        <mat-form-field appearance="standard" fxFlex>
+          <mat-label>originalPrice</mat-label>
+          <textarea matInput formControlName="originalPrice" required rows="4"></textarea>
+          <mat-error *ngIf="productForm.controls.originalPrice.touched && productForm.controls.originalPrice.invalid">
+            <span *ngIf="productForm.controls.originalPrice.errors?.required">This field is mandatory.</span>
+          </mat-error>
+        </mat-form-field>
+      </div>
+
       <!-- Images Section -->
   <div class="images-section" fxLayout="column" fxLayoutGap="20px">
     <!-- Add Images Button -->
