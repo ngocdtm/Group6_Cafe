@@ -17,7 +17,7 @@ import  { saveAs } from 'file-saver';
 })
 export class ViewBillComponent implements OnInit {
 
-  displayedColumns: string[] = ['name', 'email', 'phoneNumber', 'paymentMethod', 'total', 'view'];
+  displayedColumns: string[] = ['name', 'email', 'phoneNumber', 'paymentMethod', 'total', 'totalAfterDiscount', 'view'];
   dataSource:any = [];
   responseMessage:any;
 
@@ -105,7 +105,8 @@ export class ViewBillComponent implements OnInit {
       uuid: values.uuid,
       phoneNumber: values.phoneNumber,
       paymentMethod: values.paymentMethod,
-      total: values.total.toString(),
+      total: values.total,
+      totalAfterDiscount: values.totalAfterDiscount,
       productDetails: values.productDetails
     }
 

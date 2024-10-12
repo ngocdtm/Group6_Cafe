@@ -38,6 +38,11 @@
       <td mat-cell *matCellDef="let element">{{ element.total }}</td>
     </ng-container>
 
+    <ng-container matColumnDef="totalAfterDiscount">
+      <th mat-header-cell *matHeaderCellDef>Total D</th>
+      <td mat-cell *matCellDef="let element">{{ element.totalAfterDiscount }}</td>
+    </ng-container>
+
     <ng-container matColumnDef="view">
       <th mat-header-cell *matHeaderCellDef>Action</th>
       <td mat-cell *matCellDef="let element" class="action-link">

@@ -82,4 +82,15 @@ public class BillController {
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @PostMapping(path = "/applyCoupon")
+    public ResponseEntity<Map<String, Object>> applyCoupon(@RequestBody Map<String, Object> requestMap) {
+        try {
+            return billService.applyCoupon(requestMap);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", CafeConstants.SOMETHING_WENT_WRONG));
+    }
 }

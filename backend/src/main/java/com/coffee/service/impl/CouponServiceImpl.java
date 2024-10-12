@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -40,7 +39,7 @@ public class CouponServiceImpl implements CouponService {
                         return CafeUtils.getResponseEntity("Coupon Added successfully", HttpStatus.OK);
                     }
                     else {
-                        return CafeUtils.getResponseEntity(CafeConstants.NAMECOUPON_ALREADY_EXIST, HttpStatus.BAD_REQUEST);
+                        return CafeUtils.getResponseEntity(CafeConstants.CODECOUPON_ALREADY_EXIST, HttpStatus.BAD_REQUEST);
                     }
                 }
                 return CafeUtils.getResponseEntity(CafeConstants.INVALID_DATA, HttpStatus.BAD_REQUEST);
@@ -101,7 +100,7 @@ public class CouponServiceImpl implements CouponService {
                             return CafeUtils.getResponseEntity("Coupon updated successfully", HttpStatus.OK);
                         }
                         else {
-                            return CafeUtils.getResponseEntity(CafeConstants.NAMECOUPON_ALREADY_EXIST, HttpStatus.BAD_REQUEST);
+                            return CafeUtils.getResponseEntity(CafeConstants.CODECOUPON_ALREADY_EXIST, HttpStatus.BAD_REQUEST);
                         }
                     }else {
                         return CafeUtils.getResponseEntity("Coupon id does not exist", HttpStatus.OK);

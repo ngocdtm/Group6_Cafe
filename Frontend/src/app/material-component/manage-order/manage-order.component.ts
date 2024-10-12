@@ -22,7 +22,10 @@ export class ManageOrderComponent implements OnInit {
   products:any = [];
   price:any;
   total:number = 0;
+  totalAfterDiscount:number = 0;
   responseMessage:any;
+  discount: number = 0;
+  appliedCouponCode: string="";
 
   constructor(private formBuilder:FormBuilder,
     private categoryService:CategoryService,
@@ -44,7 +47,10 @@ export class ManageOrderComponent implements OnInit {
       category:[null,[Validators.required]],
       quantity:[null,[Validators.required]],
       price:[null,[Validators.required]],
-      total:[0,[Validators.required]]
+      total:[0,[Validators.required]],
+      totalAfterDiscount:[0,[Validators.required]],
+      discount:[0,[Validators.required]],
+      code:[null]
     });
 
   }
@@ -99,6 +105,30 @@ export class ManageOrderComponent implements OnInit {
     });
   }
 
+  applyCoupon() {
+    const code = this.manageOrderForm.get('code').value;
+    if (code && !this.appliedCouponCode) {
+      this.billService.applyCoupon({ code: code, total: this.total }).subscribe(
+        (response: any) => {
+          this.total = response.total;
+          this.totalAfterDiscount = response.totalAfterDiscount;
+          this.discount = response.discount;
+          this.appliedCouponCode = response.code;
+          this.snackbarService.openSnackBar('Coupon applied successfully', "success");
+        },
+        (error: any) => {
+          if (error.error?.message) {
+            this.responseMessage = error.error?.message;
+          } else {
+            this.responseMessage = GlobalConstants.genericError;
+          }
+          this.snackbarService.openSnackBar(this.responseMessage, GlobalConstants.error);
+        }
+      );
+    }
+  }
+
+
   setQuantity(value:any){
     var temp = this.manageOrderForm.controls['quantity'].value;
     if(temp > 0){
@@ -149,31 +179,36 @@ export class ManageOrderComponent implements OnInit {
     this.dataSource = [...this.dataSource];
   }
 
-  submitAction(){
-    var formData = this.manageOrderForm.value;
-    var data = {
+
+  submitAction() {
+    const formData = this.manageOrderForm.value;
+    const data = {
       name: formData.name,
       email: formData.email,
       phoneNumber: formData.phoneNumber,
       paymentMethod: formData.paymentMethod,
-      total: this.total.toString(),
-      productDetails: JSON.stringify(this.dataSource)
+      total: this.total,
+      totalAfterDiscount: this.totalAfterDiscount,
+      productDetails: JSON.stringify(this.dataSource),
+      couponCode: this.appliedCouponCode,
+      discount : this.discount,
+      code : this.appliedCouponCode
     }
     this.ngxService.start();
     this.billService.generateBill(data).subscribe((response:any)=>{
       this.downloadFile(response?.uuid);
       this.manageOrderForm.reset();
       this.dataSource = [];
-      this.total = 0;
-    },(error:any)=>{
-      console.log(error);
-      if(error.error?.message){
-        this.responseMessage = error.error?.message;
-      }else{
-        this.responseMessage = GlobalConstants.genericError;
-      }
-      this.snackbarService.openSnackBar(this.responseMessage, GlobalConstants.error);
-    });
+      this.totalAfterDiscount = 0;
+    },
+      (error: any) => {
+        if (error.error?.message) {
+          this.responseMessage = error.error?.message;
+        } else {
+          this.responseMessage = GlobalConstants.genericError;
+        }
+        this.snackbarService.openSnackBar(this.responseMessage, GlobalConstants.error);
+      });
   }
 
   downloadFile(fileName: string) {
