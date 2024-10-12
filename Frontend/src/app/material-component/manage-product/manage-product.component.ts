@@ -18,7 +18,7 @@ import { ViewDetailProductComponent } from '../view-detail-product/view-detail-p
 })
 export class ManageProductComponent implements OnInit {
 
-  displayedColumns: string[] = ['images', 'name', 'categoryName', 'description', 'price', 'edit', 'view'];
+  displayedColumns: string[] = ['images', 'name', 'categoryName', 'description', 'price', 'originalPrice', 'edit', 'view'];
   
   dataSource:any;
   responseMessage:any;
