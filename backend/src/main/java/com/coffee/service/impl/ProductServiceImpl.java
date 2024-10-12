@@ -41,10 +41,10 @@ public class ProductServiceImpl implements ProductService {
     private String uploadPath;
 
     @Override
-    public ResponseEntity<String> addProduct(List<MultipartFile> files, String name, Integer categoryId, String description, Integer price) {
+    public ResponseEntity<String> addProduct(List<MultipartFile> files, String name, Integer categoryId, String description, Integer price, Integer originalPrice) {
         try {
             if(jwtRequestFilter.isAdmin()){
-                if(files != null && !files.isEmpty() && name != null && categoryId != null && description != null && price != null){
+                if(files != null && !files.isEmpty() && name != null && categoryId != null && description != null && price != null && originalPrice != null) {
                     // Check if product name already exists
                     if(productRepository.findByNameProduct(name).isPresent()) {
                         return CafeUtils.getResponseEntity("Product name already exists", HttpStatus.BAD_REQUEST);
@@ -58,6 +58,7 @@ public class ProductServiceImpl implements ProductService {
                     product.setCategory(category);
                     product.setDescription(description);
                     product.setPrice(price);
+                    product.setOriginalPrice(originalPrice);
                     product.setStatus("true");
 
                     product = productRepository.save(product);
@@ -107,7 +108,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ResponseEntity<String> updateProduct(List<MultipartFile> files, Integer id, String name,
-                                                Integer categoryId, String description, Integer price, List<Integer> deletedImageIds) {
+                                                Integer categoryId, String description, Integer price, Integer originalPrice, List<Integer> deletedImageIds) {
         try {
             if(jwtRequestFilter.isAdmin()) {
                 Optional<Product> optional = productRepository.findById(id);
@@ -133,6 +134,9 @@ public class ProductServiceImpl implements ProductService {
                     }
                     if(price != null) {
                         product.setPrice(price);
+                    }
+                    if (originalPrice != null) {
+                        product.setOriginalPrice(originalPrice);
                     }
 
                     // Handle image deletions first
