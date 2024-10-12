@@ -15,6 +15,8 @@ public class ProductWrapper {
 
     Integer price;
 
+    Integer originalPrice;
+
     String status;
 
     Integer categoryId;
@@ -32,11 +34,12 @@ public class ProductWrapper {
 
     // Constructor chung cho tất cả các trường hợp
     public ProductWrapper(Integer id, String name, String description, Integer price,
-                          String status, Integer categoryId, String categoryName) {
+                          String status, Integer categoryId, String categoryName, Integer originalPrice) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.price = price;
+        this.originalPrice = originalPrice;
         this.status = status;
         this.categoryId = categoryId;
         this.categoryName = categoryName;

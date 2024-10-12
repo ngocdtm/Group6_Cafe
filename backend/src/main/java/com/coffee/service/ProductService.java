@@ -7,12 +7,12 @@ import java.util.List;
 import java.util.Map;
 
 public interface ProductService {
-    ResponseEntity<String> addProduct(List<MultipartFile> files, String name, Integer categoryId, String description, Integer price);
+    ResponseEntity<String> addProduct(List<MultipartFile> files, String name, Integer categoryId, String description, Integer price, Integer originalPrice);
 
     ResponseEntity<List<ProductWrapper>> getAllProduct();
 
     ResponseEntity<String> updateProduct(List<MultipartFile> files, Integer id, String name,
-                                         Integer categoryId, String description, Integer price, List<Integer> deletedImageIds);
+                                         Integer categoryId, String description, Integer price, Integer originalPrice, List<Integer> deletedImageIds);
     ResponseEntity<String> deleteProduct(Integer id);
 
     ResponseEntity<String> updateStatus(Map<String, String> requestMap);

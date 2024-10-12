@@ -81,9 +81,10 @@ public class ProductController {
                                              @RequestParam("name") String name,
                                              @RequestParam("categoryId") Integer categoryId,
                                              @RequestParam("description") String description,
-                                             @RequestParam("price") Integer price){
+                                             @RequestParam("price") Integer price,
+                                             @RequestParam("originalPrice") Integer originalPrice){
         try{
-            return productService.addProduct(files, name, categoryId, description, price);
+            return productService.addProduct(files, name, categoryId, description, price, originalPrice);
         }catch(Exception ex){
             ex.printStackTrace();
         }
@@ -118,9 +119,10 @@ public class ProductController {
             @RequestParam(value = "categoryId", required = false) Integer categoryId,
             @RequestParam(value = "description", required = false) String description,
             @RequestParam(value = "price", required = false) Integer price,
+            @RequestParam(value = "originalPrice", required = false) Integer originalPrice,
             @RequestParam(value = "deletedImageIds", required = false) List<Integer> deletedImageIds) {
         try {
-            return productService.updateProduct(files, id, name, categoryId, description, price, deletedImageIds);
+            return productService.updateProduct(files, id, name, categoryId, description, price, originalPrice, deletedImageIds);
         } catch(Exception ex) {
             ex.printStackTrace();
         }

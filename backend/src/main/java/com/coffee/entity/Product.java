@@ -51,6 +51,9 @@ public class Product implements Serializable {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "original_price")
+    private Integer originalPrice;
+
     @Column(name = "price")
     private Integer price;
 
