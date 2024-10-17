@@ -11,78 +11,80 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.beans.factory.annotation.Value;
 import java.io.IOException;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
-    @Value("${cafe.app.jwtSecret}")
-    private String jwtSecret;
-
-    private final CustomUserDetailsService userDetailsService;
+    @Autowired
+    private CustomUserDetailsService userDetailsService;
 
     @Autowired
     private JwtUtil jwtUtil;
 
-    Claims claims = null;
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+    private static final String BEARER_PREFIX = "Bearer ";
 
-    private String username = null;
+    private Claims claims = null;
+    private String currentUser = null;
+
 
     public JwtRequestFilter(CustomUserDetailsService userDetailsService) {
         this.userDetailsService = userDetailsService;
     }
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getServletPath();
-        return path.startsWith("/uploads/") ||
-                path.startsWith("/images/") ||
-                path.startsWith("/api/v1/product/images/") ||
-                path.equals("/api/v1/user/login") ||
-                path.equals("/api/v1/user/signup") ||
-                path.equals("/api/v1/user/forgotPassword");
-    }
-
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if(request.getServletPath().matches("/api/v1/user/signup|/api/v1/user/login|/api/v1/user/forgotPassword")){
-            filterChain.doFilter(request, response );
-        }else{
-            String authorizationHeader = request.getHeader( "Authorization" );
-            String token = null;
-
-            if(authorizationHeader != null && authorizationHeader.startsWith( "Bearer " )){
-                token = authorizationHeader.substring(7);
-                username = jwtUtil.extractUsername(token);
-                claims = jwtUtil.extractAllClaims(token);
-            }
-
-            if(username != null && SecurityContextHolder.getContext().getAuthentication()==null){
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                if(Boolean.TRUE.equals(jwtUtil.validateToken(token, userDetails))){
-                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                    usernamePasswordAuthenticationToken.setDetails(
-                            new WebAuthenticationDetailsSource().buildDetails(request)
-                    );
-                    SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        try {
+            String jwt = getJwtFromRequest(request);
+            if (StringUtils.hasText(jwt)) {
+                claims = jwtUtil.extractAllClaims(jwt);
+                currentUser = jwtUtil.extractUsername(jwt);
+                if (StringUtils.hasText(currentUser) && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(currentUser);
+                    if (jwtUtil.validateToken(jwt, userDetails)) {
+                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                                userDetails, null, userDetails.getAuthorities());
+                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    }
                 }
             }
-            filterChain.doFilter(request, response );
+        } catch (Exception e) {
+            logger.error("Cannot set user authentication: {}", e);
         }
+
+        filterChain.doFilter(request, response);
     }
 
-    public boolean isAdmin(){
-        return "admin".equalsIgnoreCase((String) claims.get("role"));
+    private String getJwtFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
+            return bearerToken.substring(BEARER_PREFIX.length());
+        }
+        return null;
     }
 
-    public boolean isUser(){
-        return "user".equalsIgnoreCase((String) claims.get("role"));
+    public boolean isAdmin() {
+        return claims != null && "admin".equalsIgnoreCase((String) claims.get("role"));
     }
 
-    public String getCurrentUser(){
-        return username;
+    public boolean isUser() {
+        return claims != null && "user".equalsIgnoreCase((String) claims.get("role"));
+    }
+
+    public boolean isCustomer() {
+        return claims != null && "customer".equalsIgnoreCase((String) claims.get("role"));
+    }
+
+    public String getCurrentUser() {
+        return currentUser;
+    }
+
+    public Claims getClaims() {
+        return claims;
     }
 }

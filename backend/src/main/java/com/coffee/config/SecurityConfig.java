@@ -1,6 +1,10 @@
-package com.coffee.security;
+package com.coffee.config;
 
+import com.coffee.security.CustomUserDetailsService;
+import com.coffee.security.JwtRequestFilter;
+import com.coffee.security.UnauthorizedHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,11 +20,17 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
+@EnableWebMvc
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
@@ -42,6 +52,29 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance();
+    }
+
+    @Value("${app.file.upload-dir}")
+    private String uploadDir;
+
+
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
+
+        registry.addResourceHandler("/uploads/**", "/images/**", "/uploads/images/**")
+                .addResourceLocations(uploadPath.toUri().toString())
+                .setCachePeriod(3600)
+                .resourceChain(true);
+    }
+
+
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins("http://localhost:4200")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true)
+                .maxAge(3600);
     }
 
     @Bean
@@ -76,14 +109,15 @@ public class SecurityConfig {
                         "/uploads/**",
                         "/images/**",
                         "/api/v1/product/images/**",
-                        "/api/v1/product/updateStatus",
-                        "/api/v1/product/add",
-                        "/api/v1/product/update",
+                        "/api/v1/product/get",
+                        "/api/v1/category/get",
                         "/api/v1/product/getByCategory/**",
-                        "/api/v1/product/getById/**",
-                        "/api/v1/product/delete/**"
+                        "/api/v1/product/getById/**"
                 ).permitAll()
-                .anyRequest().authenticated()
+                .and()
+                .authorizeHttpRequests()
+                .requestMatchers("/api/**")
+                .authenticated()
                 .and()
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
