@@ -1,11 +1,13 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { HomeComponent } from './home/home.component';
 import { FullComponent } from './layouts/full/full.component';
 import { RouteGuardService } from './services/route-guard.service';
 
 const routes: Routes = [
-  { path: '', component: HomeComponent },
+  {
+    path: '',
+    loadChildren: () => import('./customer.module').then(m => m.CustomerModule)
+  },
   {
     path: 'cafe',
     component: FullComponent,
@@ -34,7 +36,7 @@ const routes: Routes = [
       }
     ]
   },
-  { path: '**', component: HomeComponent }
+  { path: '**', redirectTo: '' }
 ];
 
 @NgModule({
