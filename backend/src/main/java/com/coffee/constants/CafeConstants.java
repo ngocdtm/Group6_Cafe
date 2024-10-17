@@ -22,4 +22,5 @@ public class CafeConstants {
       public static final String STORE_LOCATION = "C:\\BILL";
 
 
+
 }
