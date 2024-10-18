@@ -1,46 +1,23 @@
-<div class="best-seller-section">
-    <div class="container">
-        <div class="text-center">
-            <h2 class="section-heading text-uppercase">DÒNG CÀ PHÊ ĐẶC BIỆT (SPECIALTY COFFEE)</h2>
-            <p>Với sự hội tụ giữa các hạt cà phê ngon nhất của Việt Nam và Thế Giới, cùng kết các phương pháp pha cà phê truyền thống và hiện đại.</p>
+<div class="container">
+    <h1>Our Products</h1>
+ 
+    <div class="category-filter">
+        <button (click)="filterByCategory('all')" [class.active]="selectedCategory === 'all'">All</button>
+        <button *ngFor="let category of categories"
+                (click)="filterByCategory(category.id)"
+                [class.active]="selectedCategory === category.id">
+          {{category.name}}
+        </button>
+      </div>
+   
+      <div class="product-grid">
+        <div *ngFor="let product of filteredProducts" class="product-card">
+          <img [src]="getFirstImageUrl(product)" [alt]="product.name">
+          <h3>{{product.name}}</h3>
+          <p>{{product.price | currency}}</p>
+          <button (click)="addToCart(product)" class="add-to-cart-btn">Add to Cart</button>
         </div>
-        <ul class="best-seller-list">
-            <li>
-                <div class="product-image">
-                    <img class="img-fluid" src="../../assets/img/OIP.jpg" alt="Pizza">
-                </div>
-                <div class="product-info">
-                    <h4>Pizza</h4>
-                    <p>Pizza is an Italian dish consisting of a usually round, flattened base of leavened wheat-based dough topped with tomatoes, cheese, and various other ingredients.</p>
-                </div>
-            </li>
-            <li>
-                <div class="product-image">
-                    <img class="img-fluid" src="../../assets/img/2.jpg" alt="Biryani">
-                </div>
-                <div class="product-info">
-                    <h4>Matane xin kính chào quý khách</h4>
-                    <p>Được mệnh danh là quán coffee “sang chảnh nhất ” Hóc Môn, New Moon Cafe trang bị những chiếc đèn lung linh, khu pha chế chuyên nghiệp và sang trọng, sân vườn mát mẻ cùng với hồ nước nhỏ xung quanh, không gian trong nhà cũng được trang bị đầy đủ hệ thống điều hoà và thiết kế hiện đại. Còn chần chờ gì mà không đến trải nghiệm ngay nào các bạn ơi!.</p>
-                </div>
-            </li>
-            <li>
-                <div class="product-image">
-                    <img class="img-fluid" src="../../assets/img/3.jpg" alt="Pasta">
-                </div>
-                <div class="product-info">
-                    <h4>Menu here</h4>
-                    <p>PBạn có thể đến quán sáng sớm để thưởng thức một tách cà phê thơm ngon bắt đầu cho ngày mới hay đến quán vào những khung giờ chiều tối để gặp mặt bạn bè, những người thân và làm vài ly bia sau một ngày làm việc mệt mỏi. </p>
-                </div>
-            </li>
-            <li>
-                <div class="product-image">
-                    <img class="img-fluid" src="../../assets/img/4.jpg" alt="Molten Chocolate Cake">
-                </div>
-                <div class="product-info">
-                    <h4>House</h4>
-                    <p>Quán cafe & beer với lối kiến trúc và thiết kế cổ điển. Khi đến đây bạn sẽ cảm nhận được điều gì đó xưa cũ, ấm áp và hoài niệm. Nếu bạn thích một không gian yên tĩnh với những bản nhạc nhẹ nhàng, du dương thì đây là một lựa chọn không thể bỏ qua.</p>
-                </div>
-            </li>
-        </ul>
-    </div>
+      </div>
+     
 </div>
+

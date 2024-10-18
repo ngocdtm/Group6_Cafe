@@ -1,0 +1,33 @@
+<div class="product-page-container">
+    <div class="sidebar">
+      <h2>Categories</h2>
+      <ul>
+        <li (click)="filterByCategory('all')" [class.active]="selectedCategory === 'all'">All</li>
+        <li *ngFor="let category of categories"
+            (click)="filterByCategory(category.id)"
+            [class.active]="selectedCategory === category.id">
+          {{category.name}}
+        </li>
+      </ul>
+     
+      <div class="price-filter">
+        <h3>Price Range</h3>
+        <div class="price-slider">
+          <input type="range" [min]="minPrice" [max]="maxPrice" [(ngModel)]="currentMinPrice" (input)="onMinPriceChange($event)">
+          <!-- <input type="range" [min]="minPrice" [max]="maxPrice" [(ngModel)]="currentMaxPrice" (input)="onMaxPriceChange($event)"> -->
+          <p>{{ formatPrice(currentMinPrice) }} - {{ formatPrice(currentMaxPrice) }}</p>
+        </div>
+      </div>
+    </div>
+  
+  
+    <div class="product-grid">
+      <div *ngFor="let product of filteredProducts" class="product-card">
+        <img [src]="getFirstImageUrl(product)" alt="{{ product.name }}">
+        <h3>{{ product.name }}</h3>
+        <p>{{ formatPrice(product.price) }}</p>
+        <button (click)="addToCart(product)">Add to Cart</button>
+      </div>
+    </div>
+  </div>
+  

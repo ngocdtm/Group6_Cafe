@@ -39,6 +39,15 @@
       </mat-form-field>
 
       <mat-form-field appearance="standard" fxFlex>
+        <mat-label>Addressr</mat-label>
+        <input matInput formControlName="address" required="required">
+        <mat-error *ngIf="signupForm.controls.address.touched && signupForm.controls.address.invalid">
+          <span *ngIf="signupForm.controls.address.errors.required">This field is mandatory.</span>
+          <span *ngIf="signupForm.controls.address.errors.pattern">This field is invalid.</span>
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="standard" fxFlex>
         <mat-label>Password</mat-label>
         <input matInput formControlName="password" type="password" required="required" [type]="password ? 'password' : 'text'">
         <button type="button" mat-icon-button matSuffix (click)="password = !password" [attr.aria-label]="'Hide Password'" [attr.aria-pressed]="password">

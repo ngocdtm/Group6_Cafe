@@ -10,7 +10,7 @@ import { MaterialModule } from './shared/material-module';
 import { CustomerMenuItems } from './shared/customer-menu-items';
 import { MatSliderModule } from '@angular/material/slider';
 import { FormsModule } from '@angular/forms';
-import { CustomerLayoutComponent } from './layouts/full/customer-layout.component';
+import { CustomerLayoutComponent } from './layouts/full/customer-layout/customer-layout.component';
 
 @NgModule({
   declarations: [
