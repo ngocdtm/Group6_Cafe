@@ -1,5 +1,7 @@
 
+
 package com.coffee.controller;
+
 
 import com.coffee.constants.CafeConstants;
 import com.coffee.service.UserService;
@@ -12,16 +14,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api/v1/user")
 public class UserController {
 
+
     @Autowired
     UserService userService;
+
 
     @Operation(
             summary = "User Signup",
@@ -30,6 +36,7 @@ public class UserController {
     @PostMapping("/signup")
     public ResponseEntity<String> signUp(@RequestBody(required = true) Map<String, String> requestMap){
 
+
         try{
             return userService.signUp(requestMap);
         }catch(Exception ex){
@@ -37,6 +44,7 @@ public class UserController {
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
 
     @Operation(
             summary = "User Login",
@@ -51,6 +59,7 @@ public class UserController {
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
 
     @Operation(
             summary = "Get All Users",
@@ -67,6 +76,39 @@ public class UserController {
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
+    @Operation(
+            summary = "Get All Customers",
+            description = "Endpoint to retrieve a list of all customers"
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/customers")
+    public ResponseEntity<List<UserWrapper>> getAllCustomers(){
+        try{
+            return userService.getAllCustomers();
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
+        return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+    @Operation(
+            summary = "Update Customer",
+            description = "Endpoint to update customer information"
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/customer/update")
+    public ResponseEntity<String> updateCustomer(@RequestBody(required = true) Map<String, String> requestMap){
+        try{
+            return userService.updateCustomer(requestMap);
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
+        return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
     @Operation(
             summary = "Update User",
             description = "Endpoint to update user information"
@@ -81,6 +123,7 @@ public class UserController {
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
 
     @Operation(
             summary = "Check Token",
@@ -97,6 +140,7 @@ public class UserController {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
     @Operation(
             summary = "Change Password",
             description = "Endpoint to change the password"
@@ -112,6 +156,7 @@ public class UserController {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
     @Operation(
             summary = "Forgot Password",
             description = "Endpoint to forgot the password"
@@ -126,4 +171,6 @@ public class UserController {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
 }
+
