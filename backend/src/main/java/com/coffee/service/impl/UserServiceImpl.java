@@ -28,20 +28,26 @@ import java.util.*;
 @Service
 public class UserServiceImpl implements UserService {
 
+
     @Autowired
     UserRepository userRepository;
+
 
     @Autowired
     AuthenticationManager authenticationManager;
 
+
     @Autowired
     CustomUserDetailsService customUserDetailsService;
+
 
     @Autowired
     JwtUtil jwtUtil;
 
+
     @Autowired
     JwtRequestFilter jwtRequestFilter;
+
 
     @Autowired
     EmailUtils emailUtils;
@@ -92,13 +98,12 @@ public class UserServiceImpl implements UserService {
         return "OK";
     }
 
-
     private boolean validateSignUpMap(Map<String, String> requestMap) {
         return requestMap.containsKey("name") && requestMap.containsKey("email")
                 && requestMap.containsKey("phoneNumber") && requestMap.containsKey("password")
                 && requestMap.containsKey("address");
-
     }
+
 
     private User getUserFromMap(Map<String, String> requestMap) {
         User user = new User();
@@ -112,6 +117,7 @@ public class UserServiceImpl implements UserService {
         user.setLoyaltyPoints(0);
         return user;
     }
+
 
     @Override
     public ResponseEntity<String> login(Map<String, String> requestMap) {
@@ -141,6 +147,7 @@ public class UserServiceImpl implements UserService {
                 .body("{\"message\":\"Something went wrong\"}");
     }
 
+
     @Override
     public ResponseEntity<List<UserWrapper>> getAllUser() {
         try {
@@ -155,6 +162,20 @@ public class UserServiceImpl implements UserService {
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
+    @Override
+    public ResponseEntity<List<UserWrapper>> getAllCustomers() {
+        try {
+            if (jwtRequestFilter.isAdmin()) {
+                return new ResponseEntity<>(userRepository.getAllCustomers(), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(new ArrayList<>(), HttpStatus.UNAUTHORIZED);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
     @Override
     public ResponseEntity<List<UserWrapper>> getAllCustomers() {
         try {
@@ -198,7 +219,6 @@ public class UserServiceImpl implements UserService {
                     return CafeUtils.getResponseEntity("User id does not exist", HttpStatus.NOT_FOUND);
                 }
                 User user = optional.get();
-
                 if (requestMap.containsKey("name")) user.setName(requestMap.get("name"));
                 if (requestMap.containsKey("email")) user.setEmail(requestMap.get("email"));
                 if (requestMap.containsKey("phoneNumber")) user.setPhoneNumber(requestMap.get("phoneNumber"));
@@ -206,7 +226,6 @@ public class UserServiceImpl implements UserService {
                 if (requestMap.containsKey("password")) {
                     user.setPassword(passwordEncoder.encode(requestMap.get("password")));
                 }
-
                 userRepository.save(user);
                 return CafeUtils.getResponseEntity("Customer Updated Successfully", HttpStatus.OK);
             } else {
@@ -233,8 +252,10 @@ public class UserServiceImpl implements UserService {
             emailUtils.sendMessage(jwtRequestFilter.getCurrentUser(), "Account Disabled", "User: " + user +
                     "\n is Disabled by \nAdmin: " + jwtRequestFilter.getCurrentUser(), allAdmin);
 
+
         }
     }
+
 
     @Override
     public ResponseEntity<String> checkToken() {
@@ -251,6 +272,7 @@ public class UserServiceImpl implements UserService {
                     .body("{\"message\":\"Error checking token\"}");
         }
     }
+
 
     @Override
     public ResponseEntity<String> changePassword(Map<String, String> requestMap) {
@@ -276,6 +298,7 @@ public class UserServiceImpl implements UserService {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
     @Override
     public ResponseEntity<String> forgotPassword(Map<String, String> requestMap) {
         try {
@@ -286,10 +309,13 @@ public class UserServiceImpl implements UserService {
             }
             return CafeUtils.getResponseEntity("Email not found!", HttpStatus.NOT_FOUND);
 
+
         } catch (Exception ex) {
             ex.printStackTrace();
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
 }
+

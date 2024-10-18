@@ -1,0 +1,8 @@
+<h2 mat-dialog-title>Yêu cầu đăng nhập</h2>
+<mat-dialog-content>
+  Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button (click)="onNoClick()">Trở về</button>
+  <button mat-button [mat-dialog-close]="'login'" cdkFocusInitial>Đăng nhập</button>
+</mat-dialog-actions>
