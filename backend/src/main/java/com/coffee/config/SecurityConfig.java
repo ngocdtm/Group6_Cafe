@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -93,32 +94,29 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors().and()
-                .csrf().disable()
-                .exceptionHandling()
-                .authenticationEntryPoint(unauthorizedHandler)
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authorizeHttpRequests()
-                .requestMatchers(
-                        "/api/v1/user/signup",
-                        "/api/v1/user/login",
-                        "/api/v1/user/forgotPassword",
-                        "/uploads/**",
-                        "/images/**",
-                        "/api/v1/product/images/**",
-                        "/api/v1/product/get",
-                        "/api/v1/category/get",
-                        "/api/v1/product/getByCategory/**",
-                        "/api/v1/product/getById/**"
-                ).permitAll()
-                .and()
-                .authorizeHttpRequests()
-                .requestMatchers("/api/**")
-                .authenticated()
-                .and()
+                .cors(Customizer.withDefaults())
+                .csrf(csrf -> csrf.disable())
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(unauthorizedHandler)
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(
+                                "/api/v1/user/signup",
+                                "/api/v1/user/login",
+                                "/api/v1/user/forgotPassword",
+                                "/uploads/**",
+                                "/images/**",
+                                "/api/v1/product/images/**",
+                                "/api/v1/product/get",
+                                "/api/v1/category/get",
+                                "/api/v1/product/getByCategory/**",
+                                "/api/v1/product/getById/**"
+                        ).permitAll()
+                        .requestMatchers("/api/**").authenticated()
+                )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

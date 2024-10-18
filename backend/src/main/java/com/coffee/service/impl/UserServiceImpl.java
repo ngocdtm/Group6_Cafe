@@ -1,5 +1,6 @@
 package com.coffee.service.impl;
 
+
 import com.coffee.constants.CafeConstants;
 import com.coffee.entity.User;
 import com.coffee.repository.UserRepository;
@@ -16,40 +17,55 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+
 import java.util.*;
+
 
 @Slf4j
 @Service
 public class UserServiceImpl implements UserService {
 
+
     @Autowired
     UserRepository userRepository;
+
 
     @Autowired
     AuthenticationManager authenticationManager;
 
+
     @Autowired
     CustomUserDetailsService customUserDetailsService;
+
 
     @Autowired
     JwtUtil jwtUtil;
 
+
     @Autowired
     JwtRequestFilter jwtRequestFilter;
 
+
     @Autowired
     EmailUtils emailUtils;
+
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
 
     @Override
     public ResponseEntity<String> signUp(Map<String, String> requestMap) {
         log.info("Inside signUp {}", requestMap);
         try {
             if (validateSignUpMap(requestMap)) {
-                User user = userRepository.findByEmail(requestMap.get(CafeConstants.EMAIL));
+                User user = userRepository.findByEmail(requestMap.get("email"));
                 if (Objects.isNull(user)) {
                     userRepository.save(getUserFromMap(requestMap));
                     return CafeUtils.getResponseEntity("Successfully Registered", HttpStatus.OK);
@@ -65,23 +81,29 @@ public class UserServiceImpl implements UserService {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
     private boolean validateSignUpMap(Map<String, String> requestMap) {
         return requestMap.containsKey("name") && requestMap.containsKey("email")
-                && requestMap.containsKey("phoneNumber") && requestMap.containsKey("password");
+                && requestMap.containsKey("phoneNumber") && requestMap.containsKey("password")
+                && requestMap.containsKey("address");
+
 
     }
+
 
     private User getUserFromMap(Map<String, String> requestMap) {
         User user = new User();
         user.setName(requestMap.get("name"));
         user.setEmail(requestMap.get("email"));
         user.setPhoneNumber(requestMap.get("phoneNumber"));
-        user.setPassword(requestMap.get("password"));
+        user.setPassword(passwordEncoder.encode(requestMap.get("password")));
         user.setStatus("true");
-        user.setRole("user");
-
+        user.setRole(requestMap.getOrDefault("role", "customer"));
+        user.setAddress(requestMap.getOrDefault("address", ""));
+        user.setLoyaltyPoints(0);
         return user;
     }
+
 
     @Override
     public ResponseEntity<String> login(Map<String, String> requestMap) {
@@ -91,21 +113,26 @@ public class UserServiceImpl implements UserService {
                     new UsernamePasswordAuthenticationToken(requestMap.get("email"), requestMap.get("password"))
             );
             if (auth.isAuthenticated()) {
-                if (customUserDetailsService.getUserDetail().getStatus().equalsIgnoreCase("true")) {
-                    return new ResponseEntity<>("{\"token\":\"" +
-                            jwtUtil.generateToken(customUserDetailsService.getUserDetail().getEmail(),
-                                    customUserDetailsService.getUserDetail().getRole()) + "\"}", HttpStatus.OK);
+                User userDetails = customUserDetailsService.getUserDetail();
+                if (userDetails.getStatus().equalsIgnoreCase("true")) {
+                    String token = jwtUtil.generateToken(userDetails.getEmail(), userDetails.getRole());
+                    return ResponseEntity.ok()
+                            .body("{\"token\":\"" + token + "\", \"role\":\"" + userDetails.getRole() + "\"}");
                 } else {
-                    return new ResponseEntity<>("{\"message\":\"" + "Wait for admin approval." + "\"}",
-                            HttpStatus.BAD_REQUEST);
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body("{\"message\":\"Account is not active. Wait for admin approval.\"}");
                 }
             }
+        }  catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("{\"message\":\"Invalid username or password\"}");
         } catch (Exception ex) {
-            log.error("{Something went wrong in authentication process!}", ex);
+            log.error("Error in authentication process", ex);
         }
-        return new ResponseEntity<>("{\"message\":\"" + "Bad Credentials" + "\"}",
-                HttpStatus.BAD_REQUEST);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("{\"message\":\"Something went wrong\"}");
     }
+
 
     @Override
     public ResponseEntity<List<UserWrapper>> getAllUser() {
@@ -121,6 +148,20 @@ public class UserServiceImpl implements UserService {
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
+    @Override
+    public ResponseEntity<List<UserWrapper>> getAllCustomers() {
+        try {
+            if (jwtRequestFilter.isAdmin()) {
+                return new ResponseEntity<>(userRepository.getAllCustomers(), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(new ArrayList<>(), HttpStatus.UNAUTHORIZED);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
     @Override
     public ResponseEntity<String> update(Map<String, String> requestMap) {
         try {
@@ -142,6 +183,46 @@ public class UserServiceImpl implements UserService {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
+    @Override
+    public ResponseEntity<String> updateCustomer(Map<String, String> requestMap) {
+        try {
+            if (jwtRequestFilter.isAdmin() || isOwnAccount(requestMap.get("id"))) {
+                Optional<User> optional = userRepository.findById(Integer.parseInt(requestMap.get("id")));
+                if (!optional.isPresent()) {
+                    return CafeUtils.getResponseEntity("User id does not exist", HttpStatus.NOT_FOUND);
+                }
+                User user = optional.get();
+
+
+                if (requestMap.containsKey("name")) user.setName(requestMap.get("name"));
+                if (requestMap.containsKey("email")) user.setEmail(requestMap.get("email"));
+                if (requestMap.containsKey("phoneNumber")) user.setPhoneNumber(requestMap.get("phoneNumber"));
+                if (requestMap.containsKey("address")) user.setAddress(requestMap.get("address"));
+                if (requestMap.containsKey("password")) {
+                    user.setPassword(passwordEncoder.encode(requestMap.get("password")));
+                }
+
+
+                userRepository.save(user);
+                return CafeUtils.getResponseEntity("Customer Updated Successfully", HttpStatus.OK);
+            } else {
+                return CafeUtils.getResponseEntity(CafeConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+    private boolean isOwnAccount(String userId) {
+        String currentUserEmail = jwtRequestFilter.getCurrentUser();
+        User currentUser = userRepository.findByEmail(currentUserEmail);
+        return currentUser != null && currentUser.getId().toString().equals(userId);
+    }
+
+
     private void sendMailToAllAdmin(String status, String user, List<String> allAdmin) {
         allAdmin.remove(jwtRequestFilter.getCurrentUser());
         if (status != null && status.equalsIgnoreCase("true")) {
@@ -151,13 +232,27 @@ public class UserServiceImpl implements UserService {
             emailUtils.sendMessage(jwtRequestFilter.getCurrentUser(), "Account Disabled", "User: " + user +
                     "\n is Disabled by \nAdmin: " + jwtRequestFilter.getCurrentUser(), allAdmin);
 
+
         }
     }
 
+
     @Override
     public ResponseEntity<String> checkToken() {
-        return CafeUtils.getResponseEntity("true", HttpStatus.OK);
+        try {
+            String currentUser = jwtRequestFilter.getCurrentUser();
+            if (currentUser != null) {
+                return ResponseEntity.ok("{\"valid\": true, \"user\": \"" + currentUser + "\"}");
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"valid\": false}");
+            }
+        } catch (Exception ex) {
+            log.error("Error checking token", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("{\"message\":\"Error checking token\"}");
+        }
     }
+
 
     @Override
     public ResponseEntity<String> changePassword(Map<String, String> requestMap) {
@@ -178,6 +273,7 @@ public class UserServiceImpl implements UserService {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
     @Override
     public ResponseEntity<String> forgotPassword(Map<String, String> requestMap) {
         try {
@@ -188,10 +284,13 @@ public class UserServiceImpl implements UserService {
             }
             return CafeUtils.getResponseEntity("Email not found!", HttpStatus.NOT_FOUND);
 
+
         } catch (Exception ex) {
             ex.printStackTrace();
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
 }
+
