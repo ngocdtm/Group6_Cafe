@@ -3,12 +3,15 @@ package com.coffee.service.impl;
 
 import com.coffee.constants.CafeConstants;
 import com.coffee.entity.Bill;
+import com.coffee.entity.BillItem;
 import com.coffee.entity.Coupon;
 import com.coffee.repository.BillRepository;
 import com.coffee.repository.CouponRepository;
+import com.coffee.repository.ProductRepository;
 import com.coffee.security.JwtRequestFilter;
 import com.coffee.service.BillService;
 import com.coffee.utils.CafeUtils;
+import com.coffee.wrapper.BillWrapper;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
@@ -17,6 +20,7 @@ import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.io.IOUtils;
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,8 +28,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -36,6 +42,9 @@ public class BillServiceImpl implements BillService {
     BillRepository billRepository;
 
     @Autowired
+    ProductRepository productRepository;
+
+    @Autowired
     JwtRequestFilter jwtRequestFilter;
 
     @Autowired
@@ -44,14 +53,12 @@ public class BillServiceImpl implements BillService {
     @Override
     public ResponseEntity<String> generateBill(Map<String, Object> requestMap) {
         log.info("Inside Generate Report");
-        try{
-
-
+        try {
             String fileName;
-            if(validateRequestMap(requestMap)){
-                if(requestMap.containsKey("isGenerate") && Boolean.TRUE.equals(!(Boolean) requestMap.get("isGenerate"))){
+            if (validateRequestMap(requestMap)) {
+                if (requestMap.containsKey("isGenerate") && Boolean.TRUE.equals(!(Boolean) requestMap.get("isGenerate"))) {
                     fileName = (String) requestMap.get("uuid");
-                }else{
+                } else {
                     fileName = CafeUtils.getUUID();
                     requestMap.put("uuid", fileName);
                     insertBill(requestMap);
@@ -76,33 +83,35 @@ public class BillServiceImpl implements BillService {
                 table.setWidthPercentage(100);
                 addTableHeader(table);
 
-                JSONArray jsonArray = CafeUtils.getJsonArrayFromString((String) requestMap.get("productDetails"));
-                for(int i = 0; i < jsonArray.length(); i++){
-                    addRow(table, CafeUtils.getMapFromJSon(jsonArray.getString(i)));
+                Bill bill = billRepository.findByUuid(fileName);
+                for (BillItem item : bill.getBillItems()) {
+                    addRow(table, item);
                 }
                 doc.add(table);
 
-                Paragraph footer = new Paragraph("Total Before Discount Amount: " + requestMap.get("total") + "\n"+ "Total After Discount Amount: " + requestMap.get("totalAfterDiscount")+"\n"
-                        + "Thank You For Visiting!!", getFont("Data"));
+                Paragraph footer = new Paragraph("Total Before Discount Amount: " + bill.getTotal() + "\n" +
+                        "Discount: " + bill.getDiscount() + "\n" +
+                        "Total After Discount Amount: " + bill.getTotalAfterDiscount() + "\n" +
+                        "Thank You For Visiting!!", getFont("Data"));
                 doc.add(footer);
                 doc.close();
-                return new ResponseEntity<>("{\"uuid\":\"" + fileName +"\"}", HttpStatus.OK);
-            }else {
+                return new ResponseEntity<>("{\"uuid\":\"" + fileName + "\"}", HttpStatus.OK);
+            } else {
                 return CafeUtils.getResponseEntity("Required data not found!", HttpStatus.BAD_REQUEST);
             }
-        }catch(Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    private void addRow(PdfPTable table, Map<String, Object> data) {
+    private void addRow(PdfPTable table, BillItem item) {
         log.info("Inside addRow");
-        table.addCell((String) data.get("name"));
-        table.addCell((String) data.get("category"));
-        table.addCell((String) data.get("quantity"));
-        table.addCell(String.valueOf(data.get("price")));
-        table.addCell(String.valueOf(data.get("total")));
+        table.addCell(item.getProduct().getName());
+        table.addCell(item.getProduct().getCategory().getName());
+        table.addCell(String.valueOf(item.getQuantity()));
+        table.addCell(String.valueOf(item.getPrice()));
+        table.addCell(String.valueOf(item.getQuantity() * item.getPrice()));
     }
 
     private void addTableHeader(PdfPTable table) {
@@ -149,7 +158,7 @@ public class BillServiceImpl implements BillService {
     }
 
     private void insertBill(Map<String, Object> requestMap) {
-        try{
+        try {
             Bill bill = new Bill();
             bill.setUuid((String) requestMap.get("uuid"));
             bill.setName((String) requestMap.get("name"));
@@ -157,11 +166,43 @@ public class BillServiceImpl implements BillService {
             bill.setPhoneNumber((String) requestMap.get("phoneNumber"));
             bill.setPaymentMethod((String) requestMap.get("paymentMethod"));
             bill.setTotal((Integer) requestMap.get("total"));
-            bill.setTotalAfterDiscount((Integer) requestMap.get("totalAfterDiscount"));
-            bill.setProductDetails((String) requestMap.get("productDetails"));
+            // Set totalAfterDiscount to total if no discount applied
+            Integer totalAfterDiscount = (Integer) requestMap.get("totalAfterDiscount");
+            if (totalAfterDiscount == null || totalAfterDiscount.equals(bill.getTotal())) {
+                bill.setTotalAfterDiscount(bill.getTotal());
+            } else {
+                bill.setTotalAfterDiscount(totalAfterDiscount);
+            }
+
             bill.setCreatedBy(jwtRequestFilter.getCurrentUser());
+            bill.setStatus("PENDING"); // Set initial status
+            bill.setOrderDate(LocalDateTime.now());
+
+            // Set discount to 0 if no coupon applied
+            Integer discount = (Integer) requestMap.get("discount");
+            bill.setDiscount(discount != null ? discount : 0);
+
+            // Set coupon code if available
+            String couponCode = (String) requestMap.get("code");
+            if (couponCode != null && !couponCode.isEmpty()) {
+                bill.setCode(couponCode);
+            }
+
+            List<BillItem> billItems = new ArrayList<>();
+            JSONArray jsonArray = CafeUtils.getJsonArrayFromString((String) requestMap.get("productDetails"));
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                BillItem billItem = new BillItem();
+                billItem.setBill(bill);
+                billItem.setProduct(productRepository.findById(jsonObject.getInt("id")).orElseThrow());
+                billItem.setQuantity(jsonObject.getInt("quantity"));
+                billItem.setPrice(jsonObject.getInt("price"));
+                billItems.add(billItem);
+            }
+
+            bill.setBillItems(billItems);
             billRepository.save(bill);
-        }catch(Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
@@ -176,17 +217,18 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
-    public ResponseEntity<List<Bill>> getBills() {
-        log.info(("Inside get bills"));
-        try{
+    public ResponseEntity<List<BillWrapper>> getBills() {
+        log.info("Inside get bills");
+        try {
             List<Bill> billList;
-            if(jwtRequestFilter.isAdmin()){
+            if (jwtRequestFilter.isAdmin()) {
                 billList = billRepository.getAllBills();
-            }else{
+            } else {
                 billList = billRepository.getBillByUserName(jwtRequestFilter.getCurrentUser());
             }
-            return new ResponseEntity<>(billList, HttpStatus.OK);
-        }catch(Exception ex){
+            List<BillWrapper> billDTOs = billList.stream().map(BillWrapper::fromBill).collect(Collectors.toList());
+            return new ResponseEntity<>(billDTOs, HttpStatus.OK);
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
