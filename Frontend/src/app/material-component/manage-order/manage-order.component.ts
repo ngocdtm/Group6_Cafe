@@ -25,9 +25,10 @@ export class ManageOrderComponent implements OnInit {
   totalAfterDiscount:number = 0;
   responseMessage:any;
   discount: number = 0;
-  appliedCouponCode: string="";
+  appliedCouponCode: any;
 
-  constructor(private formBuilder:FormBuilder,
+  constructor(
+    private formBuilder:FormBuilder,
     private categoryService:CategoryService,
     private productService:ProductService,
     private billService: BillService,
@@ -50,7 +51,9 @@ export class ManageOrderComponent implements OnInit {
       total:[0,[Validators.required]],
       totalAfterDiscount:[0,[Validators.required]],
       discount:[0,[Validators.required]],
-      code:[null]
+      code: [null],
+      status: [null, [Validators.required]],
+      shippingAddress: [null, [Validators.required]]
     });
 
   }
@@ -125,6 +128,11 @@ export class ManageOrderComponent implements OnInit {
           this.snackbarService.openSnackBar(this.responseMessage, GlobalConstants.error);
         }
       );
+    } else if (!code) {
+      // Reset discount-related values if no coupon is applied
+      this.totalAfterDiscount = this.total;
+      this.discount = 0;
+      this.appliedCouponCode = null;
     }
   }
 
@@ -188,14 +196,16 @@ export class ManageOrderComponent implements OnInit {
       phoneNumber: formData.phoneNumber,
       paymentMethod: formData.paymentMethod,
       total: this.total,
-      totalAfterDiscount: this.totalAfterDiscount,
+      totalAfterDiscount: this.totalAfterDiscount || this.total, // Use total if totalAfterDiscount is not set
       productDetails: JSON.stringify(this.dataSource),
-      couponCode: this.appliedCouponCode,
-      discount : this.discount,
-      code : this.appliedCouponCode
+      discount: this.discount || 0, // Use 0 if discount is not set
+      code: this.appliedCouponCode || null, // Use null if no coupon is applied
+      status: formData.status,
+      shippingAddress: formData.shippingAddress
     }
     this.ngxService.start();
-    this.billService.generateBill(data).subscribe((response:any)=>{
+    this.billService.generateBill(data).subscribe(
+      (response:any) => {
       this.downloadFile(response?.uuid);
       this.manageOrderForm.reset();
       this.dataSource = [];

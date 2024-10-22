@@ -1,0 +1,33 @@
+<div class="dialog-container">
+    <div class="dialog-header">
+      <h2>{{data.name}}</h2>
+      <button mat-icon-button (click)="close()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  
+    <div class="content-wrapper">
+      <div class="image-gallery">
+        <div class="main-image">
+          <img [src]="getImageUrl(data.images[selectedImageIndex].imagePath)" [alt]="data.name">
+        </div>
+        <div class="thumbnail-strip">
+          <div *ngFor="let image of data.images; let i = index" 
+               class="thumbnail" 
+               [class.active]="i === selectedImageIndex"
+               (click)="selectImage(i)">
+            <img [src]="getImageUrl(image.imagePath)" [alt]="data.name">
+          </div>
+        </div>
+      </div>
+  
+      <div class="product-details">
+        <div class="price">{{data.price | currency:'VND':'symbol':'1.0-0'}}</div>
+        <div class="description">{{data.description}}</div>
+        <div class="additional-info">
+          <p><strong>Category:</strong> {{categoryName}}</p>
+          <p><strong>Status:</strong> {{data.status ? 'Available' : 'Out of Stock'}}</p>
+        </div>
+      </div>
+    </div>
+  </div>

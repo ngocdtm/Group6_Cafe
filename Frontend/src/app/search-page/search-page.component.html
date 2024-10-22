@@ -1,0 +1,29 @@
+<div class="search-page">
+  <div class="search-header">
+    <h1>Search Results</h1>
+    <p class="search-info" *ngIf="searchTerm">
+      Showing results for "{{ searchTerm }}"
+    </p>
+  </div>
+
+  <mat-progress-bar mode="indeterminate" *ngIf="isLoading"></mat-progress-bar>
+
+  <div class="products-grid" *ngIf="!isLoading">
+    <div class="product-card" *ngFor="let product of searchResults" (click)="openProductDetail(product)">
+      <div class="product-image">
+        <img [src]="getFirstImageUrl(product)" [alt]="product.name">
+          <h3>{{product.name}}</h3>
+          <p>{{product.price | currency}}</p>
+      </div>
+      <div class="product-info">
+        <h3>{{ product.name }}</h3>
+        <p class="price">{{ product.price | currency:'VND':'symbol':'1.0-0' }}</p>
+      </div>
+    </div>
+
+    <div class="no-results" *ngIf="searchResults.length === 0">
+      <mat-icon>search_off</mat-icon>
+      <p>No products found for "{{ searchTerm }}"</p>
+    </div>
+  </div>
+</div>

@@ -7,6 +7,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { LoginComponent } from '../login/login.component';
 import { SnackbarService } from '../services/snackbar.service';
 import { LoginPromptComponent } from '../login-prompt/login-prompt.component';
+import { ProductDetailDialogComponent } from '../material-component/dialog/product-detail-dialog/product-detail-dialog.component';
 
 
 @Component({
@@ -80,8 +81,15 @@ export class BestSellerComponent implements OnInit {
 
   addToCart(product: any) {
     if (this.isLoggedIn) {
-      this.cartService.addToCart(product);
-      this.snackbarService.openSnackBar("Sản phẩm đã được thêm vào giỏ hàng", "");
+      this.cartService.addToCart(product).subscribe(
+        () => {
+          this.snackbarService.openSnackBar("Sản phẩm đã được thêm vào giỏ hàng", "");
+        },
+        (error) => {
+          console.error('Error adding to cart:', error);
+          this.snackbarService.openSnackBar("Có lỗi xảy ra khi thêm vào giỏ hàng", "");
+        }
+      );
     } else {
       this.showLoginPrompt(product);
     }
@@ -116,9 +124,6 @@ export class BestSellerComponent implements OnInit {
     });
   }
 
-
-
-
   getFirstImageUrl(product: any): string {
     if (product.images && product.images.length > 0) {
       return this.productService.getImageUrl(product.images[0].imagePath);
@@ -126,7 +131,16 @@ export class BestSellerComponent implements OnInit {
     return 'assets/default-product-image.png'; // Đường dẫn đến ảnh mặc định
   }
 
+  openProductDetail(product: any) {
+    this.dialog.open(ProductDetailDialogComponent, {
+      data: product,
+      panelClass: 'product-detail-dialog'
+    });
+  }
 
+  formatPrice(price: number): string {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+  }
 }
 
 
