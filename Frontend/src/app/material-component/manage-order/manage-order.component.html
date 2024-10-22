@@ -51,6 +51,25 @@
             <span *ngIf="manageOrderForm.controls.phoneNumber.errors.pattern">This field is invalid.</span>
           </mat-error>
         </mat-form-field>
+
+        <mat-form-field appearance="standard" fxFlex>
+          <mat-label>Status</mat-label>
+          <mat-select formControlName="status" required>
+            <mat-option value="PENDING">Pending</mat-option>
+            <mat-option value="PROCESSING">Processing</mat-option>
+            <mat-option value="COMPLETED">Completed</mat-option>
+            <mat-option value="CANCELLED">Cancelled</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="standard" fxFlex>
+          <mat-label>Shipping Address</mat-label>
+          <textarea matInput formControlName="shippingAddress" required></textarea>
+          <mat-error *ngIf="manageOrderForm.controls.shippingAddress.touched && manageOrderForm.controls.shippingAddress.invalid">
+            <span *ngIf="manageOrderForm.controls.shippingAddress.errors.required">This field is mandatory.</span>
+          </mat-error>
+        </mat-form-field>
+        
       </div>
       <div fxLayout="row wrap">
         <!-- Add new form field for coupon code -->

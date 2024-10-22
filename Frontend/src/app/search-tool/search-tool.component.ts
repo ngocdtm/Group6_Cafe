@@ -7,7 +7,6 @@ import { ProductDetailDialogComponent } from '../material-component/dialog/produ
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 
-
 @Component({
   selector: 'app-search-tool',
   templateUrl: './search-tool.component.html',
@@ -19,13 +18,11 @@ export class SearchToolComponent implements OnInit {
   searchResults: any[] = [];
   isLoading = false;
 
-
   constructor(
     private productService: ProductService,
     private dialog: MatDialog,
     private router: Router
   ) {}
-
 
   ngOnInit() {
     this.searchControl.valueChanges.pipe(
@@ -48,7 +45,6 @@ export class SearchToolComponent implements OnInit {
     );
   }
 
-
   toggleSearch() {
     this.isSearchActive = !this.isSearchActive;
     if (!this.isSearchActive) {
@@ -61,24 +57,21 @@ export class SearchToolComponent implements OnInit {
     }
   }
 
-
   clearSearch() {
     this.searchResults = [];
     this.searchControl.setValue('');
   }
 
-
   handleEnter() {
     const searchTerm = this.searchControl.value;
     if (searchTerm) {
-      this.router.navigate(['/search'], {
+      this.router.navigate(['/search'], { 
         queryParams: { q: searchTerm }
       });
       this.isSearchActive = false;
       this.clearSearch();
     }
   }
-
 
   getFirstImageUrl(product: any): string {
     if (product.images && product.images.length > 0) {
@@ -87,7 +80,6 @@ export class SearchToolComponent implements OnInit {
     return 'assets/default-product-image.png'; // Đường dẫn đến ảnh mặc định
   }
 
-
   openProductDetail(product: any) {
     this.dialog.open(ProductDetailDialogComponent, {
       data: product,
@@ -95,6 +87,5 @@ export class SearchToolComponent implements OnInit {
     });
   }
 
-
- 
+  
 }

@@ -61,9 +61,7 @@ export class ProductService {
   getById(id:any) {
     return this.httpClient.get(`${this.url}/api/v1/product/getById/${id}`);
   }
- 
   searchProducts(keyword: string) {
   return this.httpClient.get(`${this.url}/api/v1/product/search?keyword=${keyword}`);
 }
 }
-

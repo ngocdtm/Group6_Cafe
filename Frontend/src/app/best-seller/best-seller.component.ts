@@ -81,8 +81,15 @@ export class BestSellerComponent implements OnInit {
 
   addToCart(product: any) {
     if (this.isLoggedIn) {
-      this.cartService.addToCart(product);
-      this.snackbarService.openSnackBar("Sản phẩm đã được thêm vào giỏ hàng", "");
+      this.cartService.addToCart(product).subscribe(
+        () => {
+          this.snackbarService.openSnackBar("Sản phẩm đã được thêm vào giỏ hàng", "");
+        },
+        (error) => {
+          console.error('Error adding to cart:', error);
+          this.snackbarService.openSnackBar("Có lỗi xảy ra khi thêm vào giỏ hàng", "");
+        }
+      );
     } else {
       this.showLoginPrompt(product);
     }
@@ -117,9 +124,6 @@ export class BestSellerComponent implements OnInit {
     });
   }
 
-
-
-
   getFirstImageUrl(product: any): string {
     if (product.images && product.images.length > 0) {
       return this.productService.getImageUrl(product.images[0].imagePath);
@@ -134,7 +138,9 @@ export class BestSellerComponent implements OnInit {
     });
   }
 
-
+  formatPrice(price: number): string {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+  }
 }
 
 

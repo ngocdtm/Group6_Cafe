@@ -4,8 +4,6 @@ import { CategoryService } from 'src/app/services/category.service';
 import { ProductService } from 'src/app/services/product.service';
 
 
-
-
 @Component({
   selector: 'app-product-detail-dialog',
   templateUrl: './product-detail-dialog.component.html',
@@ -15,7 +13,6 @@ export class ProductDetailDialogComponent implements OnInit {
   selectedImageIndex: number = 0;
   categoryName: string = '';
 
-
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
     private dialogRef: MatDialogRef<ProductDetailDialogComponent>,
@@ -23,11 +20,9 @@ export class ProductDetailDialogComponent implements OnInit {
     private categoryService: CategoryService
   ) {}
 
-
   ngOnInit() {
     this.loadCategoryName();
   }
-
 
   loadCategoryName() {
     this.categoryService.getCategory().subscribe(
@@ -42,16 +37,13 @@ export class ProductDetailDialogComponent implements OnInit {
     );
   }
 
-
   getImageUrl(imagePath: string): string {
     return this.productService.getImageUrl(imagePath);
   }
 
-
   selectImage(index: number): void {
     this.selectedImageIndex = index;
   }
-
 
   close(): void {
     this.dialogRef.close();
