@@ -15,4 +15,5 @@ public interface BillRepository extends JpaRepository<Bill, Integer> {
 
     boolean existsByCouponCode(String code);
 
+    Bill findByUuid(String fileName);
 }

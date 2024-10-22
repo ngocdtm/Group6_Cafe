@@ -123,17 +123,20 @@ public class UserServiceImpl implements UserService {
                 if (userDetails.getStatus().equalsIgnoreCase("true")) {
                     String token = jwtUtil.generateToken(userDetails.getEmail(), userDetails.getRole());
                     return ResponseEntity.ok()
-                            .body("{\"token\":\"" + token + "\", \"role\":\"" + userDetails.getRole() + "\"}");
-                } else {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body("{\"message\":\"Account is not active. Wait for admin approval.\"}");
+                            .body(String.format(
+                                    "{\"token\":\"%s\", \"role\":\"%s\", \"name\":\"%s\", \"id\":%d}",
+                                    token,
+                                    userDetails.getRole(),
+                                    userDetails.getName(),
+                                    userDetails.getId()
+                            ));
                 }
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("{\"message\":\"Account is not active. Wait for admin approval.\"}");
             }
-        }  catch (BadCredentialsException e) {
+        } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("{\"message\":\"Invalid username or password\"}");
-        } catch (Exception ex) {
-            log.error("Error in authentication process", ex);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("{\"message\":\"Something went wrong\"}");

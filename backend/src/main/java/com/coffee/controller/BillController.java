@@ -5,6 +5,7 @@ import com.coffee.constants.CafeConstants;
 import com.coffee.entity.Bill;
 import com.coffee.service.BillService;
 import com.coffee.utils.CafeUtils;
+import com.coffee.wrapper.BillWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,10 +45,10 @@ public class BillController {
     )
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/getBill")
-    public ResponseEntity<List<Bill>> getBills(){
-        try{
+    public ResponseEntity<List<BillWrapper>> getBills() {
+        try {
             return billService.getBills();
-        }catch(Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);

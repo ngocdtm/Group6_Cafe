@@ -1,6 +1,6 @@
 package com.coffee.service;
 
-import com.coffee.entity.Bill;
+import com.coffee.wrapper.BillWrapper;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -9,7 +9,7 @@ import java.util.Map;
 public interface BillService {
     ResponseEntity<String> generateBill(Map<String, Object> requestMap);
 
-    ResponseEntity<List<Bill>> getBills();
+    ResponseEntity<List<BillWrapper>> getBills();
 
     ResponseEntity<byte[]> getPdf(Map<String, Object> requestMap);
 
