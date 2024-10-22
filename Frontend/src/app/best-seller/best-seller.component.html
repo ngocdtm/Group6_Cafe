@@ -1,23 +1,27 @@
 <div class="container">
-    <h1>Our Products</h1>
+  <h1>Our Products</h1>
+
+  <div class="category-filter">
+      <button (click)="filterByCategory('all')" [class.active]="selectedCategory === 'all'">All</button>
+      <button *ngFor="let category of categories"
+              (click)="filterByCategory(category.id)"
+              [class.active]="selectedCategory === category.id">
+        {{category.name}}
+      </button>
+    </div>
  
-    <div class="category-filter">
-        <button (click)="filterByCategory('all')" [class.active]="selectedCategory === 'all'">All</button>
-        <button *ngFor="let category of categories"
-                (click)="filterByCategory(category.id)"
-                [class.active]="selectedCategory === category.id">
-          {{category.name}}
-        </button>
+    <div class="product-grid">
+      <div *ngFor="let product of filteredProducts" class="product-card" (click)="openProductDetail(product)">
+        <img [src]="getFirstImageUrl(product)" [alt]="product.name">
+        <h3>{{product.name}}</h3>
+        <p>{{product.price | currency}}</p>
+        <button (click)="addToCart(product)" class="add-to-cart-btn">Add to Cart</button>
       </div>
+    </div>
    
-      <div class="product-grid">
-        <div *ngFor="let product of filteredProducts" class="product-card">
-          <img [src]="getFirstImageUrl(product)" [alt]="product.name">
-          <h3>{{product.name}}</h3>
-          <p>{{product.price | currency}}</p>
-          <button (click)="addToCart(product)" class="add-to-cart-btn">Add to Cart</button>
-        </div>
-      </div>
-     
 </div>
+
+
+
+
 

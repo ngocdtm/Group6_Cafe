@@ -7,6 +7,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { LoginComponent } from '../login/login.component';
 import { SnackbarService } from '../services/snackbar.service';
 import { LoginPromptComponent } from '../login-prompt/login-prompt.component';
+import { ProductDetailDialogComponent } from '../material-component/dialog/product-detail-dialog/product-detail-dialog.component';
 
 
 @Component({
@@ -124,6 +125,13 @@ export class BestSellerComponent implements OnInit {
       return this.productService.getImageUrl(product.images[0].imagePath);
     }
     return 'assets/default-product-image.png'; // Đường dẫn đến ảnh mặc định
+  }
+
+  openProductDetail(product: any) {
+    this.dialog.open(ProductDetailDialogComponent, {
+      data: product,
+      panelClass: 'product-detail-dialog'
+    });
   }
 
 

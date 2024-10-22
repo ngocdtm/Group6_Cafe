@@ -21,6 +21,7 @@ import { ManageUserComponent } from "./manage-user/manage-user.component";
 import { MaterialRoutes } from "./material.routing";
 import { ViewBillComponent } from "./view-bill/view-bill.component";
 import { ViewDetailProductComponent } from "./view-detail-product/view-detail-product.component";
+import { ProductDetailDialogComponent } from "./dialog/product-detail-dialog/product-detail-dialog.component";
 
 
 @NgModule({
@@ -49,7 +50,8 @@ import { ViewDetailProductComponent } from "./view-detail-product/view-detail-pr
     ImagePreviewDialogComponent,
     ViewDetailProductComponent,
     ManageCouponComponent,
-    CouponComponent
+    CouponComponent,
+    ProductDetailDialogComponent
   ]
 })
 export class MaterialComponentsModule {}

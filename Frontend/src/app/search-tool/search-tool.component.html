@@ -1,0 +1,47 @@
+<div class="search-tool" [class.active]="isSearchActive">
+    <div class="search-icon" (click)="toggleSearch()">
+      <mat-icon>search</mat-icon>
+    </div>
+   
+    <div class="search-overlay" *ngIf="isSearchActive" (click)="toggleSearch()"></div>
+   
+    <div class="search-container" *ngIf="isSearchActive" (click)="$event.stopPropagation()">
+      <div class="search-input-wrapper">
+        <input
+          class="search-input"
+          [formControl]="searchControl"
+          type="text"
+          placeholder="Search products..."
+          (keyup.enter)="handleEnter()"
+        >
+        <mat-icon *ngIf="isLoading" class="loading-icon">sync</mat-icon>
+        <mat-icon
+          *ngIf="searchControl.value && !isLoading"
+          class="clear-icon"
+          (click)="clearSearch()">
+          close
+        </mat-icon>
+      </div>
+ 
+      <div class="search-results" *ngIf="searchResults.length > 0">
+        <div
+          class="search-result-item"
+          *ngFor="let product of searchResults"
+          (click)="openProductDetail(product)"
+        >
+        <div class="product-grid">
+            <div class="product-card" (click)="openProductDetail(product)">
+              <img [src]="getFirstImageUrl(product)" [alt]="product.name">
+              <h3>{{product.name}}</h3>
+              <p>{{product.price | currency}}</p>
+            </div>
+          </div>
+   
+        </div>
+      </div>
+ 
+      <div class="no-results" *ngIf="searchControl.value && searchResults.length === 0 && !isLoading">
+        <p>No products found</p>
+      </div>
+    </div>
+  </div>
