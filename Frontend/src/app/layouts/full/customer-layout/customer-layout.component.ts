@@ -47,8 +47,11 @@ export class CustomerLayoutComponent {
      this.cartService.cartItemCountSubject.subscribe(count => {
       this.cartItemCount = count;
     });
-  }
 
+    // this.cartService.getCartItemCount().subscribe(count => {
+    //   this.cartItemCount = count;
+    // });
+  }
 
   navigateTo(state: string) {
     this.router.navigate([state]);
@@ -97,9 +100,8 @@ export class CustomerLayoutComponent {
   openSearchBar() {
     this.router.navigate(['/search']);
   }
-  
+
   openCart() {
     this.router.navigate(['/cart']);
   }
 }
-

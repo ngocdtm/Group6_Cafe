@@ -26,6 +26,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     SearchPageComponent,
     SearchToolComponent,
     CartComponent,
+
   ],
   imports: [
     FormsModule,

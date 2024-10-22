@@ -24,6 +24,7 @@ import { ViewDetailProductComponent } from "./view-detail-product/view-detail-pr
 import { ProductDetailDialogComponent } from './dialog/product-detail-dialog/product-detail-dialog.component';
 
 
+
 @NgModule({
   imports: [
     CommonModule,

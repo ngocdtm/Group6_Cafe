@@ -1,5 +1,6 @@
 package com.coffee.controller;
 
+
 import com.coffee.constants.CafeConstants;
 import com.coffee.service.ProductService;
 import com.coffee.utils.CafeUtils;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
@@ -27,14 +29,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+
 @RestController
 @RequestMapping("/api/v1/product")
 public class ProductController {
 
+
     @Autowired
     ProductService productService;
 
+
     private final Path fileStorageLocation;
+
 
     public ProductController(@Value("${app.file.upload-dir}") String uploadDir) {
         this.fileStorageLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
@@ -45,12 +51,14 @@ public class ProductController {
         }
     }
 
+
     @GetMapping("/images/{filename:.+}")
     @ResponseBody
     public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
         try {
             Path filePath = this.fileStorageLocation.resolve(filename).normalize();
             Resource resource = new UrlResource(filePath.toUri());
+
 
             if (resource.exists() || resource.isReadable()) {
                 return ResponseEntity.ok()
@@ -64,12 +72,14 @@ public class ProductController {
         }
     }
 
+
     private String saveImage(MultipartFile file) throws IOException {
         String fileName = UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
         Path targetLocation = this.fileStorageLocation.resolve(fileName);
         Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
         return fileName;
     }
+
 
     @Operation(
             summary = "Add a new product",
@@ -91,6 +101,7 @@ public class ProductController {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
     @Operation(
             summary = "Get all product",
             description = "Endpoint to get all product."
@@ -105,6 +116,7 @@ public class ProductController {
         }
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
 
     @Operation(
             summary = "Update a product",
@@ -129,6 +141,7 @@ public class ProductController {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
     @Operation(
             summary = "Delete product image",
             description = "Endpoint to delete a specific product image."
@@ -143,6 +156,7 @@ public class ProductController {
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
 
     @Operation(
             summary = "Delete a product",
@@ -159,6 +173,7 @@ public class ProductController {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
     @Operation(
             summary = "Update a product status",
             description = "Endpoint to update a product status."
@@ -173,6 +188,7 @@ public class ProductController {
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
 
     @Operation(
             summary = "Get a product by category",
@@ -189,6 +205,7 @@ public class ProductController {
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
     @Operation(
             summary = "Get a product by id",
             description = "Endpoint to get a product by id."
@@ -203,4 +220,20 @@ public class ProductController {
         }
         return new ResponseEntity<>(new ProductWrapper(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+
+    @Operation(
+            summary = "Search products",
+            description = "Endpoint to search products by keyword in name and description."
+    )
+    @GetMapping("/search")
+    public ResponseEntity<List<ProductWrapper>> searchProducts(@RequestParam String keyword) {
+        try {
+            return productService.searchProducts(keyword);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }
+
