@@ -9,15 +9,6 @@
         {{category.name}}
       </button>
     </div>
- 
-    <div class="product-grid">
-      <div *ngFor="let product of filteredProducts" class="product-card" (click)="openProductDetail(product)">
-        <img [src]="getFirstImageUrl(product)" [alt]="product.name">
-        <h3>{{product.name}}</h3>
-        <p>{{product.price | currency}}</p>
-        <button (click)="addToCart(product)" class="add-to-cart-btn">Add to Cart</button>
-      </div>
-    </div>
    
       <div class="product-grid">
         <div *ngFor="let product of filteredProducts" class="product-card" >
