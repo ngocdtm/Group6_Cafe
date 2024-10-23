@@ -1,6 +1,8 @@
 package com.coffee.entity;
 
 
+import com.coffee.enums.OrderStatus;
+import com.coffee.enums.OrderType;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.DynamicInsert;
@@ -13,8 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @NamedQuery(name = "Bill.getAllBills", query = "SELECT b FROM Bill b")
-@NamedQuery(name = "Bill.getBillByUserName", query = "SELECT b FROM Bill b WHERE b.createdBy=:name ORDER BY b.id DESC")
-@NamedQuery(name = "Bill.existsByCouponCode", query = "SELECT CASE WHEN (COUNT(b) > 0) THEN true ELSE false END FROM Bill b WHERE b.code = :code")
+@NamedQuery(name = "Bill.getBillByUserName", query = "SELECT b FROM Bill b WHERE b.createdByUser=:name ORDER BY b.id DESC")
+@NamedQuery(name = "Bill.existsByCouponCode", query = "SELECT CASE WHEN (COUNT(b) > 0) THEN true ELSE false END FROM Bill b WHERE b.couponCode = :couponCode")
 
 @Data
 @Entity
@@ -34,48 +36,36 @@ public class Bill implements Serializable {
     @Column(name = "uuid")
     private String uuid;
 
-    @Column(name = "name")
-    private String name;
-
-    @Column(name = "email")
-    private String email;
-
-    @Column(name = "phoneNumber")
-    private String phoneNumber;
-
-    @Column(name = "paymentMethod")
-    private String paymentMethod;
-
-    @Column(name = "total")
-    private Integer total;
-
-    @Column(name = "totalAfterDiscount")
-    private Integer totalAfterDiscount;
-
-    @Column(name = "discount")
-    private Integer discount;
-
-//    @Column(name = "productDetails", columnDefinition = "TEXT")
-//    private String productDetails;
-
-    @Column(name = "createdBy")
-    private String createdBy;
-
-    @Column(name = "code")
-    private String code;
-
+    // Thông tin khách hàng
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private User user;
+    private User user; // Có thể null nếu là khách vãng lai
 
-    @Column(name = "status")
-    private String status;
-
-    @Column(name = "order_date")
-    private LocalDateTime orderDate;
-
-    @Column(name = "shipping_address")
+    private String customerName;
+    private String customerEmail;
+    private String customerPhone;
     private String shippingAddress;
+
+    // Thông tin thanh toán
+    private String paymentMethod;
+    private Integer total;
+    private Integer discount;
+    private Integer totalAfterDiscount;
+    private String couponCode;
+
+    // Thông tin thời gian
+    private LocalDateTime orderDate;
+    private LocalDateTime lastUpdatedDate;
+
+    // Thông tin đặt mua
+    @Enumerated(EnumType.STRING)
+    private OrderType orderType;
+
+    @Enumerated(EnumType.STRING)
+
+    private OrderStatus orderStatus;
+    private String createdByUser;
+
 
     @OneToMany(mappedBy = "bill", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BillItem> billItems = new ArrayList<>();

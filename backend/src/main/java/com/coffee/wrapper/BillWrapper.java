@@ -1,6 +1,8 @@
 package com.coffee.wrapper;
 
 import com.coffee.entity.Bill;
+import com.coffee.enums.OrderStatus;
+import com.coffee.enums.OrderType;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -9,16 +11,20 @@ import java.util.stream.Collectors;
 public class BillWrapper {
     private Integer id;
     private String uuid;
-    private String name;
-    private String email;
-    private String phoneNumber;
+    private String customerName;
+    private String customerEmail;
+    private String customerPhone;
     private String paymentMethod;
+    private String shippingAddress;
     private Integer total;
     private Integer discount;
     private Integer totalAfterDiscount;
-    private String status;
+    private OrderStatus orderStatus;
+    private OrderType orderType;
     private LocalDateTime orderDate;
-    private List<BillItemWrapper> items;
+    private LocalDateTime lastUpdatedDate;
+    private String createdByUser;
+    private List<BillItemWrapper> billItems;
 
     public Integer getId() {
         return id;
@@ -36,28 +42,28 @@ public class BillWrapper {
         this.uuid = uuid;
     }
 
-    public String getName() {
-        return name;
+    public String getCustomerName() {
+        return customerName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
     }
 
-    public String getEmail() {
-        return email;
+    public String getCustomerEmail() {
+        return customerEmail;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setCustomerEmail(String customerEmail) {
+        this.customerEmail = customerEmail;
     }
 
-    public String getPhoneNumber() {
-        return phoneNumber;
+    public String getCustomerPhone() {
+        return customerPhone;
     }
 
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
+    public void setCustomerPhone(String customerPhone) {
+        this.customerPhone = customerPhone;
     }
 
     public String getPaymentMethod() {
@@ -66,6 +72,14 @@ public class BillWrapper {
 
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
+    }
+
+    public String getShippingAddress() {
+        return shippingAddress;
+    }
+
+    public void setShippingAddress(String shippingAddress) {
+        this.shippingAddress = shippingAddress;
     }
 
     public Integer getTotal() {
@@ -92,12 +106,20 @@ public class BillWrapper {
         this.totalAfterDiscount = totalAfterDiscount;
     }
 
-    public String getStatus() {
-        return status;
+    public OrderStatus getOrderStatus() {
+        return orderStatus;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setOrderStatus(OrderStatus orderStatus) {
+        this.orderStatus = orderStatus;
+    }
+
+    public OrderType getOrderType() {
+        return orderType;
+    }
+
+    public void setOrderType(OrderType orderType) {
+        this.orderType = orderType;
     }
 
     public LocalDateTime getOrderDate() {
@@ -108,12 +130,28 @@ public class BillWrapper {
         this.orderDate = orderDate;
     }
 
-    public List<BillItemWrapper> getItems() {
-        return items;
+    public LocalDateTime getLastUpdatedDate() {
+        return lastUpdatedDate;
     }
 
-    public void setItems(List<BillItemWrapper> items) {
-        this.items = items;
+    public void setLastUpdatedDate(LocalDateTime lastUpdatedDate) {
+        this.lastUpdatedDate = lastUpdatedDate;
+    }
+
+    public String getCreatedByUser() {
+        return createdByUser;
+    }
+
+    public void setCreatedByUser(String createdByUser) {
+        this.createdByUser = createdByUser;
+    }
+
+    public List<BillItemWrapper> getBillItems() {
+        return billItems;
+    }
+
+    public void setBillItems(List<BillItemWrapper> billItems) {
+        this.billItems = billItems;
     }
 
     // Constructors, getters, and setters
@@ -122,16 +160,19 @@ public class BillWrapper {
         BillWrapper dto = new BillWrapper();
         dto.setId(bill.getId());
         dto.setUuid(bill.getUuid());
-        dto.setName(bill.getName());
-        dto.setEmail(bill.getEmail());
-        dto.setPhoneNumber(bill.getPhoneNumber());
+        dto.setCustomerName(bill.getCustomerName());
+        dto.setCustomerEmail(bill.getCustomerEmail());
+        dto.setCustomerPhone(bill.getCustomerPhone());
         dto.setPaymentMethod(bill.getPaymentMethod());
+        dto.setShippingAddress(bill.getShippingAddress());
         dto.setTotal(bill.getTotal());
         dto.setDiscount(bill.getDiscount());
         dto.setTotalAfterDiscount(bill.getTotalAfterDiscount());
-        dto.setStatus(bill.getStatus());
+        dto.setOrderStatus(bill.getOrderStatus());
+        dto.setOrderType(bill.getOrderType());
         dto.setOrderDate(bill.getOrderDate());
-        dto.setItems(bill.getBillItems().stream().map(BillItemWrapper::fromBillItem).collect(Collectors.toList()));
+        dto.setCreatedByUser(bill.getCreatedByUser());
+        dto.setBillItems(bill.getBillItems().stream().map(BillItemWrapper::fromBillItem).collect(Collectors.toList()));
         return dto;
     }
 }

@@ -1,5 +1,6 @@
 package com.coffee.service;
 
+import com.coffee.enums.OrderStatus;
 import com.coffee.wrapper.BillWrapper;
 import org.springframework.http.ResponseEntity;
 
@@ -7,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface BillService {
-    ResponseEntity<String> generateBill(Map<String, Object> requestMap);
+//    ResponseEntity<String> generateBill(Map<String, Object> requestMap);
 
     ResponseEntity<List<BillWrapper>> getBills();
 
@@ -17,5 +18,9 @@ public interface BillService {
 
     ResponseEntity<Map<String,Object>> applyCoupon(Map<String, Object> requestMap);
 
+    ResponseEntity<String> generateOfflineBill(Map<String, Object> requestMap);
 
+    ResponseEntity<String> processOnlineOrder(Map<String, Object> requestMap);
+
+    ResponseEntity<String> updateOrderStatus(Integer id, OrderStatus status);
 }
