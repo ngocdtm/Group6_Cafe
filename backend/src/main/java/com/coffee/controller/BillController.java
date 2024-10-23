@@ -3,6 +3,7 @@ package com.coffee.controller;
 
 import com.coffee.constants.CafeConstants;
 import com.coffee.entity.Bill;
+import com.coffee.enums.OrderStatus;
 import com.coffee.service.BillService;
 import com.coffee.utils.CafeUtils;
 import com.coffee.wrapper.BillWrapper;
@@ -24,19 +25,27 @@ public class BillController {
     @Autowired
     BillService billService;
 
-    @Operation(
-            summary = "Generate a new Bill",
-            description = "Endpoint to generate a new bill."
-    )
+    @Operation(summary = "Generate offline bill")
     @SecurityRequirement(name = "bearerAuth")
-    @PostMapping("/generateBill")
-    public ResponseEntity<String> generateBill(@RequestBody Map<String, Object> requestMap){
-        try{
-            return billService.generateBill(requestMap);
-        }catch(Exception ex){
-            ex.printStackTrace();
-        }
-        return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    @PostMapping("/generate-offline")
+    public ResponseEntity<String> generateOfflineBill(@RequestBody Map<String, Object> requestMap) {
+        return billService.generateOfflineBill(requestMap);
+    }
+
+    @Operation(summary = "Process online order")
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/process-online")
+    public ResponseEntity<String> processOnlineOrder(@RequestBody Map<String, Object> requestMap) {
+        return billService.processOnlineOrder(requestMap);
+    }
+
+    @Operation(summary = "Update order status")
+    @SecurityRequirement(name = "bearerAuth")
+    @PutMapping("/{id}/status")
+    public ResponseEntity<String> updateOrderStatus(
+            @PathVariable Integer id,
+            @RequestParam OrderStatus status) {
+        return billService.updateOrderStatus(id, status);
     }
 
     @Operation(
@@ -84,14 +93,19 @@ public class BillController {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PostMapping(path = "/applyCoupon")
-    public ResponseEntity<Map<String, Object>> applyCoupon(@RequestBody Map<String, Object> requestMap) {
+    @Operation(summary = "Apply coupon to a bill")
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/{billId}/apply-coupon")
+    public ResponseEntity<Map<String, Object>> applyCoupon(
+            @PathVariable Integer billId,
+            @RequestBody Map<String, Object> requestMap) {
         try {
+            requestMap.put("billId", billId);
             return billService.applyCoupon(requestMap);
         } catch (Exception ex) {
             ex.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", CafeConstants.SOMETHING_WENT_WRONG));
         }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("message", CafeConstants.SOMETHING_WENT_WRONG));
     }
 }
