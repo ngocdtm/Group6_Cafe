@@ -1,15 +1,51 @@
-mat-form-field{
-  padding: 5px;
+.container {
+  padding: 20px;
 }
 
-.float-right{
-  float: right;
+.mb-4 {
+  margin-bottom: 1.5rem;
 }
 
-table{
+.w-100 {
   width: 100%;
 }
 
-mat-card{
-  padding-bottom: 30px !important;
+.table-container {
+  max-height: 400px;
+  overflow: auto;
+}
+
+.order-summary {
+  padding: 1rem;
+}
+
+.text-success {
+  color: #28a745;
+}
+
+.text-primary {
+  color: #007bff;
+}
+
+.total-label {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.total-amount {
+  font-size: 1.2rem;
+  color: #007bff;
+}
+
+mat-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+mat-card-header {
+  margin-bottom: 1rem;
+}
+
+::ng-deep .mat-form-field-appearance-outline .mat-form-field-outline {
+  background-color: #fff;
 }

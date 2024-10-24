@@ -195,12 +195,16 @@ export class CartComponent implements OnInit {
   }
 
   proceedToCheckout(): void {
-    if (this.cartItems.length > 0) {
-      this.router.navigate(['/checkout']);
+    if (this.cartItems.length > 0 && this.isLoggedIn) {
+        this.router.navigate(['/checkout']);
     } else {
-      this.snackbarService.openSnackBar('Your cart is empty', '');
+        this.snackbarService.openSnackBar('Your cart is empty or you are not logged in', 'Close');
+        if (!this.isLoggedIn) {
+            this.router.navigate(['/login']);  // Chuyển hướng người dùng đến trang đăng nhập
+        }
     }
-  }
+}
+
 
 
   formatPrice(price: number): string {

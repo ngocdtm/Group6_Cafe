@@ -26,6 +26,12 @@ export class LoginComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    const returnUrl = localStorage.getItem('returnUrl');
+  if (returnUrl) {
+    localStorage.removeItem('returnUrl');
+    // Redirect sau khi đăng nhập thành công
+    this.router.navigateByUrl(returnUrl);
+  }
     this.loginForm = this.formBuilder.group({
       email:[null,[Validators.required, Validators.pattern(GlobalConstants.emailRegex)]],
       password:[null,[Validators.required]]

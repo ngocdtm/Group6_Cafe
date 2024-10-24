@@ -13,6 +13,8 @@ export class CartService {
 
   url = environment.apiUrl;
   cartItemCountSubject = new BehaviorSubject<number>(0);
+  snackbarService: any;
+  router: any;
 
   constructor(
     private httpClient: HttpClient,
@@ -40,16 +42,25 @@ export class CartService {
 
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('token');
+    if (!token) {
+        // Nếu không có token, chuyển người dùng đến trang đăng nhập
+        this.userService.logout();
+        this.router.navigate(['/login']);
+        return new HttpHeaders(); // Trả về header rỗng để tránh lỗi tiếp tục
+    }
     return new HttpHeaders()
-      .set('Content-Type', 'application/json')
-      .set('Authorization', `Bearer ${token}`);
-  }
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${token}`);
+}
+
 
   private handleError(error: any) {
     console.error('An error occurred:', error);
     if (error.status === 401) {
-      // Instead of clearing everything, we'll let the UserService handle the logout
-      console.log('Authorization error occurred');
+        // Khi gặp lỗi 401, thông báo người dùng và logout
+        this.userService.logout();
+        this.snackbarService.openSnackBar('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'Đóng');
+        this.router.navigate(['/login']); // Chuyển người dùng đến trang đăng nhập
     }
     return throwError(() => error);
   }
