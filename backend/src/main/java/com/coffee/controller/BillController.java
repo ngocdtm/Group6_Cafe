@@ -93,19 +93,14 @@ public class BillController {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @Operation(summary = "Apply coupon to a bill")
-    @SecurityRequirement(name = "bearerAuth")
-    @PostMapping("/{billId}/apply-coupon")
-    public ResponseEntity<Map<String, Object>> applyCoupon(
-            @PathVariable Integer billId,
-            @RequestBody Map<String, Object> requestMap) {
+    @PostMapping(path = "/applyCoupon")
+    public ResponseEntity<Map<String, Object>> applyCoupon(@RequestBody Map<String, Object> requestMap) {
         try {
-            requestMap.put("billId", billId);
             return billService.applyCoupon(requestMap);
         } catch (Exception ex) {
             ex.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", CafeConstants.SOMETHING_WENT_WRONG));
         }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", CafeConstants.SOMETHING_WENT_WRONG));
     }
 }
