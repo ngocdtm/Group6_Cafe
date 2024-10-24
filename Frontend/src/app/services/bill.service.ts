@@ -7,40 +7,56 @@ import { environment } from 'src/environments/environment';
   providedIn: 'root'
 })
 export class BillService {
-
   url = environment.apiUrl;
 
-  constructor(private httpClient:HttpClient) { }
+  constructor(private httpClient: HttpClient) { }
 
-  generateBill(data:any){
-    return this.httpClient.post(`${this.url}/api/v1/bill/generateBill`, data,{
+  // Generate offline bill
+  generateOfflineBill(data: any): Observable<any> {
+    return this.httpClient.post(`${this.url}/api/v1/bill/generate-offline`, data, {
       headers: new HttpHeaders().set('Content-Type', 'application/json')
-    })
-  }
-
-  getPdf(data: any){
-    return this.httpClient.post(`${this.url}/api/v1/bill/getPdf`, data, {
-      headers: new HttpHeaders().set('Content-Type', 'application/json'),
-      responseType: 'blob' as 'json'
     });
   }
 
-  getBills(){
-    return this.httpClient.get(`${this.url}/api/v1/bill/getBill`)
+  // Process online order
+  processOnlineOrder(data: any): Observable<any> {
+    return this.httpClient.post(`${this.url}/api/v1/bill/process-online`, data, {
+      headers: new HttpHeaders().set('Content-Type', 'application/json')
+    });
   }
 
-  delete(id:any){
-    return this.httpClient.post(`${this.url}/api/v1/bill/delete/${id}`,{
+  // Update order status
+  updateOrderStatus(id: number, status: string): Observable<any> {
+    return this.httpClient.put(`${this.url}/api/v1/bill/${id}/status?status=${status}`, {}, {
       headers: new HttpHeaders().set('Content-Type', 'application/json')
-    })
+    });
   }
+
+  // Get PDF
+  getPdf(data: any): Observable<Blob> {
+    return this.httpClient.post(`${this.url}/api/v1/bill/getPdf`, data, {
+      headers: new HttpHeaders().set('Content-Type', 'application/json'),
+      responseType: 'blob'
+    });
+  }
+
+  // Get all bills
+  getBills(): Observable<any> {
+    return this.httpClient.get(`${this.url}/api/v1/bill/getBill`, {
+      headers: new HttpHeaders().set('Content-Type', 'application/json')
+    });
+  }
+
+  // Delete bill
+  deleteBill(id: number): Observable<any> {
+    return this.httpClient.post(`${this.url}/api/v1/bill/delete/${id}`, {}, {
+      headers: new HttpHeaders().set('Content-Type', 'application/json')
+    });
+  }
+
   applyCoupon(data: any): Observable<any> {
     return this.httpClient.post(this.url + "/api/v1/bill/applyCoupon", data, {
       headers: new HttpHeaders().set('Content-Type', 'application/json')
     });
   }  
-
-
-
-
 }

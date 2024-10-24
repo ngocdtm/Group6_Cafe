@@ -16,7 +16,7 @@ import { NgxUiLoaderConfig, NgxUiLoaderModule, SPINNER } from 'ngx-ui-loader';
 import { ForgotPasswordComponent } from './forgot-password/forgot-password.component';
 import { LoginComponent } from './login/login.component';
 import { TokenInterceptorInterceptor } from './services/token-interceptor.interceptor';
-import { CommonModule, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { LoginPromptComponent } from './login-prompt/login-prompt.component';
 
 const ngxUiLoaderConfig: NgxUiLoaderConfig = {

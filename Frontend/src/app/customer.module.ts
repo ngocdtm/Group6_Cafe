@@ -16,6 +16,7 @@ import { SearchToolComponent } from './search-tool/search-tool.component';
 import { CartComponent } from './cart/cart.component';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { CheckoutComponent } from './checkout/checkout.component';
 
 @NgModule({
   declarations: [
@@ -26,6 +27,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     SearchPageComponent,
     SearchToolComponent,
     CartComponent,
+    CheckoutComponent,
 
   ],
   imports: [

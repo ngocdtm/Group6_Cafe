@@ -1,6 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -14,6 +15,7 @@ export class UserService {
   private userName = new BehaviorSubject<string>('');
   private userRole = new BehaviorSubject<string>('');
   private userId = new BehaviorSubject<number | null>(null);
+  private userDetails: any = null;
 
   constructor(private httpClient: HttpClient) {
     this.checkInitialLoginStatus();
@@ -30,32 +32,34 @@ export class UserService {
     this.loadUserInfoFromStorage();
     
     // Verify token and refresh user info
-    this.checkToken().subscribe({
-      next: (response: any) => {
+    this.checkToken().pipe(
+      tap((response: any) => {
         if (response) {
           this.setLoggedIn(true);
-          // If name is not in localStorage, try to get it from the response
           if (!this.userName.value && response.name) {
             this.setUserInfo(response.name, response.role, response.id);
           }
-        } else {
-          this.logout();
+          // Store user details
+          this.userDetails = response;
         }
-      },
-      error: () => {
+      }),
+      catchError(() => {
         this.logout();
-      }
-    });
+        return of(null);
+      })
+    ).subscribe();
   }
 
   private loadUserInfoFromStorage() {
     const name = localStorage.getItem('userName');
     const role = localStorage.getItem('userRole');
     const id = localStorage.getItem('userId');
+    const userDetails = localStorage.getItem('userDetails');
     
     if (name) this.userName.next(name);
     if (role) this.userRole.next(role);
     if (id) this.userId.next(Number(id));
+    if (userDetails) this.userDetails = JSON.parse(userDetails);
   }
 
   singup(data:any) {
@@ -70,10 +74,22 @@ export class UserService {
     })
   }
 
-  login(data:any) {
-    return this.httpClient.post(`${this.url}/api/v1/user/login`, data,{
-        headers: new HttpHeaders().set('Content-Type', 'application/json')
-    });
+  login(data: any) {
+    return this.httpClient.post(`${this.url}/api/v1/user/login`, data).pipe(
+      tap((response: any) => {
+        if (response.token) {
+          localStorage.setItem('token', response.token);
+          this.setUserInfo(response.name, response.role, response.id);
+          localStorage.setItem('userDetails', JSON.stringify(response));
+          this.userDetails = response;
+          this.setLoggedIn(true);
+        }
+      })
+    );
+  }
+
+  getUserDetails(): any {
+    return this.userDetails;
   }
 
   checkToken() {
@@ -86,8 +102,13 @@ export class UserService {
     })
   }
 
-  getUsers() {
-    return this.httpClient.get(`${this.url}/api/v1/user/get`);
+  getUsers(): Observable<any[]> {
+    return this.httpClient.get<any[]>(`${this.url}/api/v1/user/get`).pipe(
+      catchError(error => {
+        console.error('Error fetching users:', error);
+        return [];
+      })
+    );
   }
 
   update(data:any){
@@ -105,17 +126,12 @@ export class UserService {
   }
 
   logout() {
-    // Clear localStorage
-    localStorage.removeItem('token');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userId');
-    
-    // Reset BehaviorSubjects
+    localStorage.clear();
     this.loggedIn.next(false);
     this.userName.next('');
     this.userRole.next('');
     this.userId.next(null);
+    this.userDetails = null;
   }
 
   setUserInfo(name: string, role: string, id?: number) {
