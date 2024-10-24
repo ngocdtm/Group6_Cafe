@@ -135,16 +135,23 @@ public class BillServiceImpl implements BillService {
             bill.setCreatedByUser(userEmail);
         }
 
-        // Handle discount and coupon
+        // Handle discount and coupon with null checks
         String couponCode = (String) requestMap.get("couponCode");
         if (couponCode != null && !couponCode.isEmpty()) {
             bill.setCouponCode(couponCode);
-            bill.setDiscount((Integer) requestMap.get("discount"));
-            bill.setTotalAfterDiscount((Integer) requestMap.get("totalAfterDiscount"));
+
+            // Get discount and totalAfterDiscount from request with default values
+            Integer discount = (Integer) requestMap.getOrDefault("discount", 0);
+            Integer totalAfterDiscount = (Integer) requestMap.getOrDefault("totalAfterDiscount", bill.getTotal());
+
+            bill.setDiscount(discount);
+            bill.setTotalAfterDiscount(totalAfterDiscount);
         } else {
+            // If no coupon, set default values
             bill.setDiscount(0);
             bill.setTotalAfterDiscount(bill.getTotal());
         }
+
 
         // Process bill items
         List<BillItem> billItems = new ArrayList<>();
@@ -188,7 +195,9 @@ public class BillServiceImpl implements BillService {
                 requestMap.containsKey("customerPhone") &&
                 requestMap.containsKey("paymentMethod") &&
                 requestMap.containsKey("productDetails") &&
-                requestMap.containsKey("total");
+                requestMap.containsKey("total") &&
+                !requestMap.get("productDetails").toString().isEmpty() && // Ensure productDetails is not empty
+                (Integer) requestMap.get("total") > 0; // Ensure total is greater than 0
     }
 
     private boolean validateOnlineOrderRequest(Map<String, Object> requestMap) {
@@ -405,17 +414,12 @@ public class BillServiceImpl implements BillService {
     @Override
     public ResponseEntity<Map<String, Object>> applyCoupon(Map<String, Object> requestMap) {
         try {
-            Integer billId = (Integer) requestMap.get("billId");
             String couponCode = (String) requestMap.get("couponCode");
+            Integer totalAmount = (Integer) requestMap.get("total");
 
-            // Validate bill exists
-            Bill bill = billRepository.findById(billId)
-                    .orElseThrow(() -> new ValidationException("Bill not found"));
-
-            // Check if bill already has a coupon
-            if (bill.getCouponCode() != null && !bill.getCouponCode().isEmpty()) {
+            if (couponCode == null || totalAmount == null) {
                 return ResponseEntity.badRequest()
-                        .body(Map.of("message", "Bill already has a coupon applied"));
+                        .body(Map.of("message", "Invalid request parameters"));
             }
 
             // Validate coupon
@@ -431,26 +435,12 @@ public class BillServiceImpl implements BillService {
                         .body(Map.of("message", "Coupon is expired"));
             }
 
-            // Check if coupon has been used before (if it's a one-time use coupon)
-            if (billRepository.existsByCouponCode(couponCode)) {
-                return ResponseEntity.badRequest()
-                        .body(Map.of("message", "Coupon has already been used"));
-            }
-
             // Calculate discount
-            Integer totalAmount = bill.getTotal();
             Integer discountAmount = (totalAmount * coupon.getDiscount().intValue()) / 100;
             Integer totalAfterDiscount = totalAmount - discountAmount;
 
-            // Update bill with coupon details
-            bill.setCouponCode(couponCode);
-            bill.setDiscount(discountAmount);
-            bill.setTotalAfterDiscount(totalAfterDiscount);
-            billRepository.save(bill);
-
             // Prepare response
             Map<String, Object> response = new HashMap<>();
-            response.put("billId", billId);
             response.put("total", totalAmount);
             response.put("totalAfterDiscount", totalAfterDiscount);
             response.put("discountAmount", discountAmount);
@@ -460,9 +450,6 @@ public class BillServiceImpl implements BillService {
 
             return ResponseEntity.ok(response);
 
-        } catch (ValidationException ve) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("message", ve.getMessage()));
         } catch (Exception ex) {
             ex.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
