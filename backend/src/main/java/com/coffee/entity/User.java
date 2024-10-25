@@ -65,6 +65,12 @@ public class User implements Serializable {
 
     @Column(name = "loyaltyPoints")
     private Integer loyaltyPoints;
+    public User() {
+    }
+
+    public User(Integer id) {
+        this.id = id;
+    }
 
     @Column(name = "avatar")
     private String avatar;
@@ -75,5 +81,6 @@ public class User implements Serializable {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Bill> bills = new ArrayList<>();
+
 }
 

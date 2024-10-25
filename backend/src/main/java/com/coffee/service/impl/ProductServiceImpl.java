@@ -374,5 +374,43 @@ public class ProductServiceImpl implements ProductService {
         }
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @Override
+    public ResponseEntity<List<ProductWrapper>> getRelatedProducts(Integer productId, Integer limit) {
+        try{
+            Product product = productRepository.findById(productId).orElse(null);
+
+            if (product == null) {
+                return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
+            }
+
+
+            // Lấy sản phẩm liên quan từ cùng category, có mức giá tương đương
+            Integer priceRange = (int)(product.getPrice() * 0.3); // Range 30% của giá gốc
+
+            List<ProductWrapper> relatedProducts = productRepository.getRelatedProducts(
+
+                    product.getCategory().getId(),
+                    productId,
+                    product.getPrice(),
+                    priceRange,
+                    limit
+            );
+            // Thêm phần fetch và set images cho mỗi sản phẩm liên quan
+            for (ProductWrapper wrapper : relatedProducts) {
+                Optional<Product> relatedProduct = productRepository.findById(wrapper.getId());
+                if (relatedProduct.isPresent()) {
+                    List<ProductImageWrapper> imageWrappers = relatedProduct.get().getImages().stream()
+                            .map(image -> new ProductImageWrapper(image.getId(), image.getImagePath()))
+                            .collect(Collectors.toList());
+                    wrapper.setImages(imageWrappers);
+                }
+            }
+            return new ResponseEntity<>(relatedProducts, HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }
 

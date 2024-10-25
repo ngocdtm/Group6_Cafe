@@ -39,6 +39,12 @@ export class CustomerLayoutComponent {
     this.userService.isLoggedIn().subscribe(loggedIn => {
       this.isLoggedIn = loggedIn;
       if (loggedIn) {
+         this.userName = this.userService.getUserName();
+      }
+    });
+    this.userService.getUserId().subscribe(userId => {
+      // Ensure userId is also being managed correctly, if needed
+      console.log('User ID:', userId);
         this.userName = this.userService.getUserName();
       }
     });

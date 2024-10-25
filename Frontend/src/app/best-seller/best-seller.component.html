@@ -9,17 +9,31 @@
         {{category.name}}
       </button>
     </div>
-   
-      <div class="product-grid">
-        <div *ngFor="let product of filteredProducts" class="product-card" >
-          <div (click)="openProductDetail(product)">
+
+ 
+    
+    <div class="view-controls">
+      <button (click)="currentView='products'" [class.active]="currentView==='products'">Products</button>
+      <button (click)="currentView='history'" [class.active]="currentView==='history'">History</button>
+    </div>
+    
+    <div [ngSwitch]="currentView">
+      <div *ngSwitchCase="'products'">
+        <!-- Your existing product grid -->
+        <div class="product-grid">
+          <div *ngFor="let product of filteredProducts" class="product-card" (click)="openProductDetail(product)">
             <img [src]="getFirstImageUrl(product)" [alt]="product.name">
             <h3>{{product.name}}</h3>
-            <p>{{ formatPrice(product.price) }}</p>
-          </div>     
-          <button (click)="addToCart(product)" class="add-to-cart-btn">Add to Cart</button>
+            <p>{{product.price | currency}}</p>
+            <button (click)="addToCart(product)" class="add-to-cart-btn">Add to Cart</button>
+          </div>
         </div>
       </div>
+      <div *ngSwitchCase="'history'">
+        <app-product-history></app-product-history>
+      </div>
+    </div>
+
 
 </div>
 

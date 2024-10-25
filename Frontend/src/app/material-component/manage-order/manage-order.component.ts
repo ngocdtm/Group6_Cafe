@@ -91,6 +91,20 @@ export class ManageOrderComponent implements OnInit {
     );
   }
 
+  getProductDetails(value:any){
+    this.productService.getById(value.id,value.userId).subscribe((response:any)=>{
+      this.price = response.price;
+      this.manageOrderForm.controls['price'].setValue(response.price);
+      this.manageOrderForm.controls['quantity'].setValue('1');
+      this.manageOrderForm.controls['total'].setValue(this.price * 1);
+    },(error:any)=>{
+      console.log(error);
+      if(error.error?.message){
+        this.responseMessage = error.error?.message;
+      }else{
+        this.responseMessage = GlobalConstants.genericError;
+      }
+      this.snackbarService.openSnackBar(this.responseMessage, GlobalConstants.error);
   resetProductForm() {
     this.manageOrderForm.patchValue({
       price: '',

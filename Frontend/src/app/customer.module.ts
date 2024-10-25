@@ -15,9 +15,11 @@ import { SearchPageComponent } from './search-page/search-page.component';
 import { SearchToolComponent } from './search-tool/search-tool.component';
 import { CartComponent } from './cart/cart.component';
 import { MatDividerModule } from '@angular/material/divider';
+import { ProductHistoryComponent } from './material-component/product-history/product-history.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CheckoutComponent } from './checkout/checkout.component';
 import { ProfileComponent } from './profile/profile.component';
+
 
 @NgModule({
   declarations: [
@@ -27,10 +29,10 @@ import { ProfileComponent } from './profile/profile.component';
     CustomerLayoutComponent,
     SearchPageComponent,
     SearchToolComponent,
+    ProductHistoryComponent
     CartComponent,
     CheckoutComponent,
-    ProfileComponent,
-
+    ProfileComponent
   ],
   imports: [
     FormsModule,

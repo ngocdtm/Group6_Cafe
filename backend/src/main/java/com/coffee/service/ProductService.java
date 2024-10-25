@@ -33,5 +33,7 @@ public interface ProductService {
 
 
     ResponseEntity<List<ProductWrapper>> searchProducts(String keyword);
+
+    ResponseEntity<List<ProductWrapper>> getRelatedProducts(Integer productId, Integer limit);
 }
 

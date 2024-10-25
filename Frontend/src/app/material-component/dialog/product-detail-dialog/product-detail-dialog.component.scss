@@ -1,54 +1,78 @@
-.dialog-container {
-    padding: 20px;
-    max-width: 750px;
-    width: 90vw;
+.dialog-scroll-container {
+  height: 90vh;           // Chiều cao bằng 90% chiều cao màn hình
+  overflow-y: auto;       // Cho phép cuộn dọc khi nội dung vượt quá chiều cao
+  padding: 0 16px;        // Thêm padding 16px ở hai bên
+
+  // Tùy chỉnh thanh cuộn cho trình duyệt webkit (Chrome, Safari)
+  &::-webkit-scrollbar {
+      width: 8px;         // Độ rộng thanh cuộn
   }
-  
+
+  &::-webkit-scrollbar-track {
+      background: #f1f1f1; // Màu nền của track thanh cuộn
+  }
+
+  &::-webkit-scrollbar-thumb {
+      background: #888;    // Màu của thanh cuộn
+      border-radius: 4px;  // Bo góc thanh cuộn
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+      background: #555;    // Màu khi hover vào thanh cuộn
+  }
+}
+
+.dialog-content {
+  max-width: 750px;       // Chiều rộng tối đa của nội dung
+  margin: 0 auto;         // Căn giữa nội dung
+  padding: 20px 0;        // Thêm padding trên dưới
+}
+ 
   .dialog-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-  
+ 
     h2 {
       margin: 0;
       font-size: 24px;
     }
   }
-  
+ 
   .content-wrapper {
     display: flex;
     gap: 30px;
-  
+ 
     @media (max-width: 768px) {
       flex-direction: column;
     }
   }
-  
+ 
   .image-gallery {
     flex: 1;
     max-width: 500px;
-  
+ 
     .main-image {
       width: 100%;
       height: 400px;
       margin-bottom: 15px;
       border-radius: 8px;
       overflow: hidden;
-  
+ 
       img {
         width: 100%;
         height: 100%;
         object-fit: cover;
       }
     }
-  
+ 
     .thumbnail-strip {
       display: flex;
       gap: 10px;
       overflow-x: auto;
       padding-bottom: 10px;
-  
+ 
       .thumbnail {
         width: 80px;
         height: 80px;
@@ -57,12 +81,12 @@
         cursor: pointer;
         opacity: 0.7;
         transition: opacity 0.3s;
-  
+ 
         &.active {
           opacity: 1;
           border: 2px solid #1976d2;
         }
-  
+ 
         img {
           width: 100%;
           height: 100%;
@@ -71,25 +95,83 @@
       }
     }
   }
-  
+ 
   .product-details {
     flex: 1;
-    
+   
     .price {
       font-size: 24px;
       font-weight: bold;
       color: #1976d2;
       margin-bottom: 20px;
     }
-  
+ 
     .description {
       margin-bottom: 20px;
       line-height: 1.6;
     }
-  
+ 
     .additional-info {
       p {
         margin: 10px 0;
       }
     }
   }
+
+.related-products-section {
+    margin-top: 40px;       // Khoảng cách với phần trên
+
+    h3 {
+        font-size: 20px;    // Kích thước chữ tiêu đề
+        margin-bottom: 20px; // Khoảng cách dưới tiêu đề
+        color: #333;        // Màu chữ tiêu đề
+    }
+}
+.related-products-grid {
+  display: grid;          // Sử dụng CSS Grid
+  // Tự động chia cột, mỗi cột tối thiểu 200px, tự động điều chỉnh
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;             // Khoảng cách giữa các items
+  margin-top: 20px;      // Khoảng cách với phần trên
+}
+.related-product-card {
+  border: 1px solid #eee;  // Viền card
+  border-radius: 8px;      // Bo góc card
+  overflow: hidden;        // Ẩn nội dung vượt quá
+  // Hiệu ứng chuyển động khi hover
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;         // Con trỏ chuột kiểu pointer
+
+  &:hover {
+      transform: translateY(-4px);  // Di chuyển card lên 4px khi hover
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1); // Thêm bóng đổ
+  }
+
+  .product-image {
+      width: 100%;
+      height: 200px;
+      overflow: hidden;
+
+      img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;  // Giữ tỷ lệ ảnh, không bị méo
+      }
+  }
+
+  .product-info {
+      padding: 12px;       // Padding cho phần thông tin
+
+      h4 {
+          margin: 0 0 8px; // Margin dưới 8px
+          font-size: 16px;
+          color: #333;
+      }
+
+      .price {
+          color: #1976d2;  // Màu giá (xanh)
+          font-weight: bold;
+          margin: 0;
+      }
+  }
+}

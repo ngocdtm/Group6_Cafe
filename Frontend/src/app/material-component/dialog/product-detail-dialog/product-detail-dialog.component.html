@@ -1,4 +1,5 @@
-<div class="dialog-container">
+<div class="dialog-scroll-container">
+  <div class="dialog-content">
     <div class="dialog-header">
       <h2>{{data.name}}</h2>
       <button mat-icon-button (click)="close()">
@@ -28,4 +29,44 @@
         </div>
       </div>
     </div>
-  </div>
+
+    <div class="related-products-section">
+      <h3>Sản phẩm liên quan</h3>
+      
+      <!-- Loading state -->
+      <div *ngIf="isLoading" class="loading-state">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Đang tải sản phẩm liên quan...</p>
+      </div>
+    
+      <!-- Error state -->
+      <div *ngIf="!isLoading && relatedProducts.length === 0" class="no-products">
+        Không có sản phẩm liên quan
+      </div>
+    
+      <!-- Products grid -->
+      <div *ngIf="!isLoading && relatedProducts.length > 0" class="related-products-grid">
+        <div *ngFor="let product of relatedProducts" 
+             class="related-product-card"
+             (click)="openProduct(product)">
+          <div class="product-image">
+            <!-- Hiển thị ảnh đầu tiên của sản phẩm -->
+            <img *ngIf="product.images && product.images.length > 0"
+                 [src]="getImageUrl(product.images[0].imagePath)"
+                 [alt]="product.name"
+                >
+            <!-- Fallback khi không có ảnh -->
+            <div *ngIf="!product.images || product.images.length === 0" 
+                 class="image-placeholder">
+              <mat-icon>image</mat-icon>
+            </div>
+          </div>
+          <div class="product-info">
+            <h4>{{product.name}}</h4>
+            <p class="price">{{product.price | currency:'VND':'symbol':'1.0-0'}}</p>
+            <p class="description">{{product.description}}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>

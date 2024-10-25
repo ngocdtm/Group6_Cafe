@@ -98,89 +98,88 @@ export class UserService {
     return this.userDetails;
   }
 
-  checkToken() {
-    return this.httpClient.get(`${this.url}/api/v1/user/checkToken`);
-  }
+  checkToken() {return this.httpClient.get(`${this.url}/api/v1/user/checkToken`);
+}
 
-  changePassword(data:any) {
-    return this.httpClient.post(`${this.url}/api/v1/user/changePassword`, data,{
-        headers: new HttpHeaders().set('Content-Type', 'application/json')
-    })
-  }
-
-  getUsers(): Observable<any[]> {
-    return this.httpClient.get<any[]>(`${this.url}/api/v1/user/get`).pipe(
-      catchError(error => {
-        console.error('Error fetching users:', error);
-        return [];
-      })
-    );
-  }
-
-  update(data:any){
-    return this.httpClient.post(`${this.url}/api/v1/user/update`, data,{
+changePassword(data:any) {
+  return this.httpClient.post(`${this.url}/api/v1/user/changePassword`, data,{
       headers: new HttpHeaders().set('Content-Type', 'application/json')
   })
-  }
+}
 
-  isLoggedIn() {
-    return this.loggedIn.asObservable();
-  }
+getUsers(): Observable<any[]> {
+  return this.httpClient.get<any[]>(`${this.url}/api/v1/user/get`).pipe(
+    catchError(error => {
+      console.error('Error fetching users:', error);
+      return [];
+    })
+  );
+}
 
-  setLoggedIn(value: boolean) {
-    this.loggedIn.next(value);
-  }
+update(data:any){
+  return this.httpClient.post(`${this.url}/api/v1/user/update`, data,{
+    headers: new HttpHeaders().set('Content-Type', 'application/json')
+})
+}
 
-  logout() {
-    localStorage.clear();
-    this.loggedIn.next(false);
-    this.userName.next('');
-    this.userRole.next('');
-    this.userId.next(null);
-    this.userDetails = null;
-  }
+isLoggedIn() {
+  return this.loggedIn.asObservable();
+}
 
-  setUserInfo(name: string, role: string, id?: number) {
-    localStorage.setItem('userName', name);
-    localStorage.setItem('userRole', role);
-    if (id) localStorage.setItem('userId', id.toString());
-    
-    this.userName.next(name);
-    this.userRole.next(role);
-    if (id) this.userId.next(id);
-  }
+setLoggedIn(value: boolean) {
+  this.loggedIn.next(value);
+}
 
-  getUserId(): Observable<number | null> {
-    return this.userId.asObservable();
-  }
+logout() {
+  localStorage.clear();
+  this.loggedIn.next(false);
+  this.userName.next('');
+  this.userRole.next('');
+  this.userId.next(null);
+  this.userDetails = null;
+}
 
-  getUserName() {
-    return this.userName.value;
-  }
+setUserInfo(name: string, role: string, id?: number) {
+  localStorage.setItem('userName', name);
+  localStorage.setItem('userRole', role);
+  if (id) localStorage.setItem('userId', id.toString());
+  
+  this.userName.next(name);
+  this.userRole.next(role);
+  if (id) this.userId.next(id);
+}
 
-  getUserRole() {
-    return this.userRole.value;
-  }
+getUserId(): Observable<number | null> {
+  return this.userId.asObservable();
+}
 
-  getProfile(): Observable<any> {
-    return this.httpClient.get(`${this.url}/api/v1/user/profile`);
-  }
+getUserName() {
+  return this.userName.value;
+}
 
-  updateCustomer(data: any): Observable<any> {
-    return this.httpClient.post(`${this.url}/api/v1/user/customer/update`, data, {
-      headers: new HttpHeaders().set('Content-Type', 'application/json')
-    });
-  }
+getUserRole() {
+  return this.userRole.value;
+}
 
-  updateAvatar(formData: FormData) {
-    return this.httpClient.post(`${this.url}/api/v1/user/avatar`, formData);
-  }
+getProfile(): Observable<any> {
+  return this.httpClient.get(`${this.url}/api/v1/user/profile`);
+}
 
-  getAvatar(avatarFilename: string): string {
-    if (!avatarFilename) {
-      return 'assets/default-avatar.png';
-    }
-    return `${this.url}/api/v1/user/avatars/${avatarFilename}`;
+updateCustomer(data: any): Observable<any> {
+  return this.httpClient.post(`${this.url}/api/v1/user/customer/update`, data, {
+    headers: new HttpHeaders().set('Content-Type', 'application/json')
+  });
+}
+
+updateAvatar(formData: FormData) {
+  return this.httpClient.post(`${this.url}/api/v1/user/avatar`, formData);
+}
+
+getAvatar(avatarFilename: string): string {
+  if (!avatarFilename) {
+    return 'assets/default-avatar.png';
   }
+  return `${this.url}/api/v1/user/avatars/${avatarFilename}`;
+}
 
 }

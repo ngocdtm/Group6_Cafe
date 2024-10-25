@@ -1,5 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 
@@ -58,11 +59,21 @@ export class ProductService {
   }
 
 
-  getById(id:any) {
-    return this.httpClient.get(`${this.url}/api/v1/product/getById/${id}`);
+  getById(id: any, userId: number) {
+    return this.httpClient.get(`${this.url}/api/v1/product/getById/${id}?userId=${userId}`);
   }
 
   searchProducts(keyword: string) {
   return this.httpClient.get(`${this.url}/api/v1/product/search?keyword=${keyword}`);
+
+}
+  getRelatedProducts(productId: number): Observable<any> {
+    return this.httpClient.get(`${this.url}/api/v1/product/related/${productId}`);
+  }
+  getProductHistory(userId: number) {
+    return this.httpClient.get(`${this.url}/api/v1/history?userId=${userId}`);
   }
 }
+
+
+
