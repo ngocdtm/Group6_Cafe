@@ -175,7 +175,7 @@ updateAvatar(formData: FormData) {
   return this.httpClient.post(`${this.url}/api/v1/user/avatar`, formData);
 }
 
-getAvatar(avatarFilename: string): string {
+ getAvatar(avatarFilename: string): string {
   if (!avatarFilename) {
     return 'assets/default-avatar.png';
   }

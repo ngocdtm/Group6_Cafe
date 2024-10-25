@@ -47,7 +47,7 @@ export class CustomerLayoutComponent {
       console.log('User ID:', userId);
         this.userName = this.userService.getUserName();
       }
-    });
+    );
 
      // Subscribe to cart count
      this.cartService.cartItemCountSubject.subscribe(count => {

@@ -29,7 +29,7 @@ import { ProfileComponent } from './profile/profile.component';
     CustomerLayoutComponent,
     SearchPageComponent,
     SearchToolComponent,
-    ProductHistoryComponent
+    ProductHistoryComponent,
     CartComponent,
     CheckoutComponent,
     ProfileComponent
