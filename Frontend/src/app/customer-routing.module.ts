@@ -6,6 +6,7 @@ import { CustomerLayoutComponent } from './layouts/full/customer-layout/customer
 import { SearchPageComponent } from './search-page/search-page.component';
 import { CartComponent } from './cart/cart.component';
 import { CheckoutComponent } from './checkout/checkout.component';
+import { ProfileComponent } from './profile/profile.component';
 
 const routes: Routes = [
   {
@@ -17,7 +18,8 @@ const routes: Routes = [
       { path: 'menu', component: ProductPageComponent },
       { path: 'search', component: SearchPageComponent },
       { path: 'cart', component: CartComponent },
-      { path: 'checkout', component: CheckoutComponent }
+      { path: 'checkout', component: CheckoutComponent },
+      { path: 'profile', component: ProfileComponent }
       // { path: 'new', component: NewComponent }, // Uncomment when you have a NewComponent
     ]
   }

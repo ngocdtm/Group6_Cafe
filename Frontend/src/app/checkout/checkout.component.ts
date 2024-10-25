@@ -183,13 +183,17 @@ export class CheckoutComponent implements OnInit {
           // Download bill PDF
           this.downloadBill(response.uuid);
           
-          // Clear cart and redirect to order confirmation
-          this.cartService.clearCart().subscribe(() => {
-            this.router.navigate(['/order-confirmation'], {
-              queryParams: { orderId: response.uuid }
-            });
+          // Clear cart and update cart count immediately before redirecting
+        this.cartService.clearCart().subscribe(() => {
+          // Cập nhật cart count về 0 ngay lập tức
+          this.cartService.cartItemCountSubject.next(0);
+          
+          // Redirect to order confirmation
+          this.router.navigate(['/order-confirmation'], {
+            queryParams: { orderId: response.uuid }
           });
-        },
+        });
+      },
         error: (error) => {
           this.loading = false;
           console.error('Error processing order:', error);

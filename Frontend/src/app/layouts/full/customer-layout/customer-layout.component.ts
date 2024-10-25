@@ -90,7 +90,7 @@ export class CustomerLayoutComponent {
   }
 
   viewProfile() {
-    // Implement view profile logic
+    this.router.navigate(['/profile']);
   }
 
   viewBillHistory() {

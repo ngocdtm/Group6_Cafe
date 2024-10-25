@@ -28,27 +28,33 @@ export class UserService {
       return;
     }
 
-    // Load user info from localStorage
+    // Load user info from localStorage first
     this.loadUserInfoFromStorage();
     
-    // Verify token and refresh user info
+    // Set logged in state based on token presence
+    this.setLoggedIn(true);
+
+    // Verify token in background
     this.checkToken().pipe(
       tap((response: any) => {
-        if (response) {
-          this.setLoggedIn(true);
+        if (response && response.valid) {
+          // Update user info if available and different
           if (!this.userName.value && response.name) {
             this.setUserInfo(response.name, response.role, response.id);
           }
-          // Store user details
           this.userDetails = response;
         }
       }),
-      catchError(() => {
-        this.logout();
+      catchError((error) => {
+        // Only logout if it's a 401 Unauthorized error
+        if (error.status === 401) {
+          this.logout();
+        }
         return of(null);
       })
     ).subscribe();
   }
+
 
   private loadUserInfoFromStorage() {
     const name = localStorage.getItem('userName');
@@ -156,13 +162,25 @@ export class UserService {
     return this.userRole.value;
   }
 
-  private loadUserInfo() {
-    const name = localStorage.getItem('userName');
-    const role = localStorage.getItem('userRole');
-    if (name && role) {
-      this.userName.next(name);
-      this.userRole.next(role);
-    }
+  getProfile(): Observable<any> {
+    return this.httpClient.get(`${this.url}/api/v1/user/profile`);
   }
-}
 
+  updateCustomer(data: any): Observable<any> {
+    return this.httpClient.post(`${this.url}/api/v1/user/customer/update`, data, {
+      headers: new HttpHeaders().set('Content-Type', 'application/json')
+    });
+  }
+
+  updateAvatar(formData: FormData) {
+    return this.httpClient.post(`${this.url}/api/v1/user/avatar`, formData);
+  }
+
+  getAvatar(avatarFilename: string): string {
+    if (!avatarFilename) {
+      return 'assets/default-avatar.png';
+    }
+    return `${this.url}/api/v1/user/avatars/${avatarFilename}`;
+  }
+
+}
