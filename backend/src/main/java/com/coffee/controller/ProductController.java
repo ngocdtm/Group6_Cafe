@@ -232,10 +232,9 @@ public class ProductController {
     )
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/getById/{id}")
-    public ResponseEntity<ProductWrapper> getById(@PathVariable Integer id,
-                                                  @RequestParam Integer userId) {
+    public ResponseEntity<ProductWrapper> getById(@PathVariable Integer id) {
         try {
-            productHistoryService.addToHistory(userId, id);
+//            productHistoryService.addToHistory(userId, id);
             return productService.getById(id);
         } catch(Exception ex) {
             ex.printStackTrace();
