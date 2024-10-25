@@ -23,7 +23,7 @@ export class BestSellerComponent implements OnInit {
   filteredProducts: any[] = [];
   selectedCategory: string = 'all';
   isLoggedIn: boolean = false;
-
+  currentView: 'products' | 'history' = 'products';
 
   constructor(
     private productService: ProductService,

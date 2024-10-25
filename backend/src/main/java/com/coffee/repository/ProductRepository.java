@@ -45,5 +45,14 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             "FROM Product p WHERE LOWER(p.name) LIKE LOWER(concat('%', :keyword, '%')) " +
             "OR LOWER(p.description) LIKE LOWER(concat('%', :keyword, '%'))")
     List<ProductWrapper> searchProducts(String keyword);
+
+    @Query(name = "Product.getRelatedProducts")
+    List<ProductWrapper> getRelatedProducts(
+            @Param("categoryId") Integer categoryId,
+            @Param("productId") Integer productId,
+            @Param("price") Integer price,
+            @Param("priceRange") Integer priceRange,
+            @Param("limit") Integer limit
+    );
 }
 

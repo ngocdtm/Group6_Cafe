@@ -33,6 +33,19 @@ import java.util.List;
 
 @NamedQuery(name = "Product.findByNameProduct", query = "SELECT p FROM Product p WHERE p.name=:name")
 
+@NamedQuery(name = "Product.getRelatedProducts",
+        query = "SELECT new com.coffee.wrapper.ProductWrapper(p.id, p.name, p.description, p.price, p.originalPrice, p.status, p.category.id, p.category.name) " +
+                "FROM Product p " +
+                "WHERE p.category.id = :categoryId " +
+                "AND p.id != :productId " +
+                "AND p.status = 'true' " +
+                "ORDER BY " +
+                "CASE " +
+                "  WHEN ABS(p.price - :price) <= :priceRange THEN 1 " +
+                "  ELSE 2 " +
+                "END, " +
+                "ABS(p.price - :price) " +
+                "LIMIT :limit")
 
 @Data
 @Entity
@@ -79,6 +92,13 @@ public class Product implements Serializable {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> images = new ArrayList<>();
+
+    public Product() {
+    }
+
+    public Product(Integer id) {
+        this.id = id;
+    }
 //
 //
 //    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)

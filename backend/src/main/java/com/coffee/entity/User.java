@@ -73,5 +73,11 @@ public class User implements Serializable {
 
     @Column(name = "loyaltyPoints")
     private Integer loyaltyPoints;
+    public User() {
+    }
+
+    public User(Integer id) {
+        this.id = id;
+    }
 }
 

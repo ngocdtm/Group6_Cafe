@@ -15,6 +15,7 @@ import { SearchPageComponent } from './search-page/search-page.component';
 import { SearchToolComponent } from './search-tool/search-tool.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
+import { ProductHistoryComponent } from './material-component/product-history/product-history.component';
 
 @NgModule({
   declarations: [
@@ -23,7 +24,8 @@ import { MatDividerModule } from '@angular/material/divider';
     BestSellerComponent,
     CustomerLayoutComponent,
     SearchPageComponent,
-    SearchToolComponent
+    SearchToolComponent,
+    ProductHistoryComponent
   ],
   imports: [
     FormsModule,

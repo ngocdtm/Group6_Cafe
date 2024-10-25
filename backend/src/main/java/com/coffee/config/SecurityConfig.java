@@ -130,7 +130,8 @@ public class SecurityConfig {
                                 "/api/v1/category/get",
                                 "/api/v1/product/getByCategory/**",
                                 "/api/v1/product/getById/**",
-                                "/api/v1/product/search"
+                                "/api/v1/product/search",
+                                "/api/v1/product/related/**"
                         ).permitAll()
                         .requestMatchers("/api/**").authenticated()
                 )

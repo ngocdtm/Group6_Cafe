@@ -51,7 +51,9 @@ import { ProductDetailDialogComponent } from "./dialog/product-detail-dialog/pro
     ViewDetailProductComponent,
     ManageCouponComponent,
     CouponComponent,
-    ProductDetailDialogComponent
+    ProductDetailDialogComponent,
+    
+ 
   ]
 })
 export class MaterialComponentsModule {}

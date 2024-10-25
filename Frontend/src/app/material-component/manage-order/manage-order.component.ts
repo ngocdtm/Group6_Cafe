@@ -89,7 +89,7 @@ export class ManageOrderComponent implements OnInit {
   }
 
   getProductDetails(value:any){
-    this.productService.getById(value.id).subscribe((response:any)=>{
+    this.productService.getById(value.id,value.userId).subscribe((response:any)=>{
       this.price = response.price;
       this.manageOrderForm.controls['price'].setValue(response.price);
       this.manageOrderForm.controls['quantity'].setValue('1');
