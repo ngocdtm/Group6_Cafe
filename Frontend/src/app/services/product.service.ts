@@ -59,8 +59,8 @@ export class ProductService {
   }
 
 
-  getById(id: any, userId: number) {
-    return this.httpClient.get(`${this.url}/api/v1/product/getById/${id}?userId=${userId}`);
+  getById(id: any) {
+    return this.httpClient.get(`${this.url}/api/v1/product/getById/${id}`);
   }
 
   searchProducts(keyword: string) {
