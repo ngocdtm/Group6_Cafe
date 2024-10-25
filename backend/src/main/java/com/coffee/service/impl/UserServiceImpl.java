@@ -13,6 +13,7 @@ import com.coffee.wrapper.UserWrapper;
 import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,7 +22,14 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 @Slf4j
@@ -48,6 +56,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     PasswordEncoder passwordEncoder;
+
+    @Value("${app.file.avatar-dir}")
+    private String avatarDir;
 
     @Override
     public ResponseEntity<String> signUp(Map<String, String> requestMap) {
@@ -169,6 +180,97 @@ public class UserServiceImpl implements UserService {
         }
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @Override
+    public ResponseEntity<UserWrapper> getProfile() {
+        try {
+            String email = jwtRequestFilter.getCurrentUser();
+            User user = userRepository.findByEmail(email);
+
+            if (user != null) {
+                UserWrapper profile = new UserWrapper(
+                        user.getId(),
+                        user.getName(),
+                        user.getEmail(),
+                        user.getPhoneNumber(),
+                        user.getStatus(),
+                        user.getAddress(),
+                        user.getLoyaltyPoints(),
+                        user.getAvatar()
+                );
+                return new ResponseEntity<>(profile, HttpStatus.OK);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public ResponseEntity<String> updateAvatar(MultipartFile file) {
+        try {
+            // Validate authentication
+            String currentUser = jwtRequestFilter.getCurrentUser();
+            if (currentUser == null) {
+                return CafeUtils.getResponseEntity("Unauthorized access", HttpStatus.UNAUTHORIZED);
+            }
+
+            if (file.isEmpty()) {
+                return CafeUtils.getResponseEntity("Please select a file", HttpStatus.BAD_REQUEST);
+            }
+
+            // Validate file type
+            String contentType = file.getContentType();
+            if (!isValidImageType(contentType)) {
+                return CafeUtils.getResponseEntity("Only image files are allowed", HttpStatus.BAD_REQUEST);
+            }
+
+            // Get current user
+            User user = userRepository.findByEmail(currentUser);
+            if (user == null) {
+                return CafeUtils.getResponseEntity("User not found", HttpStatus.NOT_FOUND);
+            }
+
+            // Create avatar directory if it doesn't exist
+            Path uploadPath = Paths.get(avatarDir).toAbsolutePath().normalize();
+            Files.createDirectories(uploadPath);
+
+            // Generate unique filename
+            String fileName = UUID.randomUUID().toString() + "_" + StringUtils.cleanPath(file.getOriginalFilename());
+            Path targetLocation = uploadPath.resolve(fileName);
+
+            // Delete old avatar if exists
+            if (user.getAvatar() != null) {
+                Path oldAvatarPath = uploadPath.resolve(user.getAvatar());
+                Files.deleteIfExists(oldAvatarPath);
+            }
+
+            // Save new avatar
+            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+
+            // Update user avatar URL in database
+            String avatar = fileName;
+            user.setAvatar(avatar);
+            userRepository.save(user);
+
+            // Return consistent response format
+            return ResponseEntity.ok()
+                    .body(String.format("{\"message\":\"Avatar updated successfully\",\"avatar\":\"%s\"}", avatar));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private boolean isValidImageType(String contentType) {
+        return contentType != null && (
+                contentType.equals("image/jpeg") ||
+                        contentType.equals("image/png") ||
+                        contentType.equals("image/gif")
+        );
+    }
+
     @Override
     public ResponseEntity<String> update(Map<String, String> requestMap) {
         try {
@@ -193,7 +295,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<String> updateCustomer(Map<String, String> requestMap) {
         try {
-            if (jwtRequestFilter.isAdmin() || isOwnAccount(requestMap.get("id"))) {
+            if (jwtRequestFilter.isAdmin() || jwtRequestFilter.isCustomer()|| isOwnAccount(requestMap.get("id"))) {
                 Optional<User> optional = userRepository.findById(Integer.parseInt(requestMap.get("id")));
                 if (!optional.isPresent()) {
                     return CafeUtils.getResponseEntity("User id does not exist", HttpStatus.NOT_FOUND);

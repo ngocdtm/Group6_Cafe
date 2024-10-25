@@ -15,7 +15,7 @@ import java.util.List;
 
 @NamedQuery(name = "User.findByEmail", query = "SELECT u FROM User u WHERE u.email=:email")
 @NamedQuery(name = "User.getAllUser",
-        query = "SELECT new com.coffee.wrapper.UserWrapper(u.id,u.name,u.email,u.phoneNumber,u.status, u.address, u.loyaltyPoints) from User u WHERE u.role='user'")
+        query = "SELECT new com.coffee.wrapper.UserWrapper(u.id,u.name,u.email,u.phoneNumber,u.status, u.address, u.loyaltyPoints, u.avatar) from User u WHERE u.role='user'")
 @NamedQuery(name = "User.getAllAdmin",
         query = "SELECT u.email from User u WHERE u.role='admin'")
 
@@ -65,6 +65,9 @@ public class User implements Serializable {
 
     @Column(name = "loyaltyPoints")
     private Integer loyaltyPoints;
+
+    @Column(name = "avatar")
+    private String avatar;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties("user")

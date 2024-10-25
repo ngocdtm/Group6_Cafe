@@ -1,7 +1,4 @@
-
-
 package com.coffee.controller;
-
 
 import com.coffee.constants.CafeConstants;
 import com.coffee.service.UserService;
@@ -10,24 +7,42 @@ import com.coffee.wrapper.UserWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 
 @RestController
 @RequestMapping("/api/v1/user")
 public class UserController {
 
-
     @Autowired
     UserService userService;
 
+    Path fileStorageLocation;
+
+    public UserController(@Value("${app.file.avatar-dir}") String uploadDir) {
+        this.fileStorageLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
+        try {
+            Files.createDirectories(this.fileStorageLocation);
+        } catch (IOException ex) {
+            throw new RuntimeException("Could not create the directory where the uploaded files will be stored.", ex);
+        }
+    }
 
     @Operation(
             summary = "User Signup",
@@ -35,8 +50,6 @@ public class UserController {
     )
     @PostMapping("/signup")
     public ResponseEntity<String> signUp(@RequestBody(required = true) Map<String, String> requestMap){
-
-
         try{
             return userService.signUp(requestMap);
         }catch(Exception ex){
@@ -44,7 +57,6 @@ public class UserController {
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 
     @Operation(
             summary = "User Login",
@@ -59,7 +71,6 @@ public class UserController {
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 
     @Operation(
             summary = "Get All Users",
@@ -76,7 +87,6 @@ public class UserController {
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
     @Operation(
             summary = "Get All Customers",
             description = "Endpoint to retrieve a list of all customers"
@@ -91,7 +101,6 @@ public class UserController {
         }
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 
     @Operation(
             summary = "Update Customer",
@@ -108,7 +117,6 @@ public class UserController {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
     @Operation(
             summary = "Update User",
             description = "Endpoint to update user information"
@@ -123,7 +131,6 @@ public class UserController {
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 
     @Operation(
             summary = "Check Token",
@@ -140,7 +147,6 @@ public class UserController {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
     @Operation(
             summary = "Change Password",
             description = "Endpoint to change the password"
@@ -156,7 +162,6 @@ public class UserController {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
     @Operation(
             summary = "Forgot Password",
             description = "Endpoint to forgot the password"
@@ -171,6 +176,73 @@ public class UserController {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @Operation(
+            summary = "Get User Profile",
+            description = "Endpoint for user to view their profile"
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/profile")
+    public ResponseEntity<UserWrapper> getProfile() {
+        try {
+            return userService.getProfile();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
+    @Operation(
+            summary = "Update Avatar",
+            description = "Endpoint to update user avatar"
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/avatar")
+    public ResponseEntity<String> updateAvatar(@RequestParam("file") MultipartFile file) {
+        try {
+            return userService.updateAvatar(file);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/avatars/{filename:.+}")
+    @ResponseBody
+    public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
+        try {
+
+            Path filePath = this.fileStorageLocation.resolve(filename).normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+
+
+            if (resource.exists() || resource.isReadable()) {
+                // Determine the media type of the file
+                String contentType = determineContentType(filename);
+
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                        .body(resource);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (MalformedURLException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    private String determineContentType(String filename) {
+        String extension = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+        switch (extension) {
+            case "png":
+                return "image/png";
+            case "jpg":
+            case "jpeg":
+                return "image/jpeg";
+            case "gif":
+                return "image/gif";
+            default:
+                return "application/octet-stream";
+        }
+    }
 }
 
