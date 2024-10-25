@@ -1,0 +1,75 @@
+<div class="container">
+    <mat-card class="profile-card">
+      <mat-card-header>
+        <mat-card-title>Profile</mat-card-title>
+      </mat-card-header>
+  
+      <mat-card-content>
+        <div class="profile-content" *ngIf="!loading">
+          <!-- Avatar Section -->
+          <div class="avatar-section">
+            <div class="avatar-container">
+              <img [src]="previewUrl || 'assets/default-avatar.png'" alt="Profile Avatar" class="profile-avatar">
+              <div class="avatar-overlay">
+                <button mat-mini-fab color="primary" (click)="fileInput.click()">
+                  <mat-icon>edit</mat-icon>
+                </button>
+              </div>
+            </div>
+            <input #fileInput type="file" (change)="onFileSelected($event)" style="display: none" accept="image/*">
+            <button mat-button color="primary" [disabled]="!selectedFile" (click)="updateAvatar()">
+              Update Avatar
+            </button>
+          </div>
+  
+          <!-- Profile Form -->
+          <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Name</mat-label>
+              <input matInput formControlName="name">
+              <mat-error *ngIf="profileForm.get('name')?.hasError('required')">
+                Name is required
+              </mat-error>
+            </mat-form-field>
+  
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Email</mat-label>
+              <input matInput formControlName="email">
+              <mat-error *ngIf="profileForm.get('email')?.hasError('required')">
+                Email is required
+              </mat-error>
+              <mat-error *ngIf="profileForm.get('email')?.hasError('email')">
+                Please enter a valid email address
+              </mat-error>
+            </mat-form-field>
+  
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Phone Number</mat-label>
+              <input matInput formControlName="phoneNumber">
+              <mat-error *ngIf="profileForm.get('phoneNumber')?.hasError('required')">
+                Phone number is required
+              </mat-error>
+            </mat-form-field>
+  
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Address</mat-label>
+              <textarea matInput formControlName="address" rows="3"></textarea>
+              <mat-error *ngIf="profileForm.get('address')?.hasError('required')">
+                Address is required
+              </mat-error>
+            </mat-form-field>
+  
+            <div class="button-container">
+              <button mat-raised-button color="primary" type="submit" [disabled]="profileForm.invalid || loading">
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+  
+        <div class="loading-spinner" *ngIf="loading">
+          <mat-spinner diameter="50"></mat-spinner>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
