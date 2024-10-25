@@ -1,50 +1,69 @@
 <mat-card>
-  <b><span>Manage Order</span></b>
+  <b><span>Manage Orders</span></b>
 </mat-card>
 <hr>
 <mat-card>
-    <mat-form-field appearance="standard">
-      <mat-label>Filter</mat-label>
-      <input matInput (keyup)="applyFilter($event)" #input>
-    </mat-form-field>
+  <mat-form-field appearance="standard">
+    <mat-label>Filter</mat-label>
+    <input matInput (keyup)="applyFilter($event)" #input>
+  </mat-form-field>
 </mat-card>
 <hr>
-
 
 <div class="responsive_table">
   <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef>Name</th>
-      <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+      <td mat-cell *matCellDef="let element">{{element.customerName}}</td>
     </ng-container>
 
     <ng-container matColumnDef="email">
       <th mat-header-cell *matHeaderCellDef>Email</th>
-      <td mat-cell *matCellDef="let element">{{ element.email }}</td>
+      <td mat-cell *matCellDef="let element">{{element.customerEmail}}</td>
     </ng-container>
 
     <ng-container matColumnDef="phoneNumber">
       <th mat-header-cell *matHeaderCellDef>Phone Number</th>
-      <td mat-cell *matCellDef="let element">{{ element.phoneNumber }}</td>
+      <td mat-cell *matCellDef="let element">{{element.customerPhone}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="orderType">
+      <th mat-header-cell *matHeaderCellDef>Order Type</th>
+      <td mat-cell *matCellDef="let element">{{element.orderType}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="orderStatus">
+      <th mat-header-cell *matHeaderCellDef>Status</th>
+      <td mat-cell *matCellDef="let element">{{element.orderStatus}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="orderDate">
+      <th mat-header-cell *matHeaderCellDef>Order Date</th>
+      <td mat-cell *matCellDef="let element">{{element.orderDate | date:'medium'}}</td>
     </ng-container>
 
     <ng-container matColumnDef="paymentMethod">
       <th mat-header-cell *matHeaderCellDef>Payment Method</th>
-      <td mat-cell *matCellDef="let element">{{ element.paymentMethod }}</td>
+      <td mat-cell *matCellDef="let element">{{element.paymentMethod}}</td>
     </ng-container>
 
     <ng-container matColumnDef="total">
       <th mat-header-cell *matHeaderCellDef>Total</th>
-      <td mat-cell *matCellDef="let element">{{ element.total }}</td>
+      <td mat-cell *matCellDef="let element">{{element.total}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="discount">
+      <th mat-header-cell *matHeaderCellDef>Discount</th>
+      <td mat-cell *matCellDef="let element">{{element.discount || 0}}</td>
     </ng-container>
 
     <ng-container matColumnDef="totalAfterDiscount">
-      <th mat-header-cell *matHeaderCellDef>Total D</th>
-      <td mat-cell *matCellDef="let element">{{ element.totalAfterDiscount }}</td>
+      <th mat-header-cell *matHeaderCellDef>Final Total</th>
+      <td mat-cell *matCellDef="let element">{{element.totalAfterDiscount}}</td>
     </ng-container>
 
-    <ng-container matColumnDef="view">
-      <th mat-header-cell *matHeaderCellDef>Action</th>
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
       <td mat-cell *matCellDef="let element" class="action-link">
         <button mat-icon-button color="primary" matTooltip="View" (click)="handleViewAction(element)">
           <mat-icon>visibility</mat-icon>
@@ -54,7 +73,17 @@
           <mat-icon>summarize</mat-icon>
         </button>
 
-        <button mat-icon-button color="primary" matTooltip="Delete" (click)="handleDeleteAction(element)">
+        <button mat-icon-button [matMenuTriggerFor]="statusMenu" color="primary" matTooltip="Update Status">
+          <mat-icon>update</mat-icon>
+        </button>
+        <mat-menu #statusMenu="matMenu">
+          <button mat-menu-item (click)="handleStatusUpdate(element, 'PENDING')">Pending</button>
+          <button mat-menu-item (click)="handleStatusUpdate(element, 'PROCESSING')">Processing</button>
+          <button mat-menu-item (click)="handleStatusUpdate(element, 'COMPLETED')">Completed</button>
+          <button mat-menu-item (click)="handleStatusUpdate(element, 'CANCELLED')">Cancelled</button>
+        </mat-menu>
+
+        <button mat-icon-button color="warn" matTooltip="Delete" (click)="handleDeleteAction(element)">
           <mat-icon>delete</mat-icon>
         </button>
       </td>

@@ -4,7 +4,6 @@ import { MatDialog } from '@angular/material/dialog';
 import { ProductService } from '../services/product.service';
 import { ProductDetailDialogComponent } from '../material-component/dialog/product-detail-dialog/product-detail-dialog.component';
 
-
 @Component({
   selector: 'app-search-page',
   templateUrl: './search-page.component.html',
@@ -15,13 +14,11 @@ export class SearchPageComponent implements OnInit {
   searchTerm: string = '';
   isLoading: boolean = false;
 
-
   constructor(
     private route: ActivatedRoute,
     private dialog: MatDialog,
     private productService: ProductService
   ) { }
-
 
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
@@ -31,7 +28,6 @@ export class SearchPageComponent implements OnInit {
       }
     });
   }
-
 
   loadSearchResults() {
     this.isLoading = true;
@@ -48,14 +44,12 @@ export class SearchPageComponent implements OnInit {
     );
   }
 
-
   getFirstImageUrl(product: any): string {
     if (product.images && product.images.length > 0) {
       return this.productService.getImageUrl(product.images[0].imagePath);
     }
     return 'assets/default-product-image.png'; // Đường dẫn đến ảnh mặc định
   }
-
 
   openProductDetail(product: any) {
     this.dialog.open(ProductDetailDialogComponent, {

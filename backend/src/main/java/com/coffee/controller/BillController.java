@@ -3,8 +3,10 @@ package com.coffee.controller;
 
 import com.coffee.constants.CafeConstants;
 import com.coffee.entity.Bill;
+import com.coffee.enums.OrderStatus;
 import com.coffee.service.BillService;
 import com.coffee.utils.CafeUtils;
+import com.coffee.wrapper.BillWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,19 +25,27 @@ public class BillController {
     @Autowired
     BillService billService;
 
-    @Operation(
-            summary = "Generate a new Bill",
-            description = "Endpoint to generate a new bill."
-    )
+    @Operation(summary = "Generate offline bill")
     @SecurityRequirement(name = "bearerAuth")
-    @PostMapping("/generateBill")
-    public ResponseEntity<String> generateBill(@RequestBody Map<String, Object> requestMap){
-        try{
-            return billService.generateBill(requestMap);
-        }catch(Exception ex){
-            ex.printStackTrace();
-        }
-        return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    @PostMapping("/generate-offline")
+    public ResponseEntity<String> generateOfflineBill(@RequestBody Map<String, Object> requestMap) {
+        return billService.generateOfflineBill(requestMap);
+    }
+
+    @Operation(summary = "Process online order")
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/process-online")
+    public ResponseEntity<String> processOnlineOrder(@RequestBody Map<String, Object> requestMap) {
+        return billService.processOnlineOrder(requestMap);
+    }
+
+    @Operation(summary = "Update order status")
+    @SecurityRequirement(name = "bearerAuth")
+    @PutMapping("/{id}/status")
+    public ResponseEntity<String> updateOrderStatus(
+            @PathVariable Integer id,
+            @RequestParam OrderStatus status) {
+        return billService.updateOrderStatus(id, status);
     }
 
     @Operation(
@@ -44,10 +54,10 @@ public class BillController {
     )
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/getBill")
-    public ResponseEntity<List<Bill>> getBills(){
-        try{
+    public ResponseEntity<List<BillWrapper>> getBills() {
+        try {
             return billService.getBills();
-        }catch(Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);

@@ -13,6 +13,7 @@ public interface BillRepository extends JpaRepository<Bill, Integer> {
 
     List<Bill> getBillByUserName(@Param("name") String name);
 
-    boolean existsByCouponCode(String code);
+    boolean existsByCouponCode(String couponCode);
 
+    Bill findByUuid(String uuid);
 }

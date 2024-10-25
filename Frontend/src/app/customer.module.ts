@@ -13,9 +13,13 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CustomerLayoutComponent } from './layouts/full/customer-layout/customer-layout.component';
 import { SearchPageComponent } from './search-page/search-page.component';
 import { SearchToolComponent } from './search-tool/search-tool.component';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { CartComponent } from './cart/cart.component';
 import { MatDividerModule } from '@angular/material/divider';
 import { ProductHistoryComponent } from './material-component/product-history/product-history.component';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { CheckoutComponent } from './checkout/checkout.component';
+import { ProfileComponent } from './profile/profile.component';
+
 
 @NgModule({
   declarations: [
@@ -26,6 +30,9 @@ import { ProductHistoryComponent } from './material-component/product-history/pr
     SearchPageComponent,
     SearchToolComponent,
     ProductHistoryComponent
+    CartComponent,
+    CheckoutComponent,
+    ProfileComponent
   ],
   imports: [
     FormsModule,
@@ -34,7 +41,6 @@ import { ProductHistoryComponent } from './material-component/product-history/pr
     MaterialModule,
     FlexLayoutModule,
     CustomerRoutingModule,
-    MatSliderModule,
     MatSliderModule,
     ReactiveFormsModule,
     MatProgressSpinnerModule,

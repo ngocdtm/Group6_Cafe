@@ -19,5 +19,5 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
             "FROM Coupon c WHERE c.id=:id")
     CouponWrapper getCouponById(@Param("id") Long id);
 
-    Coupon findByCode(@Param("code") String code);
+    Coupon findByCode(@Param("couponCode") String couponCode);
 }

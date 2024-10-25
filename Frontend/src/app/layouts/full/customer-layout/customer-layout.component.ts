@@ -8,20 +8,17 @@ import { CustomerMenu, CustomerMenuItems } from 'src/app/shared/customer-menu-it
 import { CartService } from 'src/app/services/cart.service';
 import { UserService } from 'src/app/services/user.service';
 
-
 @Component({
   selector: 'app-customer-layout',
   templateUrl: 'customer-layout.component.html',
   styleUrls: ['./customer-layout.component.scss']
 })
 
-
 export class CustomerLayoutComponent {
   cartItemCount: number = 0;
   menuItems: CustomerMenu[];
   isLoggedIn: boolean = false;
   userName: string = '';
-
 
   constructor(
     private dialog: MatDialog,
@@ -32,7 +29,6 @@ export class CustomerLayoutComponent {
   ) {
     this.menuItems = this.customerMenuItems.getMenuItems();
   }
-
 
   ngOnInit(): void {
     // this.userService.checkToken().subscribe((response:any)=>{
@@ -49,6 +45,13 @@ export class CustomerLayoutComponent {
     this.userService.getUserId().subscribe(userId => {
       // Ensure userId is also being managed correctly, if needed
       console.log('User ID:', userId);
+        this.userName = this.userService.getUserName();
+      }
+    });
+
+     // Subscribe to cart count
+     this.cartService.cartItemCountSubject.subscribe(count => {
+      this.cartItemCount = count;
     });
 
     // this.cartService.getCartItemCount().subscribe(count => {
@@ -56,13 +59,9 @@ export class CustomerLayoutComponent {
     // });
   }
 
-
-
-
   navigateTo(state: string) {
     this.router.navigate([state]);
   }
-
 
   handleSignupAction(){
     const dialogConfig = new MatDialogConfig();
@@ -70,47 +69,45 @@ export class CustomerLayoutComponent {
     this.dialog.open(SignupComponent, dialogConfig);
   }
 
-
   handleforgotPasswordAction(){
     const dialogConfig = new MatDialogConfig();
     dialogConfig.width = "550px";
     this.dialog.open(ForgotPasswordComponent, dialogConfig);
   }
 
-
-  handleLoginAction(){
+  handleLoginAction() {
     const dialogConfig = new MatDialogConfig();
     dialogConfig.width = "550px";
-    this.dialog.open(LoginComponent, dialogConfig);
+    const dialogRef = this.dialog.open(LoginComponent, dialogConfig);
 
-
-
-
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'success') {
+        // Refresh cart count after successful login
+        this.cartService.getCartItemCount().subscribe(
+          count => this.cartItemCount = count
+        );
+      }
+    });
   }
-
 
   handleLogout() {
     this.userService.logout();
     this.router.navigate(['/']);
   }
 
-
   viewProfile() {
-    // Implement view profile logic
+    this.router.navigate(['/profile']);
   }
-
 
   viewBillHistory() {
     // Implement bill history logic
   }
- 
+  
   openSearchBar() {
     this.router.navigate(['/search']);
   }
- 
+
   openCart() {
     this.router.navigate(['/cart']);
   }
 }
-
-

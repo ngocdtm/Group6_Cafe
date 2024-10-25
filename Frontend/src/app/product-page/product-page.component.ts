@@ -6,6 +6,8 @@ import { UserService } from '../services/user.service';
 import { MatDialog } from '@angular/material/dialog';
 import { SnackbarService } from '../services/snackbar.service';
 import { LoginPromptComponent } from '../login-prompt/login-prompt.component';
+import { ProductDetailDialogComponent } from '../material-component/dialog/product-detail-dialog/product-detail-dialog.component';
+import { LoginComponent } from '../login/login.component';
 
 
 @Component({
@@ -115,8 +117,15 @@ export class ProductPageComponent implements OnInit {
 
   addToCart(product: any) {
     if (this.isLoggedIn) {
-      this.cartService.addToCart(product);
-      this.snackbarService.openSnackBar("Product added to cart", "");
+      this.cartService.addToCart(product).subscribe(
+        () => {
+          this.snackbarService.openSnackBar("Sản phẩm đã được thêm vào giỏ hàng", "");
+        },
+        (error) => {
+          console.error('Error adding to cart:', error);
+          this.snackbarService.openSnackBar("Có lỗi xảy ra khi thêm vào giỏ hàng", "");
+        }
+      );
     } else {
       this.showLoginPrompt(product);
     }
@@ -131,11 +140,24 @@ export class ProductPageComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result === 'login') {
-        // Handle login logic here
+        this.openLoginDialog(product);
       }
     });
   }
 
+  openLoginDialog(product: any) {
+    const dialogRef = this.dialog.open(LoginComponent, {
+      width: '350px'
+    });
+
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'success') {
+        this.cartService.addToCart(product);
+        this.snackbarService.openSnackBar("Sản phẩm đã được thêm vào giỏ hàng", "");
+      }
+    });
+  }
 
   getFirstImageUrl(product: any): string {
     if (product.images && product.images.length > 0) {
@@ -151,6 +173,13 @@ export class ProductPageComponent implements OnInit {
  
   onPriceChange() {
     this.filterProducts();
+  }
+
+  openProductDetail(product: any) {
+    this.dialog.open(ProductDetailDialogComponent, {
+      data: product,
+      panelClass: 'product-detail-dialog'
+    });
   }
 }
 

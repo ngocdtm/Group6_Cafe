@@ -14,6 +14,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -61,9 +62,12 @@ public class ProductController {
             Path filePath = this.fileStorageLocation.resolve(filename).normalize();
             Resource resource = new UrlResource(filePath.toUri());
 
-
             if (resource.exists() || resource.isReadable()) {
+                // Determine the media type of the file
+                String contentType = determineContentType(filename);
+
                 return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
                         .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
                         .body(resource);
             } else {
@@ -74,6 +78,20 @@ public class ProductController {
         }
     }
 
+    private String determineContentType(String filename) {
+        String extension = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+        switch (extension) {
+            case "png":
+                return "image/png";
+            case "jpg":
+            case "jpeg":
+                return "image/jpeg";
+            case "gif":
+                return "image/gif";
+            default:
+                return "application/octet-stream";
+        }
+    }
 
     private String saveImage(MultipartFile file) throws IOException {
         String fileName = UUID.randomUUID().toString() + "-" + file.getOriginalFilename();

@@ -65,6 +65,7 @@ export class ProductService {
 
   searchProducts(keyword: string) {
   return this.httpClient.get(`${this.url}/api/v1/product/search?keyword=${keyword}`);
+
 }
   getRelatedProducts(productId: number): Observable<any> {
     return this.httpClient.get(`${this.url}/api/v1/product/related/${productId}`);
@@ -73,4 +74,6 @@ export class ProductService {
     return this.httpClient.get(`${this.url}/api/v1/history?userId=${userId}`);
   }
 }
+
+
 

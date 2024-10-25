@@ -1,51 +1,51 @@
 <!-- <div class="bg-image"></div> -->
 <div class="bg-image">
-  <img src="" alt="Background Image" />
+    <img src="" alt="Background Image" />
 </div>
 
 <div class="wrapper sticky">
 <nav class="navbar-fixed-top">
-  <a href="#" class="logo">
-    <mat-icon>storefront</mat-icon> Cafe Management System
-  </a>
-
-  <div class="nav-center">
-    <ul>
-      <li *ngFor="let item of menuItems">
-        <a (click)="navigateTo(item.state)" class="home-link">
-          <mat-icon>{{item.icon}}</mat-icon> {{item.name}}
-        </a>
-      </li>
-    </ul>
-  </div>
-
-  <div class="nav-right">
-    <app-search-tool></app-search-tool>
-    <a (click)="openCart()" class="cart-icon">
-      <mat-icon matBadge="{{cartItemCount}}" matBadgeColor="warn">shopping_cart</mat-icon>
+    <a href="#" class="logo">
+      <mat-icon>storefront</mat-icon> Cafe Management System
     </a>
-    <div class="dropdown" *ngIf="!isLoggedIn">
-      <a class="dropbtn">
-        <mat-icon>account_circle</mat-icon>
+
+    <div class="nav-center">
+      <ul>
+        <li *ngFor="let item of menuItems">
+          <a (click)="navigateTo(item.state)" class="home-link">
+            <mat-icon>{{item.icon}}</mat-icon> {{item.name}}
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="nav-right">
+      <app-search-tool></app-search-tool>
+      <a (click)="openCart()" class="cart-icon">
+        <mat-icon matBadge="{{cartItemCount}}" matBadgeColor="warn">shopping_cart</mat-icon>
       </a>
-      <div class="dropdown-content">
-        <a (click)='handleLoginAction()'><mat-icon>login</mat-icon> Login</a>
-        <a (click)='handleSignupAction()'><mat-icon>person_add</mat-icon> Signup</a>
-        <a (click)='handleforgotPasswordAction()'><mat-icon>lock_reset</mat-icon> Forgot Password</a>
+      <div class="dropdown" *ngIf="!isLoggedIn">
+        <a class="dropbtn">
+          <mat-icon>account_circle</mat-icon>
+        </a>
+        <div class="dropdown-content">
+          <a (click)='handleLoginAction()'><mat-icon>login</mat-icon> Login</a>
+          <a (click)='handleSignupAction()'><mat-icon>person_add</mat-icon> Signup</a>
+          <a (click)='handleforgotPasswordAction()'><mat-icon>lock_reset</mat-icon> Forgot Password</a>
+        </div>
+      </div>
+      <div class="dropdown" *ngIf="isLoggedIn">
+        <a class="dropbtn">
+          Hi, {{userName}}
+        </a>
+        <div class="dropdown-content">
+          <a (click)='viewProfile()'><mat-icon>person</mat-icon> View Profile</a>
+          <a (click)='viewBillHistory()'><mat-icon>history</mat-icon> Bill History</a>
+          <a (click)='handleLogout()'><mat-icon>exit_to_app</mat-icon> Logout</a>
+        </div>
       </div>
     </div>
-    <div class="dropdown" *ngIf="isLoggedIn">
-      <a class="dropbtn">
-        Hi, {{userName}}
-      </a>
-      <div class="dropdown-content">
-        <a (click)='viewProfile()'><mat-icon>person</mat-icon> View Profile</a>
-        <a (click)='viewBillHistory()'><mat-icon>history</mat-icon> Bill History</a>
-        <a (click)='handleLogout()'><mat-icon>exit_to_app</mat-icon> Logout</a>
-      </div>
-    </div>
-  </div>
-</nav>
+  </nav>
 </div>
 
 <router-outlet></router-outlet>

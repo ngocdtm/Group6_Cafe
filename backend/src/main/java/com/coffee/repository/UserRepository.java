@@ -23,7 +23,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Modifying
     Integer updateStatus(@Param("status") String status, @Param("id") Integer id);
 
-    @Query("SELECT new com.coffee.wrapper.UserWrapper(u.id,u.name,u.email,u.phoneNumber,u.status,u.address,u.loyaltyPoints) FROM User u WHERE u.role='customer'")
+    @Query("SELECT new com.coffee.wrapper.UserWrapper(u.id,u.name,u.email,u.phoneNumber,u.status,u.address,u.loyaltyPoints, u.avatar) FROM User u WHERE u.role='customer'")
     List<UserWrapper> getAllCustomers();
 
 }

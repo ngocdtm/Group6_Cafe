@@ -1,32 +1,49 @@
-
 package com.coffee.service.impl;
 
 import com.coffee.constants.CafeConstants;
 import com.coffee.entity.Bill;
+import com.coffee.entity.BillItem;
 import com.coffee.entity.Coupon;
+import com.coffee.entity.User;
+import com.coffee.enums.OrderStatus;
+import com.coffee.enums.OrderType;
 import com.coffee.repository.BillRepository;
 import com.coffee.repository.CouponRepository;
+import com.coffee.repository.ProductRepository;
+import com.coffee.repository.UserRepository;
 import com.coffee.security.JwtRequestFilter;
 import com.coffee.service.BillService;
+import com.coffee.service.ShoppingCartService;
 import com.coffee.utils.CafeUtils;
+import com.coffee.wrapper.BillWrapper;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import jakarta.transaction.Transactional;
 import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.io.IOUtils;
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static com.coffee.enums.OrderStatus.PENDING;
 
 @Slf4j
 @Service
@@ -36,73 +53,225 @@ public class BillServiceImpl implements BillService {
     BillRepository billRepository;
 
     @Autowired
+    ProductRepository productRepository;
+
+    @Autowired
     JwtRequestFilter jwtRequestFilter;
 
     @Autowired
     CouponRepository couponRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private ShoppingCartService shoppingCartService;
+
     @Override
-    public ResponseEntity<String> generateBill(Map<String, Object> requestMap) {
-        log.info("Inside Generate Report");
-        try{
-
-
-            String fileName;
-            if(validateRequestMap(requestMap)){
-                if(requestMap.containsKey("isGenerate") && Boolean.TRUE.equals(!(Boolean) requestMap.get("isGenerate"))){
-                    fileName = (String) requestMap.get("uuid");
-                }else{
-                    fileName = CafeUtils.getUUID();
-                    requestMap.put("uuid", fileName);
-                    insertBill(requestMap);
-                }
-
-                String data = "Name: " + requestMap.get("name") + "\n" + "Contact Number: " + requestMap.get("phoneNumber") +
-                        "\n" + "Email: " + requestMap.get("email") + "\n" + "Payment Method: " + requestMap.get("paymentMethod");
-
-                Document doc = new Document();
-                PdfWriter.getInstance(doc, new FileOutputStream(CafeConstants.STORE_LOCATION + "/" + fileName + ".pdf"));
-                doc.open();
-                setRectangleInPdf(doc);
-
-                Paragraph chunk = new Paragraph("Cafe Management System", getFont("Header"));
-                chunk.setAlignment(Element.ALIGN_CENTER);
-                doc.add(chunk);
-
-                Paragraph paragraph = new Paragraph(data + "\n \n", getFont("Data"));
-                doc.add(paragraph);
-
-                PdfPTable table = new PdfPTable(5);
-                table.setWidthPercentage(100);
-                addTableHeader(table);
-
-                JSONArray jsonArray = CafeUtils.getJsonArrayFromString((String) requestMap.get("productDetails"));
-                for(int i = 0; i < jsonArray.length(); i++){
-                    addRow(table, CafeUtils.getMapFromJSon(jsonArray.getString(i)));
-                }
-                doc.add(table);
-
-                Paragraph footer = new Paragraph("Total Before Discount Amount: " + requestMap.get("total") + "\n"+ "Total After Discount Amount: " + requestMap.get("totalAfterDiscount")+"\n"
-                        + "Thank You For Visiting!!", getFont("Data"));
-                doc.add(footer);
-                doc.close();
-                return new ResponseEntity<>("{\"uuid\":\"" + fileName +"\"}", HttpStatus.OK);
-            }else {
-                return CafeUtils.getResponseEntity("Required data not found!", HttpStatus.BAD_REQUEST);
+    @Transactional
+    public ResponseEntity<String> generateOfflineBill(Map<String, Object> requestMap) {
+        log.info("Inside Generate Offline Bill");
+        try {
+            if (validateOfflineBillRequest(requestMap)) {
+                String fileName = CafeUtils.getUUID();
+                requestMap.put("uuid", fileName);
+                Bill bill = createBillFromRequest(requestMap, OrderType.IN_STORE);
+                generatePdf(bill, fileName);
+                return new ResponseEntity<>("{\"uuid\":\"" + fileName + "\"}", HttpStatus.OK);
             }
-        }catch(Exception ex){
+            return CafeUtils.getResponseEntity("Required data not found!", HttpStatus.BAD_REQUEST);
+        } catch (Exception ex) {
             ex.printStackTrace();
+            return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    private void addRow(PdfPTable table, Map<String, Object> data) {
+    @Override
+    @Transactional
+    public ResponseEntity<String> processOnlineOrder(Map<String, Object> requestMap) {
+        log.info("Inside Process Online Order");
+        try {
+            if (validateOnlineOrderRequest(requestMap)) {
+                String fileName = CafeUtils.getUUID();
+                requestMap.put("uuid", fileName);
+                Bill bill = createBillFromRequest(requestMap, OrderType.ONLINE);
+
+                // Clear the user's shopping cart after successful order
+                shoppingCartService.clearCart();
+
+                // Generate PDF for order confirmation
+                generatePdf(bill, fileName);
+
+                // Could add email notification here
+
+                return new ResponseEntity<>("{\"uuid\":\"" + fileName + "\"}", HttpStatus.OK);
+            }
+            return CafeUtils.getResponseEntity("Required data not found!", HttpStatus.BAD_REQUEST);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private Bill createBillFromRequest(Map<String, Object> requestMap, OrderType orderType) throws JSONException {
+        Bill bill = new Bill();
+        bill.setUuid((String) requestMap.get("uuid"));
+        bill.setCustomerName((String) requestMap.get("customerName"));
+        bill.setCustomerEmail((String) requestMap.get("customerEmail"));
+        bill.setCustomerPhone((String) requestMap.get("customerPhone"));
+        bill.setShippingAddress((String) requestMap.get("shippingAddress"));
+        bill.setPaymentMethod((String) requestMap.get("paymentMethod"));
+        bill.setTotal((Integer) requestMap.get("total"));
+        bill.setOrderType(orderType);
+
+        // Set order status based on order type
+        if (orderType == OrderType.IN_STORE) {
+            bill.setOrderStatus(OrderStatus.COMPLETED);
+        } else {
+            bill.setOrderStatus(OrderStatus.PENDING);
+        }
+
+        bill.setOrderDate(LocalDateTime.now());
+        bill.setLastUpdatedDate(LocalDateTime.now());
+
+        // Set user if available (required for online orders)
+        String userEmail = jwtRequestFilter.getCurrentUser();
+        if (userEmail != null) {
+            User user = userRepository.findByEmail(userEmail);
+            bill.setUser(user);
+            bill.setCreatedByUser(userEmail);
+        }
+
+        // Handle discount and coupon with null checks
+        String couponCode = (String) requestMap.get("couponCode");
+        if (couponCode != null && !couponCode.isEmpty()) {
+            bill.setCouponCode(couponCode);
+
+            // Get discount and totalAfterDiscount from request with default values
+            Integer discount = (Integer) requestMap.getOrDefault("discount", 0);
+            Integer totalAfterDiscount = (Integer) requestMap.getOrDefault("totalAfterDiscount", bill.getTotal());
+
+            bill.setDiscount(discount);
+            bill.setTotalAfterDiscount(totalAfterDiscount);
+        } else {
+            // If no coupon, set default values
+            bill.setDiscount(0);
+            bill.setTotalAfterDiscount(bill.getTotal());
+        }
+
+
+        // Process bill items
+        List<BillItem> billItems = new ArrayList<>();
+        JSONArray jsonArray = CafeUtils.getJsonArrayFromString((String) requestMap.get("productDetails"));
+
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject jsonObject = jsonArray.getJSONObject(i);
+            BillItem billItem = new BillItem();
+            billItem.setBill(bill);
+            billItem.setProduct(productRepository.findById(jsonObject.getInt("id")).orElseThrow());
+            billItem.setQuantity(jsonObject.getInt("quantity"));
+            billItem.setPrice(jsonObject.getInt("price"));
+            billItems.add(billItem);
+        }
+
+        bill.setBillItems(billItems);
+        return billRepository.save(bill);
+    }
+
+    @Override
+    public ResponseEntity<String> updateOrderStatus(Integer id, OrderStatus status) {
+        try {
+            Bill bill = billRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Bill not found"));
+
+            bill.setOrderStatus(status);
+            bill.setLastUpdatedDate(LocalDateTime.now());
+            billRepository.save(bill);
+
+            // Here you could add notifications based on status change
+
+            return CafeUtils.getResponseEntity("Order status updated successfully", HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private boolean validateOfflineBillRequest(Map<String, Object> requestMap) {
+        return requestMap.containsKey("customerName") &&
+                requestMap.containsKey("customerPhone") &&
+                requestMap.containsKey("paymentMethod") &&
+                requestMap.containsKey("productDetails") &&
+                requestMap.containsKey("total") &&
+                !requestMap.get("productDetails").toString().isEmpty() && // Ensure productDetails is not empty
+                (Integer) requestMap.get("total") > 0; // Ensure total is greater than 0
+    }
+
+    private boolean validateOnlineOrderRequest(Map<String, Object> requestMap) {
+        return requestMap.containsKey("customerName") &&
+                requestMap.containsKey("customerEmail") &&
+                requestMap.containsKey("customerPhone") &&
+                requestMap.containsKey("shippingAddress") &&
+                requestMap.containsKey("paymentMethod") &&
+                requestMap.containsKey("productDetails") &&
+                requestMap.containsKey("total");
+    }
+
+    // Updated PDF generation method
+    private void generatePdf(Bill bill, String fileName) throws Exception {
+        Document document = new Document();
+        PdfWriter.getInstance(document, new FileOutputStream(CafeConstants.STORE_LOCATION + "/" + fileName + ".pdf"));
+        document.open();
+        setRectangleInPdf(document);
+
+        Paragraph title = new Paragraph("Cafe Management System", getFont("Header"));
+        title.setAlignment(Element.ALIGN_CENTER);
+        document.add(title);
+
+        String orderType = bill.getOrderType() == OrderType.ONLINE ? "Online Order" : "In-Store Purchase";
+        Paragraph orderInfo = new Paragraph("Order Type: " + orderType + "\n" +
+                "Order Date: " + bill.getOrderDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "\n" +
+                "Order Status: " + bill.getOrderStatus() + "\n\n", getFont("Data"));
+        document.add(orderInfo);
+
+        // Customer Information
+        String customerInfo = "Customer Information:\n" +
+                "Name: " + bill.getCustomerName() + "\n" +
+                "Phone: " + bill.getCustomerPhone() + "\n" +
+                (bill.getCustomerEmail() != null ? "Email: " + bill.getCustomerEmail() + "\n" : "") +
+                (bill.getShippingAddress() != null ? "Shipping Address: " + bill.getShippingAddress() + "\n" : "") +
+                "Payment Method: " + bill.getPaymentMethod() + "\n\n";
+
+        document.add(new Paragraph(customerInfo, getFont("Data")));
+
+        // Products table
+        PdfPTable table = new PdfPTable(5);
+        table.setWidthPercentage(100);
+        addTableHeader(table);
+
+        for (BillItem item : bill.getBillItems()) {
+            addRow(table, item);
+        }
+        document.add(table);
+
+        // Total calculations
+        Paragraph totals = new Paragraph(
+                "Subtotal: " + bill.getTotal() + "\n" +
+                        "Discount: " + bill.getDiscount() + "\n" +
+                        "Total Amount: " + bill.getTotalAfterDiscount() + "\n\n" +
+                        "Thank you for your purchase!", getFont("Data"));
+        document.add(totals);
+
+        document.close();
+    }
+
+    private void addRow(PdfPTable table, BillItem item) {
         log.info("Inside addRow");
-        table.addCell((String) data.get("name"));
-        table.addCell((String) data.get("category"));
-        table.addCell((String) data.get("quantity"));
-        table.addCell(String.valueOf(data.get("price")));
-        table.addCell(String.valueOf(data.get("total")));
+        table.addCell(item.getProduct().getName());
+        table.addCell(item.getProduct().getCategory().getName());
+        table.addCell(String.valueOf(item.getQuantity()));
+        table.addCell(String.valueOf(item.getPrice()));
+        table.addCell(String.valueOf(item.getQuantity() * item.getPrice()));
     }
 
     private void addTableHeader(PdfPTable table) {
@@ -148,78 +317,89 @@ public class BillServiceImpl implements BillService {
         }
     }
 
-    private void insertBill(Map<String, Object> requestMap) {
-        try{
-            Bill bill = new Bill();
-            bill.setUuid((String) requestMap.get("uuid"));
-            bill.setName((String) requestMap.get("name"));
-            bill.setEmail((String) requestMap.get("email"));
-            bill.setPhoneNumber((String) requestMap.get("phoneNumber"));
-            bill.setPaymentMethod((String) requestMap.get("paymentMethod"));
-            bill.setTotal((Integer) requestMap.get("total"));
-            bill.setTotalAfterDiscount((Integer) requestMap.get("totalAfterDiscount"));
-            bill.setProductDetails((String) requestMap.get("productDetails"));
-            bill.setCreatedBy(jwtRequestFilter.getCurrentUser());
-            billRepository.save(bill);
-        }catch(Exception ex){
+    @Override
+    public ResponseEntity<byte[]> getPdf(Map<String, Object> requestMap) {
+        log.info("Inside getPdf");
+        try {
+            if (validateGetPdfRequest(requestMap)) {
+                String uuid = (String) requestMap.get("uuid");
+                String filePath = CafeConstants.STORE_LOCATION + "/" + uuid + ".pdf";
+
+                // Check if file exists
+                File file = new File(filePath);
+                if (!file.exists()) {
+                    log.info("PDF file not found. Attempting to regenerate...");
+                    // Find the bill by UUID
+                    Bill bill = billRepository.findByUuid(uuid);
+                    if (bill == null) {
+                        log.error("Bill not found with UUID: {}", uuid);
+                        return new ResponseEntity<>(new byte[0], HttpStatus.NOT_FOUND);
+                    }
+
+                    try {
+                        // Regenerate the PDF
+                        generatePdf(bill, uuid);
+                        log.info("PDF regenerated successfully");
+
+                        // Check if the file was created successfully
+                        if (!new File(filePath).exists()) {
+                            log.error("Failed to regenerate PDF file");
+                            return new ResponseEntity<>(new byte[0], HttpStatus.INTERNAL_SERVER_ERROR);
+                        }
+                    } catch (Exception e) {
+                        log.error("Error regenerating PDF: {}", e.getMessage());
+                        return new ResponseEntity<>(new byte[0], HttpStatus.INTERNAL_SERVER_ERROR);
+                    }
+                }
+
+                // Read PDF file into byte array
+                byte[] pdfBytes = readPdfFile(filePath);
+
+                // Set response headers
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_PDF);
+                headers.setContentDispositionFormData("filename", uuid + ".pdf");
+                headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+                return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+            }
+            return new ResponseEntity<>(new byte[0], HttpStatus.BAD_REQUEST);
+        } catch (Exception ex) {
+            log.error("Error in getPdf: {}", ex.getMessage());
             ex.printStackTrace();
+            return new ResponseEntity<>(new byte[0], HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    private boolean validateRequestMap(Map<String, Object> requestMap) {
-        return requestMap.containsKey("name") &&
-                requestMap.containsKey("phoneNumber")&&
-                requestMap.containsKey("email") &&
-                requestMap.containsKey("paymentMethod") &&
-                requestMap.containsKey("productDetails") &&
-                requestMap.containsKey("total");
+    private boolean validateGetPdfRequest(Map<String, Object> requestMap) {
+        return requestMap.containsKey("uuid") &&
+                requestMap.get("uuid") != null &&
+                !requestMap.get("uuid").toString().trim().isEmpty();
+    }
+
+    private byte[] readPdfFile(String filePath) throws IOException {
+        File file = new File(filePath);
+        try (FileInputStream fileInputStream = new FileInputStream(file)) {
+            return IOUtils.toByteArray(fileInputStream);
+        }
     }
 
     @Override
-    public ResponseEntity<List<Bill>> getBills() {
-        log.info(("Inside get bills"));
-        try{
+    public ResponseEntity<List<BillWrapper>> getBills() {
+        log.info("Inside get bills");
+        try {
             List<Bill> billList;
-            if(jwtRequestFilter.isAdmin()){
+            if (jwtRequestFilter.isAdmin()) {
                 billList = billRepository.getAllBills();
-            }else{
+            } else {
                 billList = billRepository.getBillByUserName(jwtRequestFilter.getCurrentUser());
             }
-            return new ResponseEntity<>(billList, HttpStatus.OK);
-        }catch(Exception ex){
+            List<BillWrapper> billDTOs = billList.stream().map(BillWrapper::fromBill).collect(Collectors.toList());
+            return new ResponseEntity<>(billDTOs, HttpStatus.OK);
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    @Override
-    public ResponseEntity<byte[]> getPdf(Map<String, Object> requestMap) {
-        log.info("Inside getPdf: requestMap {}", requestMap);
-        try{
-            byte[] byteArray = new byte[0];
-            if(!requestMap.containsKey("uuid") && validateRequestMap(requestMap)){
-                return new ResponseEntity<>(byteArray, HttpStatus.BAD_REQUEST);
-            }
-            String filePath = CafeConstants.STORE_LOCATION + "/" +(String)requestMap.get("uuid") + ".pdf";
-            if(Boolean.TRUE.equals(CafeUtils.isFileExist(filePath))){
-                byteArray = getByteArray(filePath);
-            }else{
-                requestMap.put("isGenerated", false);
-                generateBill(requestMap);
-            }
-            return new ResponseEntity<>(byteArray, HttpStatus.OK);
-        }catch(Exception ex){
-            ex.printStackTrace();
-        }
-        return new ResponseEntity<>(new byte[0], HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    private byte[] getByteArray(String filePath) throws Exception {
-        File initialFile = new File(filePath);
-        InputStream inputStream = new FileInputStream(initialFile);
-        byte[] byteArray = IOUtils.toByteArray(inputStream);
-        inputStream.close();
-        return byteArray;
     }
 
     @Override
@@ -237,44 +417,52 @@ public class BillServiceImpl implements BillService {
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
     @Override
-    public ResponseEntity<Map<String, Object>>  applyCoupon(Map<String, Object> requestMap) {
+    public ResponseEntity<Map<String, Object>> applyCoupon(Map<String, Object> requestMap) {
         try {
-            String couponCode = (String) requestMap.get("code");
+            String couponCode = (String) requestMap.get("couponCode");
             Integer totalAmount = (Integer) requestMap.get("total");
 
+            if (couponCode == null || totalAmount == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("message", "Invalid request parameters"));
+            }
+
+            // Validate coupon
             Coupon coupon = couponRepository.findByCode(couponCode);
             if (coupon == null) {
-                return ResponseEntity.badRequest().body(Map.of("message", "Invalid coupon code"));
+                return ResponseEntity.badRequest()
+                        .body(Map.of("message", "Invalid coupon code"));
             }
 
+            // Check coupon expiration
             if (couponIsExpired(coupon)) {
-                return ResponseEntity.badRequest().body(Map.of("message", "Coupon is expired"));
+                return ResponseEntity.badRequest()
+                        .body(Map.of("message", "Coupon is expired"));
             }
 
-            // Check if coupon has been used before
-            if (billRepository.existsByCouponCode(couponCode)) {
-                return ResponseEntity.badRequest().body(Map.of("message", "Coupon has already been used"));
-            }
-
+            // Calculate discount
             Integer discountAmount = (totalAmount * coupon.getDiscount().intValue()) / 100;
             Integer totalAfterDiscount = totalAmount - discountAmount;
 
+            // Prepare response
             Map<String, Object> response = new HashMap<>();
             response.put("total", totalAmount);
             response.put("totalAfterDiscount", totalAfterDiscount);
             response.put("discountAmount", discountAmount);
             response.put("discount", coupon.getDiscount());
-            response.put("code", couponCode);
+            response.put("couponCode", couponCode);
+            response.put("message", "Coupon applied successfully");
 
             return ResponseEntity.ok(response);
+
         } catch (Exception ex) {
             ex.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", CafeConstants.SOMETHING_WENT_WRONG));
         }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("message", CafeConstants.SOMETHING_WENT_WRONG));
     }
-
 
     private boolean couponIsExpired(Coupon coupon) {
         LocalDate currentDate = LocalDate.now();
@@ -282,7 +470,3 @@ public class BillServiceImpl implements BillService {
         return expirationDate != null && currentDate.isAfter(expirationDate);
     }
 }
-
-
-
-
