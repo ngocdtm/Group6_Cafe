@@ -1,6 +1,5 @@
 package com.coffee.config;
 
-
 import com.coffee.security.CustomUserDetailsService;
 import com.coffee.security.JwtRequestFilter;
 import com.coffee.security.UnauthorizedHandler;
@@ -25,23 +24,23 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.resource.PathResourceResolver;
 
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-
 
 @Configuration
 @EnableWebSecurity
 @EnableWebMvc
 public class SecurityConfig {
 
-
     private final CustomUserDetailsService userDetailsService;
     private final JwtRequestFilter jwtRequestFilter;
     private final UnauthorizedHandler unauthorizedHandler;
-
 
     @Autowired
     public SecurityConfig(CustomUserDetailsService userDetailsService, JwtRequestFilter jwtRequestFilter, UnauthorizedHandler unauthorizedHandler) {
@@ -50,37 +49,48 @@ public class SecurityConfig {
         this.unauthorizedHandler = unauthorizedHandler;
     }
 
-
     @Bean(name = BeanIds.AUTHENTICATION_MANAGER)
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance();
     }
 
-
     @Value("${app.file.upload-dir}")
     private String uploadDir;
 
-
-
+    @Value("${app.file.avatar-dir}")
+    private String avatarDir;
 
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // Product images path
         Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
 
+        // Avatar path
+        Path avatarPath = Paths.get(avatarDir).toAbsolutePath().normalize();
 
-        registry.addResourceHandler("/uploads/**", "/images/**", "/uploads/images/**")
-                .addResourceLocations(uploadPath.toUri().toString())
+        // Create directories if they don't exist
+        try {
+            Files.createDirectories(uploadPath);
+            Files.createDirectories(avatarPath);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not create upload directories!", e);
+        }
+
+        registry.addResourceHandler("/uploads/**", "/images/**", "/uploads/images/**", "/avatars/**","/uploads/avatars/**")
+                .addResourceLocations(
+                        uploadPath.toUri().toString(),
+                        avatarPath.toUri().toString(),
+                        "file:./uploads/",
+                        "file:./uploads/avatars/"
+                )
                 .setCachePeriod(3600)
-                .resourceChain(true);
+                .resourceChain(true)
+                .addResolver(new PathResourceResolver());
     }
-
-
-
 
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
@@ -91,7 +101,6 @@ public class SecurityConfig {
                 .maxAge(3600);
     }
 
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -100,12 +109,10 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
 
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -125,17 +132,20 @@ public class SecurityConfig {
                                 "/api/v1/user/forgotPassword",
                                 "/uploads/**",
                                 "/images/**",
+                                "/avatars/**",
                                 "/api/v1/product/images/**",
                                 "/api/v1/product/get",
                                 "/api/v1/category/get",
                                 "/api/v1/product/getByCategory/**",
                                 "/api/v1/product/getById/**",
-                                "/api/v1/product/search"
+                                "/api/v1/product/search",
+//                                "/api/v1/user/profile",
+//                                "/api/v1/user/avatar",
+                                "/api/v1/user/avatars/**"
                         ).permitAll()
                         .requestMatchers("/api/**").authenticated()
                 )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
-
 
         return http.build();
     }

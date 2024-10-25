@@ -123,7 +123,14 @@ public class BillServiceImpl implements BillService {
         bill.setPaymentMethod((String) requestMap.get("paymentMethod"));
         bill.setTotal((Integer) requestMap.get("total"));
         bill.setOrderType(orderType);
-        bill.setOrderStatus(PENDING);
+
+        // Set order status based on order type
+        if (orderType == OrderType.IN_STORE) {
+            bill.setOrderStatus(OrderStatus.COMPLETED);
+        } else {
+            bill.setOrderStatus(OrderStatus.PENDING);
+        }
+
         bill.setOrderDate(LocalDateTime.now());
         bill.setLastUpdatedDate(LocalDateTime.now());
 

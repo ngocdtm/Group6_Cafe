@@ -2,6 +2,7 @@ package com.coffee.service;
 
 import com.coffee.wrapper.UserWrapper;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -25,4 +26,7 @@ public interface UserService {
 
     ResponseEntity<List<UserWrapper>> getAllCustomers();
 
+    ResponseEntity<UserWrapper> getProfile();
+
+    ResponseEntity<String> updateAvatar(MultipartFile file);
 }
