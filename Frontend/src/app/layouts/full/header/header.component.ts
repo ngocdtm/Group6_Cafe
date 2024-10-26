@@ -18,25 +18,24 @@ export class AppHeaderComponent {
     private dialog:MatDialog) {
   }
 
-  // logout(){
-  //   const dialogConfig = new MatDialogConfig();
-  //   dialogConfig.data = {
-  //     message:'Logout',
-  //     confirmation:true
-  //   };
-  //   const dialogRef = this.dialog.open(ConfirmationComponent,dialogConfig);
-  //   const sub = dialogRef.componentInstance.onEmitStatusChange.subscribe((response)=>{
-  //     dialogRef.close();
-  //     localStorage.clear();
-  //     this.router.navigate(['/']);
-  //   })
-  // }
-
   logout() {
-    this.userService.logout();
-    this.router.navigate(['/']);
+    const dialogConfig = new MatDialogConfig();
+    dialogConfig.data = {
+      message: 'Logout',
+      confirmation: true
+    };
+    
+    const dialogRef = this.dialog.open(ConfirmationComponent, dialogConfig);
+    const sub = dialogRef.componentInstance.onEmitStatusChange.subscribe((response) => {
+      dialogRef.close();
+      this.userService.logout();
+      
+      // Thêm setTimeout để đảm bảo dialog đã đóng hoàn toàn
+      setTimeout(() => {
+        this.router.navigate(['/']);
+      }, 100);
+    });
   }
-
 
   changePassword(){
     const dialogConfig = new MatDialogConfig();

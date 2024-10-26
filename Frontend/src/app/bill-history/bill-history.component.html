@@ -1,0 +1,63 @@
+<div class="container">
+<mat-card-header>
+  <mat-card-title>Order History</mat-card-title>
+</mat-card-header>
+<hr>
+<!-- <mat-card>
+  <mat-form-field appearance="standard">
+    <mat-label>Filter</mat-label>
+    <input matInput (keyup)="applyFilter($event)" #input>
+  </mat-form-field>
+</mat-card>
+<hr> -->
+
+<div class="responsive_table">
+  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+    <ng-container matColumnDef="orderDate">
+      <th mat-header-cell *matHeaderCellDef>Order Date</th>
+      <td mat-cell *matCellDef="let bill">{{bill.orderDate | date:'MMM d, y, h:mm a'}}</td>
+    </ng-container>
+    
+    <ng-container matColumnDef="total">
+      <th mat-header-cell *matHeaderCellDef>Total</th>
+      <td mat-cell *matCellDef="let bill" class="font-medium">{{bill.totalAfterDiscount | currency:'VND'}}</td>
+    </ng-container>
+    
+    <ng-container matColumnDef="orderStatus">
+      <th mat-header-cell *matHeaderCellDef>Status</th>
+      <td mat-cell *matCellDef="let bill">
+        <mat-chip-list>
+          <mat-chip 
+            [color]="getOrderStatusColor(bill.orderStatus)" 
+            [class]="getOrderStatusClass(bill.orderStatus)"
+            [selected]="true">
+            {{bill.orderStatus}}
+          </mat-chip>
+        </mat-chip-list>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="paymentMethod">
+      <th mat-header-cell *matHeaderCellDef>Payment Method</th>
+      <td mat-cell *matCellDef="let bill">{{bill.paymentMethod}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let bill" class="action-link">
+        <button mat-icon-button color="primary" matTooltip="View Details" (click)="openBillDetails(bill)">
+          <mat-icon>visibility</mat-icon>
+        </button>
+        <button mat-icon-button color="warn" 
+                *ngIf="bill.orderStatus === 'PENDING'" 
+                (click)="cancelOrder(bill)"
+                matTooltip="Cancel Order">
+          <mat-icon>cancel</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+</div>

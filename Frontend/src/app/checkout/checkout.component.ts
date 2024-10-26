@@ -37,7 +37,6 @@ export class CheckoutComponent implements OnInit {
   ) {
     this.checkoutForm = this.formBuilder.group({
       customerName: ['', [Validators.required]],
-      customerEmail: ['', [Validators.required, Validators.email]],
       customerPhone: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
       shippingAddress: ['', [Validators.required]],
       paymentMethod: ['COD', [Validators.required]], // Default to COD
@@ -53,6 +52,7 @@ export class CheckoutComponent implements OnInit {
         return;
       }
       this.loadUserInfo();
+      this.loadUserProfile();
       this.loadCart();
     });
   }
@@ -63,11 +63,28 @@ export class CheckoutComponent implements OnInit {
     if (userDetails) {
       this.checkoutForm.patchValue({
         customerName: userDetails.name || '',
-        customerEmail: userDetails.email || '',
-        customerPhone: userDetails.contactNumber || '',
+        customerPhone: userDetails.phoneNumber || '',
         shippingAddress: userDetails.address || ''
       });
     }
+  }
+
+  private loadUserProfile(): void {
+    this.userService.getProfile().subscribe({
+      next: (profile: any) => {
+        // Only update form fields that are empty
+        const currentPhone = this.checkoutForm.get('customerPhone')?.value;
+        const currentAddress = this.checkoutForm.get('shippingAddress')?.value;
+
+        this.checkoutForm.patchValue({
+          customerPhone: currentPhone || profile.phoneNumber || '',
+          shippingAddress: currentAddress || profile.address || ''
+        });
+      },
+      error: (error) => {
+        console.error('Error loading user profile:', error);
+      }
+    });
   }
 
   private loadCart(): void {

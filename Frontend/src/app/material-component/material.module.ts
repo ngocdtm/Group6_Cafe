@@ -22,6 +22,8 @@ import { MaterialRoutes } from "./material.routing";
 import { ViewBillComponent } from "./view-bill/view-bill.component";
 import { ViewDetailProductComponent } from "./view-detail-product/view-detail-product.component";
 import { ProductDetailDialogComponent } from './dialog/product-detail-dialog/product-detail-dialog.component';
+import { BillDetailsDialogComponent } from './dialog/bill-details-dialog/bill-details-dialog.component';
+import { ConfirmationDialogComponent } from './dialog/confirmation-dialog/confirmation-dialog.component';
 
 
 
@@ -53,6 +55,8 @@ import { ProductDetailDialogComponent } from './dialog/product-detail-dialog/pro
     ManageCouponComponent,
     CouponComponent,
     ProductDetailDialogComponent,
+    BillDetailsDialogComponent,
+    ConfirmationDialogComponent,
     
  
   ]

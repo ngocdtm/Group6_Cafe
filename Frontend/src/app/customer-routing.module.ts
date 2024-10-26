@@ -7,6 +7,7 @@ import { SearchPageComponent } from './search-page/search-page.component';
 import { CartComponent } from './cart/cart.component';
 import { CheckoutComponent } from './checkout/checkout.component';
 import { ProfileComponent } from './profile/profile.component';
+import { BillHistoryComponent } from './bill-history/bill-history.component';
 
 const routes: Routes = [
   {
@@ -19,7 +20,8 @@ const routes: Routes = [
       { path: 'search', component: SearchPageComponent },
       { path: 'cart', component: CartComponent },
       { path: 'checkout', component: CheckoutComponent },
-      { path: 'profile', component: ProfileComponent }
+      { path: 'profile', component: ProfileComponent },
+      { path: 'bill-history', component: BillHistoryComponent }
       // { path: 'new', component: NewComponent }, // Uncomment when you have a NewComponent
     ]
   }

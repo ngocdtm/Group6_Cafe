@@ -1,5 +1,5 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
@@ -17,7 +17,9 @@ export class UserService {
   private userId = new BehaviorSubject<number | null>(null);
   private userDetails: any = null;
 
-  constructor(private httpClient: HttpClient) {
+  constructor(
+    private httpClient: HttpClient,
+    private injector: Injector) {
     this.checkInitialLoginStatus();
   }
 

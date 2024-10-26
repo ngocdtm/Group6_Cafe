@@ -13,7 +13,6 @@ import { saveAs } from 'file-saver';
 interface Bill {
   id: number;
   customerName: string;
-  customerEmail: string;
   uuid: string;
   customerPhone: string;
   orderType: string;
@@ -35,7 +34,6 @@ interface Bill {
 export class ViewBillComponent implements OnInit {
   displayedColumns: string[] = [
     'name',
-    'email',
     'phoneNumber',
     'orderType',
     'orderStatus',
@@ -69,7 +67,7 @@ export class ViewBillComponent implements OnInit {
         // Transform the date strings to Date objects
         const processedData = response.map((bill: Bill) => ({
           ...bill,
-          orderDate: this.parseDate(bill.orderDate)
+          orderDate: bill.orderDate
         }));
         this.dataSource = new MatTableDataSource(processedData);
       },
@@ -87,32 +85,32 @@ export class ViewBillComponent implements OnInit {
   }
 
    // Helper method to parse different date formats
-   parseDate(dateString: string | Date): Date {
-    if (!dateString) return new Date(); // Return current date instead of null
+  //  parseDate(dateString: string | Date): Date {
+  //   if (!dateString) return new Date(); // Return current date instead of null
     
-    // If it's already a Date object, return it
-    if (dateString instanceof Date) {
-      return dateString;
-    }
+  //   // If it's already a Date object, return it
+  //   if (dateString instanceof Date) {
+  //     return dateString;
+  //   }
     
-    // Try parsing the date string
-    const date = new Date(dateString);
+  //   // Try parsing the date string
+  //   const date = new Date(dateString);
     
-    // Check if the date is valid
-    if (isNaN(date.getTime())) {
-      // If the date string contains commas, it might be in the format "2024,10,23,20,31,2,598957000"
-      if (typeof dateString === 'string' && dateString.includes(',')) {
-        const [year, month, day, hours, minutes, seconds, milliseconds] = dateString.split(',').map(Number);
-        // Note: Month is 0-based in JavaScript Date
-        return new Date(year, month - 1, day, hours, minutes, seconds, milliseconds);
-      }
-      // Return current date as fallback if parsing fails
-      console.warn(`Invalid date format: ${dateString}`);
-      return new Date();
-    }
+  //   // Check if the date is valid
+  //   if (isNaN(date.getTime())) {
+  //     // If the date string contains commas, it might be in the format "2024,10,23,20,31,2,598957000"
+  //     if (typeof dateString === 'string' && dateString.includes(',')) {
+  //       const [year, month, day, hours, minutes, seconds, milliseconds] = dateString.split(',').map(Number);
+  //       // Note: Month is 0-based in JavaScript Date
+  //       return new Date(year, month - 1, day, hours, minutes, seconds, milliseconds);
+  //     }
+  //     // Return current date as fallback if parsing fails
+  //     console.warn(`Invalid date format: ${dateString}`);
+  //     return new Date();
+  //   }
     
-    return date;
-  }
+  //   return date;
+  // }
 
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
@@ -192,7 +190,6 @@ export class ViewBillComponent implements OnInit {
     this.ngxService.start();
     var data = {
       customerName: values.customerName,
-      customerEmail: values.customerEmail,
       uuid: values.uuid,
       customerPhone: values.customerPhone,
       orderType: values.orderType,

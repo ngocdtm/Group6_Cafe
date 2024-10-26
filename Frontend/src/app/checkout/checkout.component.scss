@@ -41,7 +41,7 @@
  
   .cart-content {
     display: grid;
-    grid-template-columns: 1fr 300px;
+    grid-template-columns: 2fr 1fr;
     gap: 20px;
  
     @media (max-width: 768px) {
@@ -50,6 +50,28 @@
   }
  
   .cart-items {
+    overflow-y: auto;
+    flex: 1;
+    padding-right: 8px; /* Thêm padding để tránh nội dung bị che bởi thanh cuộn */
+    
+    /* Tùy chỉnh thanh cuộn */
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 4px;
+    }
+    
+    &::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
     .cart-item {
       display: grid;
       grid-template-columns: 100px 1fr auto auto auto;
@@ -75,6 +97,7 @@
  
       .item-details {
         h3 {
+          position: static; /* Ghi đè position sticky của tiêu đề chính */
           margin: 0 0 8px 0;
           font-size: 16px;
         }
@@ -106,9 +129,18 @@
     padding: 16px;
     position: sticky;
     top: 20px;
- 
+    max-height: calc(100vh - 120px); /* Chiều cao tối đa là chiều cao viewport trừ đi khoảng cách với navbar */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  
     h3 {
       margin: 0 0 16px 0;
+      position: sticky;
+      top: 0;
+      background: white;
+      padding: 10px 0;
+      z-index: 1;
     }
  
     .summary-row {

@@ -34,17 +34,6 @@
 
           <div fxFlex.gt-sm="33" fxFlex="100">
             <mat-form-field appearance="outline" class="w-100">
-              <mat-label>Email</mat-label>
-              <input matInput formControlName="email" placeholder="Enter email address">
-              <mat-error *ngIf="manageOrderForm.get('email').touched && manageOrderForm.get('email').invalid">
-                <span *ngIf="manageOrderForm.get('email').errors?.required">Email is required</span>
-                <span *ngIf="manageOrderForm.get('email').errors?.pattern">Invalid email format</span>
-              </mat-error>
-            </mat-form-field>
-          </div>
-
-          <div fxFlex.gt-sm="33" fxFlex="100">
-            <mat-form-field appearance="outline" class="w-100">
               <mat-label>Phone Number</mat-label>
               <input matInput formControlName="phoneNumber" placeholder="Enter phone number">
               <mat-error *ngIf="manageOrderForm.get('phoneNumber').touched && manageOrderForm.get('phoneNumber').invalid">
@@ -117,7 +106,7 @@
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>Price</mat-label>
               <input matInput formControlName="price" readonly>
-              <span matPrefix>$&nbsp;</span>
+              <span matPrefix>&nbsp;</span>
             </mat-form-field>
           </div>
 
@@ -125,7 +114,7 @@
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>Total</mat-label>
               <input matInput formControlName="total" readonly>
-              <span matPrefix>$&nbsp;</span>
+              <span matPrefix>&nbsp;</span>
             </mat-form-field>
           </div>
         </div>
@@ -197,20 +186,20 @@
          <!-- Subtotal -->
       <div fxLayout="row" fxLayoutAlign="space-between center">
         <span>Subtotal:</span>
-        <strong>${{total}}</strong>
+        <strong>VNĐ {{total}}</strong>
       </div>
 
       <!-- Discount if applied -->
       <div *ngIf="discount > 0" fxLayout="row" fxLayoutAlign="space-between center">
         <span>Discount ({{appliedCouponCode}}):</span>
-        <strong class="text-success">-${{discount}}</strong>
+        <strong class="text-success">-VNĐ {{discount}}</strong>
       </div>
 
       <!-- Final Total -->
       <mat-divider></mat-divider>
       <div fxLayout="row" fxLayoutAlign="space-between center">
         <span class="total-label">Total:</span>
-        <strong class="total-amount">${{totalAfterDiscount || total}}</strong>
+        <strong class="total-amount">VNĐ {{totalAfterDiscount || total}}</strong>
       </div>
     </div>
   </mat-card-content>

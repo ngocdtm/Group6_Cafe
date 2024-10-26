@@ -19,6 +19,7 @@ import { ProductHistoryComponent } from './material-component/product-history/pr
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CheckoutComponent } from './checkout/checkout.component';
 import { ProfileComponent } from './profile/profile.component';
+import { BillHistoryComponent } from './bill-history/bill-history.component';
 
 
 @NgModule({
@@ -32,7 +33,8 @@ import { ProfileComponent } from './profile/profile.component';
     ProductHistoryComponent,
     CartComponent,
     CheckoutComponent,
-    ProfileComponent
+    ProfileComponent,
+    BillHistoryComponent
   ],
   imports: [
     FormsModule,
