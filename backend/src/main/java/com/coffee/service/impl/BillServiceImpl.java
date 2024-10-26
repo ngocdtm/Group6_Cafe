@@ -21,7 +21,6 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import jakarta.transaction.Transactional;
-import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.io.IOUtils;
 import org.json.JSONArray;
@@ -37,13 +36,10 @@ import org.springframework.stereotype.Service;
 import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static com.coffee.enums.OrderStatus.PENDING;
 
 @Slf4j
 @Service
@@ -117,7 +113,6 @@ public class BillServiceImpl implements BillService {
         Bill bill = new Bill();
         bill.setUuid((String) requestMap.get("uuid"));
         bill.setCustomerName((String) requestMap.get("customerName"));
-        bill.setCustomerEmail((String) requestMap.get("customerEmail"));
         bill.setCustomerPhone((String) requestMap.get("customerPhone"));
         bill.setShippingAddress((String) requestMap.get("shippingAddress"));
         bill.setPaymentMethod((String) requestMap.get("paymentMethod"));
@@ -138,8 +133,10 @@ public class BillServiceImpl implements BillService {
         String userEmail = jwtRequestFilter.getCurrentUser();
         if (userEmail != null) {
             User user = userRepository.findByEmail(userEmail);
-            bill.setUser(user);
             bill.setCreatedByUser(userEmail);
+            if (orderType == OrderType.ONLINE){
+                bill.setUser(user);
+            }
         }
 
         // Handle discount and coupon with null checks
@@ -230,7 +227,7 @@ public class BillServiceImpl implements BillService {
 
         String orderType = bill.getOrderType() == OrderType.ONLINE ? "Online Order" : "In-Store Purchase";
         Paragraph orderInfo = new Paragraph("Order Type: " + orderType + "\n" +
-                "Order Date: " + bill.getOrderDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "\n" +
+                "Order Date: " + bill.getFormattedOrderDate() + "\n" +
                 "Order Status: " + bill.getOrderStatus() + "\n\n", getFont("Data"));
         document.add(orderInfo);
 
@@ -238,7 +235,6 @@ public class BillServiceImpl implements BillService {
         String customerInfo = "Customer Information:\n" +
                 "Name: " + bill.getCustomerName() + "\n" +
                 "Phone: " + bill.getCustomerPhone() + "\n" +
-                (bill.getCustomerEmail() != null ? "Email: " + bill.getCustomerEmail() + "\n" : "") +
                 (bill.getShippingAddress() != null ? "Shipping Address: " + bill.getShippingAddress() + "\n" : "") +
                 "Payment Method: " + bill.getPaymentMethod() + "\n\n";
 

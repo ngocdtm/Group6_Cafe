@@ -99,9 +99,5 @@ public class Product implements Serializable {
     public Product(Integer id) {
         this.id = id;
     }
-//
-//
-//    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<CartItems> cartItems = new ArrayList<>();
 }
 

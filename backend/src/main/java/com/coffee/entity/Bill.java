@@ -11,6 +11,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,7 +43,6 @@ public class Bill implements Serializable {
     private User user; // Có thể null nếu là khách vãng lai
 
     private String customerName;
-    private String customerEmail;
     private String customerPhone;
     private String shippingAddress;
 
@@ -56,6 +56,21 @@ public class Bill implements Serializable {
     // Thông tin thời gian
     private LocalDateTime orderDate;
     private LocalDateTime lastUpdatedDate;
+
+    // Add these methods to format dates
+    public String getFormattedOrderDate() {
+        if (orderDate != null) {
+            return orderDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"));
+        }
+        return null;
+    }
+
+    public String getFormattedLastUpdatedDate() {
+        if (lastUpdatedDate != null) {
+            return lastUpdatedDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"));
+        }
+        return null;
+    }
 
     // Thông tin đặt mua
     @Enumerated(EnumType.STRING)
