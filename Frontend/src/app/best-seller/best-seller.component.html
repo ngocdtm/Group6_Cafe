@@ -12,10 +12,10 @@
 
  
     
-    <div class="view-controls">
+    <!-- <div class="view-controls">
       <button (click)="currentView='products'" [class.active]="currentView==='products'">Products</button>
       <button (click)="currentView='history'" [class.active]="currentView==='history'">History</button>
-    </div>
+    </div> -->
     
     <div [ngSwitch]="currentView">
       <div *ngSwitchCase="'products'">

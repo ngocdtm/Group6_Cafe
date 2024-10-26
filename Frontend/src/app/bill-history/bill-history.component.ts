@@ -3,7 +3,6 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { BillService } from '../services/bill.service';
 import { BillDetailsDialogComponent } from '../material-component/dialog/bill-details-dialog/bill-details-dialog.component';
-import { ConfirmationDialogComponent } from '../material-component/dialog/confirmation-dialog/confirmation-dialog.component';
 import { ThemePalette } from '@angular/material/core';
 import { ConfirmationComponent } from '../material-component/dialog/confirmation/confirmation.component';
 
