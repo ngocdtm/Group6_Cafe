@@ -73,10 +73,11 @@ export class CheckoutComponent implements OnInit {
     this.userService.getProfile().subscribe({
       next: (profile: any) => {
         // Only update form fields that are empty
+        const currentName = this.checkoutForm.get('customerName')?.value;
         const currentPhone = this.checkoutForm.get('customerPhone')?.value;
         const currentAddress = this.checkoutForm.get('shippingAddress')?.value;
-
         this.checkoutForm.patchValue({
+          customerName: currentName || profile.name || '',
           customerPhone: currentPhone || profile.phoneNumber || '',
           shippingAddress: currentAddress || profile.address || ''
         });
