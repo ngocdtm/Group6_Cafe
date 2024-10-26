@@ -1,48 +1,35 @@
 package com.coffee.wrapper;
 
 import lombok.Data;
-import java.util.ArrayList;
+import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
+@NoArgsConstructor
 public class ProductWrapper {
+    private Integer id;
+    private String name;
+    private String description;
+    private Integer price;
+    private Integer originalPrice;
+    private String status;
+    private Integer categoryId;
+    private String categoryName;
+    private List<ProductImageWrapper> images;
+    private List<String> imagePaths;
+    private LocalDateTime viewedAt; // Thêm trường này để lưu thời gian xem
 
-    Integer id;
-
-    String name;
-
-    String description;
-
-    Integer price;
-
-    Integer originalPrice;
-
-    String status;
-
-    Integer categoryId;
-
-    String categoryName;
-
-    List<String> imagePaths;
-
-    List<ProductImageWrapper> images;
-
-
-    public ProductWrapper(){
-        this.imagePaths = new ArrayList<>();
-    }
-
-    // Constructor chung cho tất cả các trường hợp
-    public ProductWrapper(Integer id, String name, String description, Integer price, Integer originalPrice,
-                          String status, Integer categoryId, String categoryName) {
+    public ProductWrapper(Integer id, String name, String description,
+                          Integer price, String status, Integer categoryId,
+                          String categoryName, Integer originalPrice) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.price = price;
-        this.originalPrice = originalPrice;
         this.status = status;
         this.categoryId = categoryId;
         this.categoryName = categoryName;
-        this.imagePaths = new ArrayList<>();
+        this.originalPrice = originalPrice;
     }
 }

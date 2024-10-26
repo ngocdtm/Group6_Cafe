@@ -1,5 +1,6 @@
 package com.coffee.entity;
 
+import com.coffee.wrapper.ProductImageWrapper;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.DynamicInsert;
@@ -7,7 +8,10 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
+@SuppressWarnings("JpaAttributeTypeInspection")
 @Entity
 @Table(name = "product_history")
 @Data
@@ -33,7 +37,6 @@ public class ProductHistory implements Serializable {
 
     public ProductHistory() {
     }
-
     public ProductHistory(User user, Product product) {
         this.user = user;
         this.product = product;

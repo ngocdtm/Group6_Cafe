@@ -132,12 +132,63 @@ export class BestSellerComponent implements OnInit {
   }
 
   openProductDetail(product: any) {
-    this.dialog.open(ProductDetailDialogComponent, {
-      data: product,
-      panelClass: 'product-detail-dialog'
+    this.userService.getUserId().subscribe({
+      next: (userId) => {
+        if (userId) {
+          // First save the view history
+          this.productService.saveProductView(userId, product.id).subscribe({
+            next: () => {
+              // Then get updated product details
+              this.productService.getById(product.id, userId).subscribe({
+                next: (productDetail) => {
+                  this.dialog.open(ProductDetailDialogComponent, {
+                    data: productDetail,
+                    panelClass: 'product-detail-dialog'
+                  });
+                },
+                error: (err) => {
+                  console.error('Error loading product details:', err);
+                  this.dialog.open(ProductDetailDialogComponent, {
+                    data: product,
+                    panelClass: 'product-detail-dialog'
+                  });
+                }
+              });
+            },
+            error: (err) => {
+              console.error('Error saving product view:', err);
+              // Still open the dialog even if saving view fails
+              this.openDialog(product);
+            }
+          });
+        } else {
+          this.openDialog(product);
+        }
+      },
+      error: (err) => {
+        console.error('Error getting user ID:', err);
+        this.openDialog(product);
+      }
     });
   }
-
+  private openDialog(product: any) {
+    this.productService.getById(product.id).subscribe({
+      next: (productDetail) => {
+        this.dialog.open(ProductDetailDialogComponent, {
+          data: productDetail,
+          panelClass: 'product-detail-dialog'
+        });
+      },
+      error: (err) => {
+        console.error('Error loading product details:', err);
+        // Fallback to opening dialog with existing product data
+        this.dialog.open(ProductDetailDialogComponent, {
+          data: product,
+          panelClass: 'product-detail-dialog'
+        });
+      }
+    });
+  }
   formatPrice(price: number): string {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
   }

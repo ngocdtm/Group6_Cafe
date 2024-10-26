@@ -14,7 +14,17 @@ import java.util.List;
 
 
 @NamedQuery(name = "Product.getAllProduct",
-        query = "SELECT new com.coffee.wrapper.ProductWrapper(p.id, p.name, p.description, p.price, p.originalPrice, p.status, p.category.id, p.category.name) FROM Product p")
+        query = "SELECT new com.coffee.wrapper.ProductWrapper(" +
+                "p.id, " +
+                "p.name, " +
+                "p.description, " +
+                "p.price, " +
+                "p.status, " +
+                "p.category.id, " +
+                "p.category.name, " +
+                "p.originalPrice) " +
+                "FROM Product p " +
+                "ORDER BY p.id DESC")
 
 
 @NamedQuery(name = "Product.updateProductStatus",
@@ -22,19 +32,35 @@ import java.util.List;
 
 
 @NamedQuery(name = "Product.getProductByCategory",
-        query = "SELECT new com.coffee.wrapper.ProductWrapper(p.id, p.name, p.description, p.price, p.originalPrice, p.status, p.category.id, p.category.name) " +
+        query = "SELECT new com.coffee.wrapper.ProductWrapper(" +
+                "p.id, " +
+                "p.name, " +
+                "p.description, " +
+                "p.price, " +
+                "p.status, " +
+                "p.category.id, " +
+                "p.category.name, " +
+                "p.originalPrice) " +
                 "FROM Product p WHERE p.category.id=:id AND p.status='true'")
 
 
 @NamedQuery(name = "Product.getProductById",
-        query = "SELECT new com.coffee.wrapper.ProductWrapper(p.id, p.name, p.description, p.price, p.originalPrice, p.status, p.category.id, p.category.name) " +
-                "FROM Product p WHERE p.id=:id")
+        query = "SELECT p FROM Product p LEFT JOIN FETCH p.images WHERE p.id=:id")
+
 
 
 @NamedQuery(name = "Product.findByNameProduct", query = "SELECT p FROM Product p WHERE p.name=:name")
 
 @NamedQuery(name = "Product.getRelatedProducts",
-        query = "SELECT new com.coffee.wrapper.ProductWrapper(p.id, p.name, p.description, p.price, p.originalPrice, p.status, p.category.id, p.category.name) " +
+        query = "SELECT new com.coffee.wrapper.ProductWrapper(" +
+                "p.id, " +
+                "p.name, " +
+                "p.description, " +
+                "p.price, " +
+                "p.status, " +
+                "p.category.id, " +
+                "p.category.name, " +
+                "p.originalPrice) " +
                 "FROM Product p " +
                 "WHERE p.category.id = :categoryId " +
                 "AND p.id != :productId " +
@@ -90,7 +116,7 @@ public class Product implements Serializable {
     private String status;
 
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ProductImage> images = new ArrayList<>();
 
     public Product() {

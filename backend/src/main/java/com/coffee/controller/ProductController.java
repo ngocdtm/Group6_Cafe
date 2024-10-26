@@ -5,6 +5,7 @@ import com.coffee.constants.CafeConstants;
 import com.coffee.service.ProductService;
 import com.coffee.service.impl.ProductHistoryServiceImpl;
 import com.coffee.utils.CafeUtils;
+import com.coffee.wrapper.ProductHistoryWrapper;
 import com.coffee.wrapper.ProductWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -230,11 +231,11 @@ public class ProductController {
             summary = "Get a product by id",
             description = "Endpoint to get a product by id."
     )
-    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/getById/{id}")
-    public ResponseEntity<ProductWrapper> getById(@PathVariable Integer id) {
+    public ResponseEntity<ProductWrapper> getById(@PathVariable Integer id,
+                                                  @RequestParam Integer userId) {
         try {
-//            productHistoryService.addToHistory(userId, id);
+            productHistoryService.addToHistory(userId, id);
             return productService.getById(id);
         } catch(Exception ex) {
             ex.printStackTrace();
@@ -274,23 +275,20 @@ public class ProductController {
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
     @Operation(
-            summary = "Get a history_product by id",
-            description = "Endpoint to get a history_product by id."
+            summary = "Get a product history by user id",
+            description = "Endpoint to get product viewing history for a user."
     )
-    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/history")
-    public ResponseEntity<List<ProductWrapper>> getProductHistory(
-            @RequestParam Integer userId) {
+    public ResponseEntity<List<ProductHistoryWrapper>> getProductHistory(@RequestParam Integer userId) {
         try {
-            List<ProductWrapper> history = productHistoryService.getUserHistory(userId);
+            List<ProductHistoryWrapper> history = productHistoryService.getUserHistory(userId);
             return new ResponseEntity<>(history, HttpStatus.OK);
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
-            return new ResponseEntity<>(new ArrayList<>(),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
 }
 

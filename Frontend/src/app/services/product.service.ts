@@ -1,6 +1,7 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
 
@@ -59,10 +60,16 @@ export class ProductService {
   }
 
 
-  getById(id: any) {
-    return this.httpClient.get(`${this.url}/api/v1/product/getById/${id}`);
+  getById(productId: number, userId?: number): Observable<any> {
+    // Thêm userId vào query params như backend yêu cầu
+    const params = new HttpParams().set('userId', userId?.toString() || '');
+    return this.httpClient.get<any>(`${this.url}/api/v1/product/getById/${productId}`, { params }).pipe(
+      catchError(error => {
+        console.error('Error fetching product:', error);
+        return throwError(error);
+      })
+    );
   }
-
   searchProducts(keyword: string) {
   return this.httpClient.get(`${this.url}/api/v1/product/search?keyword=${keyword}`);
 
@@ -70,10 +77,29 @@ export class ProductService {
   getRelatedProducts(productId: number): Observable<any> {
     return this.httpClient.get(`${this.url}/api/v1/product/related/${productId}`);
   }
-  getProductHistory(userId: number) {
-    return this.httpClient.get(`${this.url}/api/v1/history?userId=${userId}`);
+  getProductHistory(userId: number): Observable<any> {
+    const params = new HttpParams().set('userId', userId.toString());
+    return this.httpClient.get(`${this.url}/api/v1/product/history`, { params }).pipe(
+      catchError(error => {
+        console.error('Error fetching history:', error);
+        return throwError(error);
+      })
+    );
   }
+  saveProductView(userId: number, productId: number): Observable<any> {
+    // Đảm bảo body request match với backend expectation
+    const body = {
+      userId: userId,
+      productId: productId
+    };
+    
+    return this.httpClient.post(`${this.url}/api/v1/product/history`, body).pipe(
+      catchError(error => {
+        console.error('Error saving product view:', error);
+        return throwError(error);
+      })
+    );
 }
 
-
+}
 
