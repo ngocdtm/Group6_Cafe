@@ -1,11 +1,14 @@
 package com.coffee.wrapper;
 
+import com.coffee.entity.Product;
 import lombok.Data;
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
 public class ProductWrapper {
+
+    Product product;
 
     Integer id;
 
@@ -45,4 +48,5 @@ public class ProductWrapper {
         this.categoryName = categoryName;
         this.imagePaths = new ArrayList<>();
     }
+
 }

@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -382,17 +381,35 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<String> forgotPassword(Map<String, String> requestMap) {
         try {
             User user = userRepository.findByEmail(requestMap.get("email"));
-            if (!Objects.isNull(user) && !Strings.isNullOrEmpty(user.getEmail())) {
-                emailUtils.forgotMail(user.getEmail(), "Credentials by Cafe Management System", user.getPassword());
-                return CafeUtils.getResponseEntity("Check your mail for credentials", HttpStatus.OK);
+            if (user != null && !Strings.isNullOrEmpty(user.getEmail())) {
+                // Generate a random temporary password
+                String temporaryPassword = generateTemporaryPassword();
+
+                // Update user's password in database
+                user.setPassword(passwordEncoder.encode(temporaryPassword));
+                userRepository.save(user);
+
+                // Send email with temporary password
+                emailUtils.sendPasswordResetEmail(user.getEmail(), temporaryPassword);
+
+                return CafeUtils.getResponseEntity("Password reset instructions sent to your email", HttpStatus.OK);
             }
             return CafeUtils.getResponseEntity("Email not found!", HttpStatus.NOT_FOUND);
-
-
         } catch (Exception ex) {
-            ex.printStackTrace();
+            log.error("Error in forgotPassword", ex);
+            return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    private String generateTemporaryPassword() {
+        // Generate a random 12-character password
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+        StringBuilder sb = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < 12; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
     }
 }
 

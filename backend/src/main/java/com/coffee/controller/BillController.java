@@ -2,7 +2,6 @@
 package com.coffee.controller;
 
 import com.coffee.constants.CafeConstants;
-import com.coffee.entity.Bill;
 import com.coffee.enums.OrderStatus;
 import com.coffee.service.BillService;
 import com.coffee.utils.CafeUtils;

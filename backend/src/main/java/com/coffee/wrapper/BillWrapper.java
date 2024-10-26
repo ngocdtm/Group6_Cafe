@@ -12,7 +12,6 @@ public class BillWrapper {
     private Integer id;
     private String uuid;
     private String customerName;
-    private String customerEmail;
     private String customerPhone;
     private String paymentMethod;
     private String shippingAddress;
@@ -21,8 +20,8 @@ public class BillWrapper {
     private Integer totalAfterDiscount;
     private OrderStatus orderStatus;
     private OrderType orderType;
-    private LocalDateTime orderDate;
-    private LocalDateTime lastUpdatedDate;
+    private String orderDate;
+    private String lastUpdatedDate;
     private String createdByUser;
     private List<BillItemWrapper> billItems;
 
@@ -48,14 +47,6 @@ public class BillWrapper {
 
     public void setCustomerName(String customerName) {
         this.customerName = customerName;
-    }
-
-    public String getCustomerEmail() {
-        return customerEmail;
-    }
-
-    public void setCustomerEmail(String customerEmail) {
-        this.customerEmail = customerEmail;
     }
 
     public String getCustomerPhone() {
@@ -122,19 +113,19 @@ public class BillWrapper {
         this.orderType = orderType;
     }
 
-    public LocalDateTime getOrderDate() {
+    public String getOrderDate() {
         return orderDate;
     }
 
-    public void setOrderDate(LocalDateTime orderDate) {
+    public void setOrderDate(String orderDate) {
         this.orderDate = orderDate;
     }
 
-    public LocalDateTime getLastUpdatedDate() {
+    public String getLastUpdatedDate() {
         return lastUpdatedDate;
     }
 
-    public void setLastUpdatedDate(LocalDateTime lastUpdatedDate) {
+    public void setLastUpdatedDate(String lastUpdatedDate) {
         this.lastUpdatedDate = lastUpdatedDate;
     }
 
@@ -161,7 +152,6 @@ public class BillWrapper {
         dto.setId(bill.getId());
         dto.setUuid(bill.getUuid());
         dto.setCustomerName(bill.getCustomerName());
-        dto.setCustomerEmail(bill.getCustomerEmail());
         dto.setCustomerPhone(bill.getCustomerPhone());
         dto.setPaymentMethod(bill.getPaymentMethod());
         dto.setShippingAddress(bill.getShippingAddress());
@@ -170,7 +160,7 @@ public class BillWrapper {
         dto.setTotalAfterDiscount(bill.getTotalAfterDiscount());
         dto.setOrderStatus(bill.getOrderStatus());
         dto.setOrderType(bill.getOrderType());
-        dto.setOrderDate(bill.getOrderDate());
+        dto.setOrderDate(String.valueOf(bill.getOrderDate()));
         dto.setCreatedByUser(bill.getCreatedByUser());
         dto.setBillItems(bill.getBillItems().stream().map(BillItemWrapper::fromBillItem).collect(Collectors.toList()));
         return dto;
