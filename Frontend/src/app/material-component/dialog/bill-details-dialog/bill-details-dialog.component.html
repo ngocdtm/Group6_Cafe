@@ -1,0 +1,97 @@
+<div class="dialog-container">
+  <mat-card-header>
+  <mat-card-title>Order Detail</mat-card-title>
+</mat-card-header>
+  
+  <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
+
+  <mat-dialog-content>
+    <div class="bill-info mb-4">
+      <h3 class="section-title">Order Information</h3>
+      <div class="info-grid">
+        <p><strong>Order ID:</strong> {{data.uuid}}</p>
+        <p><strong>Order Date:</strong> {{data.orderDate | date:'medium'}}</p>
+        <p><strong>Payment Method:</strong> {{data.paymentMethod}}</p>
+        <p>
+          <strong>Status:</strong> 
+          <mat-chip-list>
+            <mat-chip 
+              [color]="getOrderStatusColor(data.orderStatus)" 
+              [class]="getOrderStatusClass(data.orderStatus)"
+              [selected]="true">
+              {{data.orderStatus}}
+            </mat-chip>
+          </mat-chip-list>
+        </p>
+        
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <div class="customer-info mb-4">
+      <h3 class="section-title">Customer Information</h3>
+      <div class="info-grid">
+        <p><strong>Name:</strong> {{data.customerName}}</p>
+        <p><strong>Email:</strong> {{data.createdByUser}}</p>
+        <p><strong>Phone:</strong> {{data.customerPhone}}</p>
+        <p *ngIf="data.shippingAddress">
+          <strong>Shipping Address:</strong> {{data.shippingAddress}}
+        </p>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <div class="products-info mb-4">
+      <h3 class="section-title">Products</h3>
+      <div class="products-list">
+        <mat-card *ngFor="let item of data.billItems" class="product-card mb-3">
+          <div class="product-grid">
+            <div class="product-image">
+              <img [src]="getImageUrl(item)" 
+                   [alt]="getProductName(item)"
+                   class="product-img">
+            </div>
+            <div class="product-details">
+              <h4>{{getProductName(item)}}</h4>
+              <p class="quantity">Quantity: {{item.quantity}}</p>
+              <p class="price">Price: {{formatPrice(item.price)}}</p>
+              <p class="subtotal">Subtotal: {{formatPrice(item.quantity * item.price)}}</p>
+            </div>
+          </div>
+        </mat-card>
+      </div>
+    </div>
+    
+
+    <mat-divider></mat-divider>
+
+    <div class="total-info mt-4">
+      <div class="total-grid">
+        <p><strong>Subtotal:</strong> {{formatPrice(data.total)}}</p>
+        <p *ngIf="data.discount > 0">
+          <strong>Discount:</strong> {{formatPrice(data.discount)}}
+        </p>
+        <p *ngIf="data.couponCode">
+          <strong>Coupon Applied:</strong> {{data.couponCode}}
+        </p>
+        <p class="total">
+          <strong>Total:</strong> 
+          <span class="total-amount">{{formatPrice(data.totalAfterDiscount)}}</span>
+        </p>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button [mat-dialog-close]>Close</button>
+    <button mat-raised-button 
+            color="primary" 
+            (click)="downloadPdf()" 
+            [disabled]="isLoading"
+            *ngIf="data.uuid">
+      <span>Download PDF</span>
+    </button>
+  </mat-dialog-actions>
+</div>

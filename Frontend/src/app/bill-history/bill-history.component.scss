@@ -1,0 +1,160 @@
+.container {
+    padding: 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+    justify-content: center;
+  }
+
+  /* Style cho header */
+    mat-card-header {
+    padding: 16px 0;
+    margin-bottom: 20px;
+    justify-content: center;
+    text-align: center;
+  
+    mat-card-title {
+      font-size: 24px;
+      font-weight: 500;
+      color: #333;
+    }
+  }
+  
+  /* Style cho bảng responsive */
+  .responsive_table {
+    width: 100%;
+    overflow-x: auto;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  
+    table {
+      width: 100%;
+      min-width: 800px; /* Đảm bảo bảng không bị quá nhỏ trên mobile */
+  
+      /* Style cho header cells */
+      th.mat-header-cell {
+        background: #f5f5f5;
+        color: #333;
+        font-weight: 600;
+        font-size: 14px;
+        padding: 16px;
+        text-align: left;
+        white-space: nowrap;
+      }
+  
+      /* Style cho data cells */
+      td.mat-cell {
+        padding: 12px 16px;
+        font-size: 14px;
+        color: #666;
+        border-bottom: 1px solid #eee;
+      }
+  
+      /* Điều chỉnh độ rộng các cột */
+      .mat-column-orderDate {
+        min-width: 200px;
+      }
+  
+      .mat-column-total {
+        min-width: 120px;
+      }
+  
+      .mat-column-orderStatus {
+        min-width: 100px;
+      }
+  
+      .mat-column-paymentMethod {
+        min-width: 150px;
+      }
+  
+      .mat-column-actions {
+        min-width: 120px;
+        text-align: center;
+      }
+    }
+  
+    /* Style cho action buttons */
+    .action-link {
+      white-space: nowrap;
+      
+      button {
+        margin: 0 4px;
+      }
+  
+      .mat-icon-button {
+        width: 36px;
+        height: 36px;
+        line-height: 36px;
+      }
+    }
+  
+    /* Hover effect cho rows */
+    tr.mat-row:hover {
+      background-color: #f8f9fa;
+    }
+  }
+  
+  /* Style cho loading spinner */
+  .loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Responsive adjustments */
+  @media screen and (max-width: 768px) {
+    .container {
+      padding: 10px;
+    }
+  
+    mat-card-header {
+      padding: 12px 0;
+      
+      mat-card-title {
+        font-size: 20px;
+      }
+    }
+  
+    .responsive_table {
+      margin: 0 -10px;
+      border-radius: 0;
+      
+      table {
+        td.mat-cell,
+        th.mat-header-cell {
+          padding: 12px;
+        }
+      }
+    }
+  }
+
+  :host ::ng-deep {
+    .mat-chip.status-pending {
+      background-color: #ffa726 !important;
+      color: white !important;
+    }
+  
+    .mat-chip.status-confirmed {
+      background-color: #42a5f5 !important;
+      color: white !important;
+    }
+  
+    .mat-chip.status-processing {
+      background-color: #66bb6a !important;
+      color: white !important;
+    }
+  
+    .mat-chip.status-completed {
+      background-color: #4caf50 !important;
+      color: white !important;
+    }
+  
+    .mat-chip.status-cancelled {
+      background-color: #ef5350 !important;
+      color: white !important;
+    }
+  }

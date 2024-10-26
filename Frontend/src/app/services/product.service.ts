@@ -74,6 +74,3 @@ export class ProductService {
     return this.httpClient.get(`${this.url}/api/v1/history?userId=${userId}`);
   }
 }
-
-
-

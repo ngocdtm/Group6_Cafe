@@ -52,7 +52,6 @@ export class ManageOrderComponent implements OnInit {
   initForm() {
     this.manageOrderForm = this.formBuilder.group({
       name: [null, [Validators.required, Validators.pattern(GlobalConstants.nameRegex)]],
-      email: [null, [Validators.required, Validators.pattern(GlobalConstants.emailRegex)]],
       phoneNumber: [null, [Validators.required, Validators.pattern(GlobalConstants.phoneNumberRegex)]],
       paymentMethod: [null, [Validators.required]],
       product: [null, [Validators.required]],
@@ -146,7 +145,6 @@ export class ManageOrderComponent implements OnInit {
     const formValues = this.manageOrderForm.value;
     return this.total <= 0 || // Check total > 0
            !formValues.name || 
-           !formValues.email || 
            !formValues.phoneNumber || 
            !formValues.paymentMethod || 
          this.dataSource.length === 0; // Ensure at least one product is added
@@ -279,8 +277,7 @@ export class ManageOrderComponent implements OnInit {
   })));
 
     const orderData = {
-        customerName: formData.name,
-        customerEmail: formData.email, 
+        customerName: formData.name, 
         customerPhone: formData.phoneNumber,
         paymentMethod: formData.paymentMethod,
         total: this.total,

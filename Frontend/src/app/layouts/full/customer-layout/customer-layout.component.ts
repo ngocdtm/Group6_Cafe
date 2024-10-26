@@ -31,11 +31,25 @@ export class CustomerLayoutComponent {
   }
 
   ngOnInit(): void {
-    // this.userService.checkToken().subscribe((response:any)=>{
-    //   this.router.navigate(['/cafe/dashboard']);
-    // },(error:any)=>{
-    //   console.log(error);
-    // })
+     // Chỉ check token khi đã có token trong localStorage
+     const token = localStorage.getItem('token');
+     if (token) {
+       this.userService.checkToken().subscribe(
+         (response: any) => {
+           if (response) {
+             const userRole = this.userService.getUserRole();
+             if (userRole === 'admin') {
+               this.router.navigate(['/cafe/dashboard']);
+             }
+           }
+         },
+         (error: any) => {
+           // Token không hợp lệ, xóa token và các thông tin liên quan
+           this.userService.logout();
+         }
+       );
+     }
+    
     this.userService.isLoggedIn().subscribe(loggedIn => {
       this.isLoggedIn = loggedIn;
       if (loggedIn) {
@@ -43,7 +57,6 @@ export class CustomerLayoutComponent {
       }
     });
     this.userService.getUserId().subscribe(userId => {
-      // Ensure userId is also being managed correctly, if needed
       console.log('User ID:', userId);
         this.userName = this.userService.getUserName();
       }
@@ -53,10 +66,6 @@ export class CustomerLayoutComponent {
      this.cartService.cartItemCountSubject.subscribe(count => {
       this.cartItemCount = count;
     });
-
-    // this.cartService.getCartItemCount().subscribe(count => {
-    //   this.cartItemCount = count;
-    // });
   }
 
   navigateTo(state: string) {
@@ -100,7 +109,7 @@ export class CustomerLayoutComponent {
   }
 
   viewBillHistory() {
-    // Implement bill history logic
+    this.router.navigate(['/bill-history']);
   }
   
   openSearchBar() {
