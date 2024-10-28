@@ -14,12 +14,12 @@ import { CustomerLayoutComponent } from './layouts/full/customer-layout/customer
 import { SearchPageComponent } from './search-page/search-page.component';
 import { SearchToolComponent } from './search-tool/search-tool.component';
 import { CartComponent } from './cart/cart.component';
-import { MatDividerModule } from '@angular/material/divider';
-import { ProductHistoryComponent } from './material-component/product-history/product-history.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CheckoutComponent } from './checkout/checkout.component';
 import { ProfileComponent } from './profile/profile.component';
 import { BillHistoryComponent } from './bill-history/bill-history.component';
+import { RecentlyViewedComponent } from './recently-viewed/recently-viewed.component';
+import { MatDividerModule } from '@angular/material/divider';
 
 
 @NgModule({
@@ -30,11 +30,11 @@ import { BillHistoryComponent } from './bill-history/bill-history.component';
     CustomerLayoutComponent,
     SearchPageComponent,
     SearchToolComponent,
-    ProductHistoryComponent,
     CartComponent,
     CheckoutComponent,
     ProfileComponent,
-    BillHistoryComponent
+    BillHistoryComponent,
+    RecentlyViewedComponent
   ],
   imports: [
     FormsModule,

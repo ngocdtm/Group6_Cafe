@@ -9,7 +9,6 @@ import { SnackbarService } from '../services/snackbar.service';
 import { LoginPromptComponent } from '../login-prompt/login-prompt.component';
 import { ProductDetailDialogComponent } from '../material-component/dialog/product-detail-dialog/product-detail-dialog.component';
 
-
 @Component({
   selector: 'app-best-seller',
   templateUrl: './best-seller.component.html',
@@ -17,13 +16,11 @@ import { ProductDetailDialogComponent } from '../material-component/dialog/produ
 })
 export class BestSellerComponent implements OnInit {
 
-
   products: any[] = [];
   categories: any[] = [];
   filteredProducts: any[] = [];
   selectedCategory: string = 'all';
   isLoggedIn: boolean = false;
-  currentView: 'products' | 'history' = 'products';
 
   constructor(
     private productService: ProductService,
@@ -34,7 +31,6 @@ export class BestSellerComponent implements OnInit {
     private snackbarService: SnackbarService
   ) { }
 
-
   ngOnInit(): void {
     this.loadProducts();
     this.loadCategories();
@@ -42,7 +38,6 @@ export class BestSellerComponent implements OnInit {
       loggedIn => this.isLoggedIn = loggedIn
     );
   }
-
 
   loadProducts() {
     this.productService.getProduct().subscribe(
@@ -56,7 +51,6 @@ export class BestSellerComponent implements OnInit {
     );
   }
 
-
   loadCategories() {
     this.categoryService.getCategory().subscribe(
       (data: any) => {
@@ -68,7 +62,6 @@ export class BestSellerComponent implements OnInit {
     );
   }
 
-
   filterByCategory(categoryId: string) {
     this.selectedCategory = categoryId;
     if (categoryId === 'all') {
@@ -77,7 +70,6 @@ export class BestSellerComponent implements OnInit {
       this.filteredProducts = this.products.filter(product => product.categoryId === categoryId);
     }
   }
-
 
   addToCart(product: any) {
     if (this.isLoggedIn) {
@@ -95,12 +87,10 @@ export class BestSellerComponent implements OnInit {
     }
   }
 
-
   showLoginPrompt(product: any) {
     const dialogRef = this.dialog.open(LoginPromptComponent, {
       width: '300px'
     });
-
 
     dialogRef.afterClosed().subscribe(result => {
       if (result === 'login') {
@@ -109,12 +99,10 @@ export class BestSellerComponent implements OnInit {
     });
   }
 
-
   openLoginDialog(product: any) {
     const dialogRef = this.dialog.open(LoginComponent, {
       width: '350px'
     });
-
 
     dialogRef.afterClosed().subscribe(result => {
       if (result === 'success') {
@@ -142,6 +130,3 @@ export class BestSellerComponent implements OnInit {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
   }
 }
-
-
-

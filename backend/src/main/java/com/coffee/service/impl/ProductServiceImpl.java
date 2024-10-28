@@ -1,13 +1,14 @@
 package com.coffee.service.impl;
 
 import com.coffee.constants.CafeConstants;
-import com.coffee.entity.Category;
-import com.coffee.entity.Product;
-import com.coffee.entity.ProductImage;
+import com.coffee.entity.*;
 import com.coffee.repository.ProductImageRepository;
 import com.coffee.repository.ProductRepository;
+import com.coffee.repository.RecentlyViewedRepository;
+import com.coffee.repository.UserRepository;
 import com.coffee.security.JwtRequestFilter;
 import com.coffee.service.ProductService;
+import com.coffee.service.UserService;
 import com.coffee.utils.CafeUtils;
 import com.coffee.wrapper.ProductImageWrapper;
 import com.coffee.wrapper.ProductWrapper;
@@ -22,29 +23,33 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
-
 
 @Service
 public class ProductServiceImpl implements ProductService {
 
+    @Autowired
+    RecentlyViewedRepository recentlyViewedRepository;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    UserRepository userRepository;
 
     @Autowired
     ProductRepository productRepository;
 
-
     @Autowired
     ProductImageRepository productImageRepository;
-
 
     @Autowired
     JwtRequestFilter jwtRequestFilter;
 
-
     @Value("${app.file.upload-dir}")
     private String uploadPath;
-
 
     @Override
     public ResponseEntity<String> addProduct(List<MultipartFile> files, String name, Integer categoryId, String description, Integer price, Integer originalPrice) {
@@ -56,10 +61,8 @@ public class ProductServiceImpl implements ProductService {
                         return CafeUtils.getResponseEntity("Product name already exists", HttpStatus.BAD_REQUEST);
                     }
 
-
                     Category category = new Category();
                     category.setId(categoryId);
-
 
                     Product product = new Product();
                     product.setName(name);
@@ -69,9 +72,7 @@ public class ProductServiceImpl implements ProductService {
                     product.setOriginalPrice(originalPrice);
                     product.setStatus("true");
 
-
                     product = productRepository.save(product);
-
 
                     for(MultipartFile file : files) {
                         String fileName = saveImage(file);
@@ -80,7 +81,6 @@ public class ProductServiceImpl implements ProductService {
                         productImage.setProduct(product);
                         productImageRepository.save(productImage);
                     }
-
 
                     return CafeUtils.getResponseEntity("Product Added successfully", HttpStatus.OK);
                 }
@@ -93,7 +93,6 @@ public class ProductServiceImpl implements ProductService {
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 
     @Override
     public ResponseEntity<List<ProductWrapper>> getAllProduct() {
@@ -112,14 +111,12 @@ public class ProductServiceImpl implements ProductService {
                 }
             }
 
-
             return new ResponseEntity<>(productWrappers, HttpStatus.OK);
         } catch(Exception ex) {
             ex.printStackTrace();
         }
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 
     @Override
     public ResponseEntity<String> updateProduct(List<MultipartFile> files, Integer id, String name,
@@ -130,7 +127,6 @@ public class ProductServiceImpl implements ProductService {
                 if(optional.isPresent()) {
                     Product product = optional.get();
 
-
                     // Check if the new name already exists for a different product
                     if(name != null && !name.equals(product.getName())) {
                         Optional<Product> existingProduct = productRepository.findByNameProduct(name);
@@ -139,7 +135,6 @@ public class ProductServiceImpl implements ProductService {
                         }
                         product.setName(name);
                     }
-
 
                     if(categoryId != null) {
                         Category category = new Category();
@@ -156,7 +151,6 @@ public class ProductServiceImpl implements ProductService {
                         product.setOriginalPrice(originalPrice);
                     }
 
-
                     // Handle image deletions first
                     if(deletedImageIds != null && !deletedImageIds.isEmpty()) {
                         for(Integer imageId : deletedImageIds) {
@@ -171,7 +165,6 @@ public class ProductServiceImpl implements ProductService {
                         }
                     }
 
-
                     // Handle new image uploads
                     if(files != null && !files.isEmpty()) {
                         for(MultipartFile file : files) {
@@ -182,7 +175,6 @@ public class ProductServiceImpl implements ProductService {
                             productImageRepository.save(productImage);
                         }
                     }
-
 
                     productRepository.save(product);
                     return CafeUtils.getResponseEntity("Product updated successfully", HttpStatus.OK);
@@ -225,7 +217,6 @@ public class ProductServiceImpl implements ProductService {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
     private String saveImage(MultipartFile file) throws Exception {
         String fileName = UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
         Path uploadPath = Paths.get(this.uploadPath);
@@ -237,7 +228,6 @@ public class ProductServiceImpl implements ProductService {
         return fileName;
     }
 
-
     private void deleteImage(String fileName) {
         if(fileName != null) {
             try {
@@ -248,7 +238,6 @@ public class ProductServiceImpl implements ProductService {
             }
         }
     }
-
 
     @Override
     public ResponseEntity<String> deleteProduct(Integer id) {
@@ -270,7 +259,6 @@ public class ProductServiceImpl implements ProductService {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
     @Override
     public ResponseEntity<String> updateStatus(Map<String, String> requestMap) {
         try{
@@ -290,7 +278,6 @@ public class ProductServiceImpl implements ProductService {
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 
     @Override
     public ResponseEntity<ProductWrapper> getById(Integer id) {
@@ -316,7 +303,6 @@ public class ProductServiceImpl implements ProductService {
             return new ResponseEntity<>(new ProductWrapper(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
 
     @Override
     public ResponseEntity<List<ProductWrapper>> getByCategory(Integer id) {
@@ -344,7 +330,6 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
-
     @Override
     public ResponseEntity<List<ProductWrapper>> searchProducts(String keyword) {
         try {
@@ -352,9 +337,7 @@ public class ProductServiceImpl implements ProductService {
                 return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
             }
 
-
             List<ProductWrapper> productWrappers = productRepository.searchProducts(keyword.trim());
-
 
             // Fetch và set images cho mỗi product
             for (ProductWrapper wrapper : productWrappers) {
@@ -366,7 +349,6 @@ public class ProductServiceImpl implements ProductService {
                     wrapper.setImages(imageWrappers);
                 }
             }
-
 
             return new ResponseEntity<>(productWrappers, HttpStatus.OK);
         } catch (Exception ex) {
@@ -383,7 +365,6 @@ public class ProductServiceImpl implements ProductService {
             if (product == null) {
                 return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
             }
-
 
             // Lấy sản phẩm liên quan từ cùng category, có mức giá tương đương
             Integer priceRange = (int)(product.getPrice() * 0.3); // Range 30% của giá gốc
@@ -411,6 +392,114 @@ public class ProductServiceImpl implements ProductService {
             ex.printStackTrace();
         }
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    public ResponseEntity<String> addToRecentlyViewed(Integer productId) {
+        try {
+            String username = jwtRequestFilter.getCurrentUser();
+            if (username == null) {
+                return CafeUtils.getResponseEntity("User not authenticated", HttpStatus.UNAUTHORIZED);
+            }
+
+            // Lấy User object từ username
+            User user = userRepository.findByEmail(username);
+
+            Optional<Product> optionalProduct = productRepository.findById(productId);
+            if (!optionalProduct.isPresent()) {
+                return CafeUtils.getResponseEntity("Product not found", HttpStatus.NOT_FOUND);
+            }
+
+            Product product = optionalProduct.get();
+
+            // Check if product is already in recently viewed
+            Optional<RecentlyViewedProduct> existing =
+                    recentlyViewedRepository.findByUserAndProduct(user, product);
+
+            if (existing.isPresent()) {
+                // Update viewed time
+                RecentlyViewedProduct recentlyViewed = existing.get();
+                recentlyViewed.setViewedAt(LocalDateTime.now());
+                recentlyViewedRepository.save(recentlyViewed);
+            } else {
+                // Check if user has reached the limit of 10 products
+                long count = recentlyViewedRepository.countByUser(user);
+                if (count >= 10) {
+                    // Get all products ordered by viewed time and remove the oldest one
+                    List<RecentlyViewedProduct> products =
+                            recentlyViewedRepository.findByUserOrderByViewedAtDesc(user);
+                    recentlyViewedRepository.delete(products.get(products.size() - 1));
+                }
+
+                // Add new recently viewed product
+                RecentlyViewedProduct recentlyViewed = new RecentlyViewedProduct();
+                recentlyViewed.setUser(user);
+                recentlyViewed.setProduct(product);
+                recentlyViewed.setViewedAt(LocalDateTime.now());
+                recentlyViewedRepository.save(recentlyViewed);
+            }
+
+            return CafeUtils.getResponseEntity("Product added to recently viewed", HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG,
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public ResponseEntity<List<ProductWrapper>> getRecentlyViewedProducts() {
+        try {
+            String username = jwtRequestFilter.getCurrentUser();
+            if (username == null) {
+                return new ResponseEntity<>(new ArrayList<>(), HttpStatus.UNAUTHORIZED);
+            }
+
+            // Lấy User object từ username
+            User user = userRepository.findByEmail(username);
+            if (user == null) {
+                return new ResponseEntity<>(new ArrayList<>(), HttpStatus.NOT_FOUND);
+            }
+
+            List<RecentlyViewedProduct> recentlyViewed =
+                    recentlyViewedRepository.findByUserOrderByViewedAtDesc(user);
+
+            List<ProductWrapper> productWrappers = new ArrayList<>();
+
+            for (RecentlyViewedProduct rv : recentlyViewed) {
+                Product product = rv.getProduct();
+
+                // Create new ProductWrapper with only necessary fields
+                ProductWrapper wrapper = new ProductWrapper();
+                wrapper.setId(product.getId());
+                wrapper.setName(product.getName());
+                wrapper.setDescription(product.getDescription());
+                wrapper.setPrice(product.getPrice());
+                wrapper.setStatus(product.getStatus());
+
+                // Set category info
+                if (product.getCategory() != null) {
+                    wrapper.setCategoryId(product.getCategory().getId());
+                    wrapper.setCategoryName(product.getCategory().getName());
+                }
+
+                // Set images
+                List<ProductImageWrapper> imageWrappers = new ArrayList<>();
+                if (product.getImages() != null) {
+                    for (ProductImage image : product.getImages()) {
+                        imageWrappers.add(new ProductImageWrapper(image.getId(), image.getImagePath()));
+                    }
+                }
+                wrapper.setImages(imageWrappers);
+
+                productWrappers.add(wrapper);
+            }
+
+            return new ResponseEntity<>(productWrappers, HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
 

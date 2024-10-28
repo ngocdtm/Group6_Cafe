@@ -6,8 +6,6 @@ import { ManageOrderComponent } from './manage-order/manage-order.component';
 import { ViewBillComponent } from './view-bill/view-bill.component';
 import { ManageUserComponent } from './manage-user/manage-user.component';
 import { ManageCouponComponent } from './manage-coupon/manage-coupon.component';
-import { ProductHistoryComponent } from './product-history/product-history.component';
-
 
 export const MaterialRoutes: Routes = [
   {
@@ -56,14 +54,6 @@ export const MaterialRoutes: Routes = [
     canActivate:[RouteGuardService],
     data:{
       expectedRole: ['admin']
-    }
-  },
-  {
-    path: 'product-history',
-    component:ProductHistoryComponent,
-    canActivate:[RouteGuardService],
-    data:{
-      expectedRole: ['customer']
     }
   }
 ];

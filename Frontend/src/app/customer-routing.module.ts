@@ -8,6 +8,7 @@ import { CartComponent } from './cart/cart.component';
 import { CheckoutComponent } from './checkout/checkout.component';
 import { ProfileComponent } from './profile/profile.component';
 import { BillHistoryComponent } from './bill-history/bill-history.component';
+import { RecentlyViewedComponent } from './recently-viewed/recently-viewed.component';
 
 const routes: Routes = [
   {
@@ -21,7 +22,8 @@ const routes: Routes = [
       { path: 'cart', component: CartComponent },
       { path: 'checkout', component: CheckoutComponent },
       { path: 'profile', component: ProfileComponent },
-      { path: 'bill-history', component: BillHistoryComponent }
+      { path: 'bill-history', component: BillHistoryComponent },
+      { path: 'recently-viewed', component: RecentlyViewedComponent }
       // { path: 'new', component: NewComponent }, // Uncomment when you have a NewComponent
     ]
   }

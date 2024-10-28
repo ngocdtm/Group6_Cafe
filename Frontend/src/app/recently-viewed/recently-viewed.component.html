@@ -1,0 +1,48 @@
+<div class="recently-viewed-container">
+    <div class="recently-viewed-header">
+      <h2>Recently Viewed Products</h2>
+    </div>
+  
+    <div *ngIf="isLoading" class="loading-state">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading recently viewed products...</p>
+    </div>
+  
+    <div *ngIf="error" class="error-message">
+      {{error}}
+    </div>
+  
+    <div *ngIf="!isLoading && !error" class="products-container">
+      <button mat-icon-button class="scroll-button left" (click)="scrollLeft()" *ngIf="recentlyViewedProducts.length > 0">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+  
+      <div class="products-scroll">
+        <div *ngIf="recentlyViewedProducts.length === 0" class="no-products">
+          <p>No recently viewed products</p>
+        </div>
+  
+        <div *ngFor="let product of recentlyViewedProducts" 
+             class="product-card" 
+             (click)="openProductDetails(product)">
+          <div class="product-image">
+            <img *ngIf="product.images && product.images.length > 0"
+                 [src]="getImageUrl(product.images[0].imagePath)"
+                 [alt]="product.name">
+            <div *ngIf="!product.images || product.images.length === 0" 
+                 class="image-placeholder">
+              <mat-icon>image</mat-icon>
+            </div>
+          </div>
+          <div class="product-info">
+            <h3>{{product.name}}</h3>
+            <p>{{ formatPrice(product.price) }}</p>
+          </div>
+        </div>
+      </div>
+  
+      <button mat-icon-button class="scroll-button right" (click)="scrollRight()" *ngIf="recentlyViewedProducts.length > 0">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  </div>

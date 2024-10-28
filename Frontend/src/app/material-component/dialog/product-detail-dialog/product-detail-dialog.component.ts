@@ -10,10 +10,12 @@ import { ProductService } from 'src/app/services/product.service';
 })
 
 export class ProductDetailDialogComponent implements OnInit {
+
   selectedImageIndex: number = 0;
   categoryName: string = '';
   relatedProducts: RelatedProduct[] = [];
   isLoading: boolean = true;
+
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
     private dialogRef: MatDialogRef<ProductDetailDialogComponent>,
@@ -22,6 +24,14 @@ export class ProductDetailDialogComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    if (this.data?.id) {
+      this.productService.addToRecentlyViewed(this.data.id).subscribe({
+        next: () => {
+          console.log('Added to recently viewed');
+        },
+        error: (error) => console.error('Error adding to recently viewed:', error)
+      });
+    }
     this.loadCategoryName();
     this.loadRelatedProducts();
   }

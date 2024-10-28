@@ -3,7 +3,6 @@ package com.coffee.controller;
 
 import com.coffee.constants.CafeConstants;
 import com.coffee.service.ProductService;
-import com.coffee.service.impl.ProductHistoryServiceImpl;
 import com.coffee.utils.CafeUtils;
 import com.coffee.wrapper.ProductWrapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,12 +30,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-
 @RestController
 @RequestMapping("/api/v1/product")
 public class ProductController {
-    @Autowired
-    private ProductHistoryServiceImpl productHistoryService;
 
     @Autowired
     ProductService productService;
@@ -234,7 +230,6 @@ public class ProductController {
     @GetMapping("/getById/{id}")
     public ResponseEntity<ProductWrapper> getById(@PathVariable Integer id) {
         try {
-//            productHistoryService.addToHistory(userId, id);
             return productService.getById(id);
         } catch(Exception ex) {
             ex.printStackTrace();
@@ -275,22 +270,34 @@ public class ProductController {
     }
 
     @Operation(
-            summary = "Get a history_product by id",
-            description = "Endpoint to get a history_product by id."
+            summary = "Add product to recently viewed",
+            description = "Endpoint to add a product to user's recently viewed list."
     )
     @SecurityRequirement(name = "bearerAuth")
-    @GetMapping("/history")
-    public ResponseEntity<List<ProductWrapper>> getProductHistory(
-            @RequestParam Integer userId) {
+    @PostMapping("/recently-viewed/{productId}")
+    public ResponseEntity<String> addToRecentlyViewed(@PathVariable Integer productId) {
         try {
-            List<ProductWrapper> history = productHistoryService.getUserHistory(userId);
-            return new ResponseEntity<>(history, HttpStatus.OK);
+            return productService.addToRecentlyViewed(productId);
         } catch(Exception ex) {
             ex.printStackTrace();
-            return new ResponseEntity<>(new ArrayList<>(),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
+        return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG,
+                HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @Operation(
+            summary = "Get recently viewed products",
+            description = "Endpoint to get user's recently viewed products list."
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/recently-viewed")
+    public ResponseEntity<List<ProductWrapper>> getRecentlyViewedProducts() {
+        try {
+            return productService.getRecentlyViewedProducts();
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        }
+        return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }
 
