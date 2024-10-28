@@ -39,9 +39,9 @@ export class ViewBillComponent implements OnInit {
     'orderStatus',
     'orderDate',
     'paymentMethod',
-    'total',
-    'discount',
-    'totalAfterDiscount',
+    // 'total',
+    // 'discount',
+    // 'totalAfterDiscount',
     'actions'
   ];
   dataSource: MatTableDataSource<Bill> = new MatTableDataSource<Bill>([]);
@@ -84,33 +84,6 @@ export class ViewBillComponent implements OnInit {
     );
   }
 
-   // Helper method to parse different date formats
-  //  parseDate(dateString: string | Date): Date {
-  //   if (!dateString) return new Date(); // Return current date instead of null
-    
-  //   // If it's already a Date object, return it
-  //   if (dateString instanceof Date) {
-  //     return dateString;
-  //   }
-    
-  //   // Try parsing the date string
-  //   const date = new Date(dateString);
-    
-  //   // Check if the date is valid
-  //   if (isNaN(date.getTime())) {
-  //     // If the date string contains commas, it might be in the format "2024,10,23,20,31,2,598957000"
-  //     if (typeof dateString === 'string' && dateString.includes(',')) {
-  //       const [year, month, day, hours, minutes, seconds, milliseconds] = dateString.split(',').map(Number);
-  //       // Note: Month is 0-based in JavaScript Date
-  //       return new Date(year, month - 1, day, hours, minutes, seconds, milliseconds);
-  //     }
-  //     // Return current date as fallback if parsing fails
-  //     console.warn(`Invalid date format: ${dateString}`);
-  //     return new Date();
-  //   }
-    
-  //   return date;
-  // }
 
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
@@ -118,6 +91,8 @@ export class ViewBillComponent implements OnInit {
   }
 
   handleViewAction(values: any) {
+    console.log('Values being passed to dialog:', values); // Thêm log này
+    
     const dialogConfig = new MatDialogConfig();
     dialogConfig.data = {
       data: values
