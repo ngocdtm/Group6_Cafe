@@ -1,6 +1,6 @@
 <mat-toolbar color="primary">
     <mat-toolbar-row>
-      <span>View Bill</span>
+      <span>View Order Details</span>
       <span class="spacer"></span>
       <button class="mat-dialog-close" mat-icon-button mat-dialog-close>
         <mat-icon>cancel</mat-icon>
@@ -9,48 +9,70 @@
 </mat-toolbar>
 
 <mat-dialog-content class="mat-typography">
-  <table id="customers">
-    <tr>
-      <td><b>Name: </b>{{data?.name}}</td>
-      <td><b>Email: </b>{{data?.email}}</td>
-    </tr>
-    <tr>
-      <td><b>Phone Number: </b>{{data?.phoneNumber}}</td>
-      <td><b>Payment Method: </b>{{data?.paymentMethod}}</td>
-    </tr>
-  </table>
+  <div class="customer-details">
+    <table id="customers">
+      <tr>
+        <td><b>Name: </b>{{data?.customerName}}</td>
+        <td><b>Phone: </b>{{data?.customerPhone}}</td>
+      </tr>
+      <tr>
+        <td><b>Order Type: </b>{{data?.orderType}}</td>
+        <td><b>Payment Method: </b>{{data?.paymentMethod}}</td>
+      </tr>
+      <tr>
+        <td><b>Order Status: </b>{{data?.orderStatus}}</td>
+        <td><b>Order Date: </b>{{data?.orderDate | date:'medium'}}</td>
+      </tr>
+      <tr *ngIf="data?.shippingAddress">
+        <td colspan="2"><b>Shipping Address: </b>{{data?.shippingAddress}}</td>
+      </tr>
+    </table>
+  </div>
 
   <div class="responsive_table">
-    <br>
     <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+        <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <td mat-cell *matCellDef="let element">
+                <div class="product-cell">
+                    
+                    {{element.name}}
+                </div>
+            </td>
+        </ng-container>
 
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef>Name</th>
-        <td mat-cell *matCellDef="let element">{{element.name}}</td>
-      </ng-container>
+        <ng-container matColumnDef="price">
+            <th mat-header-cell *matHeaderCellDef>Price</th>
+            <td mat-cell *matCellDef="let element">{{formatPrice(element.price)}}</td>
+        </ng-container>
 
-      <ng-container matColumnDef="category">
-        <th mat-header-cell *matHeaderCellDef>Category</th>
-        <td mat-cell *matCellDef="let element">{{element.category}}</td>
-      </ng-container>
+        <ng-container matColumnDef="quantity">
+            <th mat-header-cell *matHeaderCellDef>Quantity</th>
+            <td mat-cell *matCellDef="let element">{{element.quantity}}</td>
+        </ng-container>
 
-      <ng-container matColumnDef="price">
-        <th mat-header-cell *matHeaderCellDef>Price</th>
-        <td mat-cell *matCellDef="let element">{{element.price}}</td>
-      </ng-container>
+        <ng-container matColumnDef="total">
+            <th mat-header-cell *matHeaderCellDef>Total</th>
+            <td mat-cell *matCellDef="let element">{{formatPrice(element.total)}}</td>
+        </ng-container>
 
-      <ng-container matColumnDef="quantity">
-        <th mat-header-cell *matHeaderCellDef>Quantity</th>
-        <td mat-cell *matCellDef="let element">{{element.quantity}}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="total">
-        <th mat-header-cell *matHeaderCellDef>Total</th>
-        <td mat-cell *matCellDef="let element">{{element.total}}</td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky:true"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky:true"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
     </table>
+</div>
+
+  <div class="total-section" *ngIf="data">
+    <div class="total-row">
+      <span><b>Subtotal:</b></span>
+      <span>{{formatPrice(data.total)}}</span>
+    </div>
+    <div class="total-row" *ngIf="data.discount">
+      <span><b>Discount:</b></span>
+      <span>{{formatPrice(data.discount)}}</span>
+    </div>
+    <div class="total-row final-total">
+      <span><b>Final Total:</b></span>
+      <span>{{formatPrice(data.totalAfterDiscount)}}</span>
+    </div>
   </div>
 </mat-dialog-content>

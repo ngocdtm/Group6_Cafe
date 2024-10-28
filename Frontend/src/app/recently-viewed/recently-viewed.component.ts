@@ -1,13 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
 import { ProductService } from '../services/product.service';
 import { UserService } from '../services/user.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ProductDetailDialogComponent } from '../material-component/dialog/product-detail-dialog/product-detail-dialog.component';
-import { CartService } from '../services/cart.service';
-import { SnackbarService } from '../services/snackbar.service';
-import { LoginPromptComponent } from '../login-prompt/login-prompt.component';
-import { LoginComponent } from '../login/login.component';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -21,18 +16,34 @@ export class RecentlyViewedComponent implements OnInit {
   isLoading: boolean = true;
   error: string = '';
   private subscriptions: Subscription[] = [];
+  isLoggedIn: boolean = false;
 
   constructor(
     private productService: ProductService,
-    private dialog: MatDialog
-  ) { }
+    private dialog: MatDialog,
+    private userService: UserService
+  ) {}
 
   ngOnInit(): void {
-    this.loadRecentlyViewedProducts();
-
-    // Subscribe to updates
+    // Subscribe to login status first
+    const loginSubscription = this.userService.isLoggedIn().subscribe(
+      loggedIn => {
+        this.isLoggedIn = loggedIn;
+        if (loggedIn) {
+          this.loadRecentlyViewedProducts();
+        } else {
+          this.recentlyViewedProducts = []; // Reset products when logged out
+          this.isLoading = false; // Stop loading state
+        }
+      }
+    );
+    this.subscriptions.push(loginSubscription);
+  
+    // Subscribe to updates (only when logged in)
     const updateSubscription = this.productService.recentlyViewedUpdate$.subscribe(() => {
-      this.loadRecentlyViewedProducts();
+      if (this.isLoggedIn) {
+        this.loadRecentlyViewedProducts();
+      }
     });
     this.subscriptions.push(updateSubscription);
   }
@@ -64,6 +75,11 @@ export class RecentlyViewedComponent implements OnInit {
   }
 
   loadRecentlyViewedProducts(): void {
+    if (!this.isLoggedIn) {
+      this.isLoading = false;
+      return;
+    }
+    
     this.isLoading = true;
     const subscription = this.productService.getRecentlyViewedProducts().subscribe({
       next: (products) => {
@@ -72,7 +88,10 @@ export class RecentlyViewedComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading recently viewed products:', error);
-        this.error = 'Failed to load recently viewed products';
+        // Only set error if user is logged in
+        if (this.isLoggedIn) {
+          this.error = 'Failed to load recently viewed products';
+        }
         this.isLoading = false;
       }
     });

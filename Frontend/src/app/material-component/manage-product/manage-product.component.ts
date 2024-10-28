@@ -18,14 +18,13 @@ import { ViewDetailProductComponent } from '../view-detail-product/view-detail-p
 })
 export class ManageProductComponent implements OnInit {
 
-  displayedColumns: string[] = ['images', 'name', 'categoryName', 'description', 'price', 'originalPrice', 'edit', 'view'];
+  displayedColumns: string[] = ['images', 'name', 'categoryName', 'price', 'originalPrice', 'edit'];
   
   dataSource:any;
   responseMessage:any;
   categories: Set<string> = new Set();
   selectedCategory: string = '';
   searchText: string = '';
-
 
   constructor(
     public productService:ProductService,
@@ -103,6 +102,7 @@ export class ManageProductComponent implements OnInit {
   onCategoryChange() {
     this.applyFilters();
   }
+
   handleAddAction(){
     const dialogConfig = new MatDialogConfig();
     dialogConfig.data = {

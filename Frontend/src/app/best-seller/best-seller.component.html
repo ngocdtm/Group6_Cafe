@@ -1,4 +1,6 @@
-<app-recently-viewed></app-recently-viewed>
+<div *ngIf="isLoggedIn">
+  <app-recently-viewed></app-recently-viewed>
+</div>
 
 <div class="container">
   <h1>Our Products</h1>
