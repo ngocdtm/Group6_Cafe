@@ -152,25 +152,54 @@ export class ManageOrderComponent implements OnInit {
 
   add() {
     const formData = this.manageOrderForm.value;
-    const existingProduct = this.dataSource.find((e: { id: number }) => e.id === formData.product.id);
-
-    if (!existingProduct) {
+    const existingProductIndex = this.dataSource.findIndex((e: { id: number }) => e.id === formData.product.id);
+  
+    if (existingProductIndex === -1) {
+      // Sản phẩm chưa có trong giỏ hàng, thêm mới
       this.total += formData.total;
       this.dataSource.push({
         id: formData.product.id,
         name: formData.product.name,
         category: formData.category.name,
-        quantity: formData.quantity,
+        quantity: parseInt(formData.quantity),
         price: formData.price,
         total: formData.total
       });
-      this.dataSource = [...this.dataSource];
       this.snackbarService.openSnackBar(GlobalConstants.productAdded, 'success');
     } else {
-      this.snackbarService.openSnackBar(GlobalConstants.productExistError, GlobalConstants.error);
+      // Sản phẩm đã có trong giỏ hàng, tăng số lượng
+      const existingProduct = this.dataSource[existingProductIndex];
+      
+      // Trừ tổng tiền của sản phẩm cũ
+      this.total -= existingProduct.total;
+      
+      // Tăng số lượng lên
+      const newQuantity = existingProduct.quantity + parseInt(formData.quantity);
+      
+      // Cập nhật thông tin sản phẩm
+      existingProduct.quantity = newQuantity;
+      existingProduct.total = newQuantity * existingProduct.price;
+      
+      // Cộng tổng tiền mới vào
+      this.total += existingProduct.total;
+  
+      // Cập nhật lại sản phẩm trong dataSource
+      this.dataSource[existingProductIndex] = existingProduct;
+  
+      this.snackbarService.openSnackBar('Product quantity updated successfully', 'success');
+    }
+  
+    // Cập nhật lại dataSource để trigger change detection
+    this.dataSource = [...this.dataSource];
+  
+    // Reset form về trạng thái ban đầu sau khi thêm
+    this.resetProductForm();
+  
+    // Reset discount details khi thêm sản phẩm mới
+    if (this.appliedCouponCode) {
+      this.resetDiscountDetails();
     }
   }
-
   handleDeleteAction(index: number, element: any) {
     this.total -= element.total;
     this.dataSource.splice(index, 1);
