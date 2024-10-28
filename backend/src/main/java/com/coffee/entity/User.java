@@ -1,7 +1,7 @@
-
-
 package com.coffee.entity;
 
+import com.coffee.enums.UserRole;
+import com.coffee.enums.UserStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -12,20 +12,18 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @NamedQuery(name = "User.findByEmail", query = "SELECT u FROM User u WHERE u.email=:email")
+
 @NamedQuery(name = "User.getAllUser",
         query = "SELECT new com.coffee.wrapper.UserWrapper(u.id,u.name,u.email,u.phoneNumber,u.status, u.address, u.loyaltyPoints, u.avatar) from User u WHERE u.role='user'")
-@NamedQuery(name = "User.getAllAdmin",
-        query = "SELECT u.email from User u WHERE u.role='admin'")
 
+@NamedQuery(name = "User.getAllAdmin",
+        query = "SELECT u.email from User u WHERE u.role='ADMIN'")
 
 @NamedQuery(name = "User.getAllCustomers",
-        query = "SELECT u.email from User u WHERE u.role='customer'")
-
+        query = "SELECT u.email from User u WHERE u.role='CUSTOMER'")
 
 @NamedQuery(name = "User.updateStatus", query = "UPDATE User u SET u.status=:status WHERE u.id=:id")
-
 
 @Data
 @Entity
@@ -54,11 +52,13 @@ public class User implements Serializable {
     @Column(name = "password")
     private String password;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private String status;
+    private UserStatus status = UserStatus.ACTIVE; // Default value
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "role")
-    private String role;
+    private UserRole role;
 
     @Column(name = "address")
     private String address;
@@ -83,4 +83,3 @@ public class User implements Serializable {
     private List<Bill> bills = new ArrayList<>();
 
 }
-
