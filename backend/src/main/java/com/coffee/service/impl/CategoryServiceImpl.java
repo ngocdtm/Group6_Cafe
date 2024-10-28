@@ -111,4 +111,24 @@ public class CategoryServiceImpl implements CategoryService {
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @Override
+    public ResponseEntity<String> deleteCategory(Integer id) {
+        try{
+            if(jwtRequestFilter.isAdmin()){
+                Optional<Category> optional = categoryRepository.findById(id);
+                if(optional.isPresent()){
+                    categoryRepository.deleteById(id);
+                    return CafeUtils.getResponseEntity("Category deleted successfully", HttpStatus.OK);
+                }else{
+                    return CafeUtils.getResponseEntity("Category id does not exist", HttpStatus.OK);
+                }
+            }else{
+                return CafeUtils.getResponseEntity(CafeConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
+            }
+        }catch(Exception ex){
+            ex.printStackTrace();
+        }
+        return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

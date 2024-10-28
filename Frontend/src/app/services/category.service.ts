@@ -30,4 +30,8 @@ export class CategoryService {
   getFilteredCategory(){
     return this.httpClient.get(`${this.url}/api/v1/category/get?filterValue=true`)
   }
+
+  delete(id:any) {
+    return this.httpClient.post(`${this.url}/api/v1/category/delete/${id}`, {});
+  }
 }
