@@ -23,7 +23,7 @@ const routes: Routes = [
           () => import('./material-component/material.module').then(m => m.MaterialComponentsModule),
           canActivate:[RouteGuardService],
           data:{
-            expectedRole:['admin','user']
+            expectedRole:['ADMIN','user']
           }
       },
       {
@@ -31,7 +31,7 @@ const routes: Routes = [
         loadChildren: () => import('./dashboard/dashboard.module').then(m => m.DashboardModule),
         canActivate:[RouteGuardService],
           data:{
-            expectedRole:['admin','user']
+            expectedRole:['ADMIN','user']
           }
       }
     ]

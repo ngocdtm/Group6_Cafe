@@ -62,7 +62,7 @@ export class LoginComponent implements OnInit {
       this.userService.setLoggedIn(true);
       
       // Navigate based on role
-      if (response.role === 'admin') {
+      if (response.role === 'ADMIN') {
         this.router.navigate(['/cafe/dashboard']);
       } else {
         this.router.navigate(['/']);
