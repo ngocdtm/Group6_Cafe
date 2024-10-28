@@ -2,6 +2,8 @@ package com.coffee.service.impl;
 
 import com.coffee.constants.CafeConstants;
 import com.coffee.entity.User;
+import com.coffee.enums.UserRole;
+import com.coffee.enums.UserStatus;
 import com.coffee.repository.UserRepository;
 import com.coffee.security.CustomUserDetailsService;
 import com.coffee.security.JwtRequestFilter;
@@ -114,8 +116,13 @@ public class UserServiceImpl implements UserService {
         user.setEmail(requestMap.get("email"));
         user.setPhoneNumber(requestMap.get("phoneNumber"));
         user.setPassword(passwordEncoder.encode(requestMap.get("password")));
-        user.setStatus("true");
-        user.setRole(requestMap.getOrDefault("role", "customer"));
+        // Set initial status as INACTIVE for new users pending admin approval
+        user.setStatus(UserStatus.INACTIVE);
+
+        // Convert string role to enum, default to CUSTOMER if not specified
+        String roleStr = requestMap.getOrDefault("role", "CUSTOMER");
+        user.setRole(UserRole.valueOf(roleStr.toUpperCase()));
+
         user.setAddress(requestMap.getOrDefault("address", ""));
         user.setLoyaltyPoints(0);
         return user;
@@ -128,25 +135,42 @@ public class UserServiceImpl implements UserService {
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(requestMap.get("email"), requestMap.get("password"))
             );
+
             if (auth.isAuthenticated()) {
                 User userDetails = customUserDetailsService.getUserDetail();
-                if (userDetails.getStatus().equalsIgnoreCase("true")) {
+
+                // Check if user status is ACTIVE
+                if (UserStatus.ACTIVE.equals(userDetails.getStatus())) {
                     String token = jwtUtil.generateToken(userDetails.getEmail(), userDetails.getRole());
                     return ResponseEntity.ok()
                             .body(String.format(
-                                    "{\"token\":\"%s\", \"role\":\"%s\", \"name\":\"%s\", \"id\":%d}",
+                                    "{\"token\":\"%s\", \"role\":\"%s\", \"name\":\"%s\", \"id\":%d, \"status\":\"%s\"}",
                                     token,
                                     userDetails.getRole(),
                                     userDetails.getName(),
-                                    userDetails.getId()
+                                    userDetails.getId(),
+                                    userDetails.getStatus()
                             ));
                 }
+
+                // Handle different status cases
+                String message = switch (userDetails.getStatus()) {
+                    case INACTIVE -> "Account is not active. Wait for admin approval.";
+                    case SUSPENDED -> "Account has been suspended. Please contact administrator.";
+                    default -> "Account is not accessible. Please contact administrator.";
+                };
+
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body("{\"message\":\"Account is not active. Wait for admin approval.\"}");
+                        .body(String.format("{\"message\":\"%s\", \"status\":\"%s\"}",
+                                message, userDetails.getStatus()));
             }
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("{\"message\":\"Invalid username or password\"}");
+        } catch (Exception e) {
+            log.error("Login error: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("{\"message\":\"Something went wrong\"}");
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("{\"message\":\"Something went wrong\"}");
@@ -276,15 +300,21 @@ public class UserServiceImpl implements UserService {
             if (jwtRequestFilter.isAdmin()) {
                 Optional<User> optional = userRepository.findById(Integer.parseInt(requestMap.get("id")));
                 if (optional.isPresent()) {
-                    userRepository.updateStatus(requestMap.get("status"), Integer.parseInt(requestMap.get("id")));
-                    sendMailToAllAdmin(requestMap.get("status"), optional.get().getEmail(), userRepository.getAllAdmin());
+                    // Convert string to UserStatus enum
+                    UserStatus newStatus = UserStatus.valueOf(requestMap.get("status").toUpperCase());
+                    userRepository.updateStatus(newStatus, Integer.parseInt(requestMap.get("id")));
+
+                    // Update email notification logic
+                    sendMailToAllAdmin(newStatus, optional.get().getEmail(), userRepository.getAllAdmin());
                     return CafeUtils.getResponseEntity("User Status updated successfully!", HttpStatus.OK);
                 } else {
-                    return CafeUtils.getResponseEntity("user id does not exist!", HttpStatus.OK);
+                    return CafeUtils.getResponseEntity("User id does not exist!", HttpStatus.OK);
                 }
             } else {
                 return CafeUtils.getResponseEntity(CafeConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
             }
+        } catch (IllegalArgumentException e) {
+            return CafeUtils.getResponseEntity("Invalid status value", HttpStatus.BAD_REQUEST);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -324,16 +354,27 @@ public class UserServiceImpl implements UserService {
         return currentUser != null && currentUser.getId().toString().equals(userId);
     }
 
-    private void sendMailToAllAdmin(String status, String user, List<String> allAdmin) {
+    private void sendMailToAllAdmin(UserStatus status, String user, List<String> allAdmin) {
         allAdmin.remove(jwtRequestFilter.getCurrentUser());
-        if (status != null && status.equalsIgnoreCase("true")) {
-            emailUtils.sendMessage(jwtRequestFilter.getCurrentUser(), "Account Approved", "User: " + user +
-                    "\n is approved by \nAdmin: " + jwtRequestFilter.getCurrentUser(), allAdmin);
-        } else {
-            emailUtils.sendMessage(jwtRequestFilter.getCurrentUser(), "Account Disabled", "User: " + user +
-                    "\n is Disabled by \nAdmin: " + jwtRequestFilter.getCurrentUser(), allAdmin);
-
-
+        switch (status) {
+            case ACTIVE:
+                emailUtils.sendMessage(jwtRequestFilter.getCurrentUser(),
+                        "Account Activated",
+                        "User: " + user + "\n is activated by \nAdmin: " + jwtRequestFilter.getCurrentUser(),
+                        allAdmin);
+                break;
+            case INACTIVE:
+                emailUtils.sendMessage(jwtRequestFilter.getCurrentUser(),
+                        "Account Deactivated",
+                        "User: " + user + "\n is deactivated by \nAdmin: " + jwtRequestFilter.getCurrentUser(),
+                        allAdmin);
+                break;
+            case SUSPENDED:
+                emailUtils.sendMessage(jwtRequestFilter.getCurrentUser(),
+                        "Account Suspended",
+                        "User: " + user + "\n is suspended by \nAdmin: " + jwtRequestFilter.getCurrentUser(),
+                        allAdmin);
+                break;
         }
     }
 

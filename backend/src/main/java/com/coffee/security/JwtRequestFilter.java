@@ -1,5 +1,6 @@
 package com.coffee.security;
 
+import com.coffee.enums.UserRole;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -29,7 +30,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     private Claims claims = null;
     private String currentUser = null;
-
 
     public JwtRequestFilter(CustomUserDetailsService userDetailsService) {
         this.userDetailsService = userDetailsService;
@@ -69,15 +69,15 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     }
 
     public boolean isAdmin() {
-        return claims != null && "admin".equalsIgnoreCase((String) claims.get("role"));
+        return claims != null && UserRole.ADMIN.name().equalsIgnoreCase((String) claims.get("role"));
     }
 
-    public boolean isUser() {
-        return claims != null && "user".equalsIgnoreCase((String) claims.get("role"));
+    public boolean isEmployee() {
+        return claims != null && UserRole.EMPLOYEE.name().equalsIgnoreCase((String) claims.get("role"));
     }
 
     public boolean isCustomer() {
-        return claims != null && "customer".equalsIgnoreCase((String) claims.get("role"));
+        return claims != null && UserRole.CUSTOMER.name().equalsIgnoreCase((String) claims.get("role"));
     }
 
     public String getCurrentUser() {

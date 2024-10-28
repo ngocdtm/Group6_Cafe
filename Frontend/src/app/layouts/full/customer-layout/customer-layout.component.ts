@@ -38,7 +38,7 @@ export class CustomerLayoutComponent {
          (response: any) => {
            if (response) {
              const userRole = this.userService.getUserRole();
-             if (userRole === 'admin') {
+             if (userRole === 'ADMIN') {
                this.router.navigate(['/cafe/dashboard']);
              }
            }
