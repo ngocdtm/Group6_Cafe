@@ -206,7 +206,6 @@ public class BillServiceImpl implements BillService {
 
     private boolean validateOnlineOrderRequest(Map<String, Object> requestMap) {
         return requestMap.containsKey("customerName") &&
-                requestMap.containsKey("customerEmail") &&
                 requestMap.containsKey("customerPhone") &&
                 requestMap.containsKey("shippingAddress") &&
                 requestMap.containsKey("paymentMethod") &&

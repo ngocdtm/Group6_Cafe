@@ -66,4 +66,19 @@ public class CategoryController {
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @Operation(
+            summary = "Delete a category",
+            description = "Endpoint to delete a category."
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/delete/{id}")
+    public ResponseEntity<String> deleteCategory(@PathVariable Integer id){
+        try{
+            return categoryService.deleteCategory(id);
+        }catch(Exception ex){
+            ex.printStackTrace();
+        }
+        return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

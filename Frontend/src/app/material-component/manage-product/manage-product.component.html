@@ -68,7 +68,7 @@
       <td mat-cell *matCellDef="let element">{{ element.originalPrice }}</td>
     </ng-container>
 
-    <ng-container matColumnDef="edit">
+    <ng-container matColumnDef="action">
       <th mat-header-cell *matHeaderCellDef>Action</th>
       <td mat-cell *matCellDef="let element" class="action-link">
         <button mat-icon-button color="primary" matTooltip="View" (click)="handleViewAction(element)">
