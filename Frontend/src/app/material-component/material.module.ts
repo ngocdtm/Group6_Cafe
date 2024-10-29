@@ -22,8 +22,13 @@ import { MaterialRoutes } from "./material.routing";
 import { ViewBillComponent } from "./view-bill/view-bill.component";
 import { ViewDetailProductComponent } from "./view-detail-product/view-detail-product.component";
 import { ProductDetailDialogComponent } from './dialog/product-detail-dialog/product-detail-dialog.component';
-import { BillDetailsDialogComponent } from './dialog/bill-details-dialog/bill-details-dialog.component';
+import { BillDetailsDialogComponent } from '../customer-bill/bill-details-dialog/bill-details-dialog.component';
 import { UserDetailsDialogComponent } from './dialog/user-details-dialog/user-details-dialog.component';
+import { ManageInventoryComponent } from './manage-inventory/manage-inventory.component';
+import { AddStockComponent } from './dialog/inventory/add-stock/add-stock.component';
+import { RemoveStockComponent } from './dialog/inventory/remove-stock/remove-stock.component';
+import { ViewTransactionHistoryComponent } from './dialog/inventory/view-transaction-history/view-transaction-history.component';
+import { UpdateMinMaxStockComponent } from './dialog/inventory/update-min-max-stock/update-min-max-stock.component';
 
 @NgModule({
   imports: [
@@ -54,7 +59,12 @@ import { UserDetailsDialogComponent } from './dialog/user-details-dialog/user-de
     CouponComponent,
     ProductDetailDialogComponent,
     BillDetailsDialogComponent,
-    UserDetailsDialogComponent
+    UserDetailsDialogComponent,
+    ManageInventoryComponent,
+    AddStockComponent,
+    RemoveStockComponent,
+    ViewTransactionHistoryComponent,
+    UpdateMinMaxStockComponent
   ]
 })
 export class MaterialComponentsModule {}
