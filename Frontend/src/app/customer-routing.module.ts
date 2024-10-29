@@ -7,7 +7,7 @@ import { SearchPageComponent } from './search-page/search-page.component';
 import { CartComponent } from './cart/cart.component';
 import { CheckoutComponent } from './checkout/checkout.component';
 import { ProfileComponent } from './profile/profile.component';
-import { BillHistoryComponent } from './bill-history/bill-history.component';
+import { BillHistoryComponent } from './customer-bill/bill-history/bill-history.component';
 import { RecentlyViewedComponent } from './recently-viewed/recently-viewed.component';
 
 const routes: Routes = [

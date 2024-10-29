@@ -3,6 +3,13 @@ import { Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
+export interface Product {
+  id: number;
+  name: string;
+  description: string;
+  // Add other product fields as needed
+}
+
 @Injectable({
   providedIn: 'root'
 })

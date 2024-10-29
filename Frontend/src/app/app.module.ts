@@ -18,6 +18,7 @@ import { LoginComponent } from './login/login.component';
 import { TokenInterceptorInterceptor } from './services/token-interceptor.interceptor';
 import { DatePipe } from '@angular/common';
 import { LoginPromptComponent } from './login-prompt/login-prompt.component';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 const ngxUiLoaderConfig: NgxUiLoaderConfig = {
     text:"Loading...",
@@ -47,6 +48,7 @@ const ngxUiLoaderConfig: NgxUiLoaderConfig = {
     BrowserAnimationsModule,
     FormsModule,
     ReactiveFormsModule,
+    MatAutocompleteModule,
     MaterialModule,
     FlexLayoutModule,
     SharedModule,
