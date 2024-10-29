@@ -106,9 +106,9 @@ public class InventoryServiceImpl implements InventoryService {
     @Transactional
     public ResponseEntity<String> removeStock(Integer productId, Integer quantity, String note) {
         try {
-            if (!jwtRequestFilter.isAdmin()) {
-                return CafeUtils.getResponseEntity(CafeConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
-            }
+//            if (!jwtRequestFilter.isAdmin()) {
+//                return CafeUtils.getResponseEntity(CafeConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
+//            }
 
             Inventory inventory = inventoryRepository.findByProductId(productId)
                     .orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));

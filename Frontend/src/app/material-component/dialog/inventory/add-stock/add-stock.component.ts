@@ -96,9 +96,7 @@ export class AddStockComponent implements OnInit {
       this.inventoryService.addStock(
         formData.productId,
         formData.quantity,
-        formData.note,
-        formData.minQuantity,
-        formData.maxQuantity
+        formData.note
       ).subscribe({
         next: (response: any) => {
           this.ngxService.stop();

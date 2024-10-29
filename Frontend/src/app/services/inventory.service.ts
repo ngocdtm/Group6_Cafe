@@ -54,7 +54,7 @@ export class InventoryService {
     );
   }
 
-  addStock(productId: number, quantity: number, note: string, minQuantity: any, maxQuantity: any): Observable<string> {
+  addStock(productId: number, quantity: number, note: string): Observable<string> {
     return this.httpClient.post<string>(
       `${this.url}/api/v1/inventory/addStock`,
       null,
