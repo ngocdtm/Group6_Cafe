@@ -23,6 +23,7 @@ import { ViewBillComponent } from "./view-bill/view-bill.component";
 import { ViewDetailProductComponent } from "./view-detail-product/view-detail-product.component";
 import { ProductDetailDialogComponent } from './dialog/product-detail-dialog/product-detail-dialog.component';
 import { BillDetailsDialogComponent } from './dialog/bill-details-dialog/bill-details-dialog.component';
+import { UserDetailsDialogComponent } from './dialog/user-details-dialog/user-details-dialog.component';
 
 @NgModule({
   imports: [
@@ -52,7 +53,8 @@ import { BillDetailsDialogComponent } from './dialog/bill-details-dialog/bill-de
     ManageCouponComponent,
     CouponComponent,
     ProductDetailDialogComponent,
-    BillDetailsDialogComponent
+    BillDetailsDialogComponent,
+    UserDetailsDialogComponent
   ]
 })
 export class MaterialComponentsModule {}
