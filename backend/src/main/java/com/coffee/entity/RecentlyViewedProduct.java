@@ -24,7 +24,7 @@ public class RecentlyViewedProduct {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @Column(name = "viewed_at")
+    @Column(name = "viewed_at",columnDefinition = "DATETIME")
     private LocalDateTime viewedAt;
 
     public Integer getId() {

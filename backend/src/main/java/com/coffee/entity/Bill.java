@@ -54,7 +54,9 @@ public class Bill implements Serializable {
     private String couponCode;
 
     // Thông tin thời gian
+    @Column(name= "order_date", columnDefinition = "DATETIME")
     private LocalDateTime orderDate;
+    @Column(name= "last_updated_date", columnDefinition = "DATETIME")
     private LocalDateTime lastUpdatedDate;
 
     // Add these methods to format dates
