@@ -1,0 +1,137 @@
+<div class="container">
+    <!-- Header Card -->
+    <mat-card class="mb-4">
+      <mat-card-header>
+        <mat-card-title class="d-flex justify-content-between align-items-center">
+          <span>Inventory Management</span>
+        </mat-card-title>
+      </mat-card-header>
+    </mat-card>
+  
+     <!-- Search and Filter -->
+  <div class="row mb-4 justify-content-center">
+    <div class="col-md-6">
+      <div class="d-flex align-items-center">
+        <mat-form-field appearance="outline" class="w-100 me-4">
+          <mat-label>Search Products</mat-label>
+          <input matInput [(ngModel)]="searchText" (keyup)="applyFilter()" placeholder="Enter product name...">
+          <mat-icon matSuffix>search</mat-icon>
+          <button *ngIf="searchText" matSuffix mat-icon-button (click)="searchText=''; applyFilter()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Add New Product to Inventory</mat-label>
+          <input type="text" matInput [formControl]="productControl" [matAutocomplete]="auto" placeholder="Search for products...">
+          <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayProductFn" (optionSelected)="handleInitializeInventory($event.option.value)">
+            <mat-option *ngFor="let product of filteredProducts | async" [value]="product">
+              {{product.name}}
+            </mat-option>
+          </mat-autocomplete>
+          <mat-hint>Select a product to initialize its inventory</mat-hint>
+        </mat-form-field>
+      </div>
+    </div>
+  </div>
+  
+    <!-- Table Container -->
+    <div class="mat-elevation-z8">
+      <div class="table-container">
+        <table mat-table [dataSource]="dataSource" matSort class="w-100">
+          
+          <!-- Product Name Column -->
+          <ng-container matColumnDef="productName">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Product Name </th>
+            <td mat-cell *matCellDef="let element"> {{element.productName}} </td>
+          </ng-container>
+  
+          <!-- Quantity Column -->
+          <ng-container matColumnDef="quantity">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Current Stock </th>
+            <td mat-cell *matCellDef="let element"> 
+              <span [ngClass]="{
+                'text-danger': element.quantity <= element.minQuantity,
+                'text-warning': element.quantity <= element.minQuantity * 1.2,
+                'text-success': element.quantity > element.minQuantity * 1.2
+              }">
+                {{element.quantity}}
+              </span>
+            </td>
+          </ng-container>
+  
+          <!-- Min Quantity Column -->
+          <ng-container matColumnDef="minQuantity">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Min Stock </th>
+            <td mat-cell *matCellDef="let element"> {{element.minQuantity}} </td>
+          </ng-container>
+  
+          <!-- Max Quantity Column -->
+          <ng-container matColumnDef="maxQuantity">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Max Stock </th>
+            <td mat-cell *matCellDef="let element"> {{element.maxQuantity}} </td>
+          </ng-container>
+  
+          <!-- Last Updated Column -->
+          <ng-container matColumnDef="lastUpdated">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Last Updated </th>
+            <td mat-cell *matCellDef="let element"> {{element.lastUpdated | date:'medium'}} </td>
+          </ng-container>
+  
+          <!-- Action Column -->
+          <ng-container matColumnDef="action">
+            <th mat-header-cell *matHeaderCellDef> Actions </th>
+            <td mat-cell *matCellDef="let element" class="action-buttons">
+              <button mat-icon-button color="primary" 
+                      matTooltip="Update Min/Max Stock"
+                      [matTooltipPosition]="'above'"
+                      (click)="handleUpdateMinMaxStock(element)">
+                <mat-icon>settings</mat-icon>
+              </button>
+              <button mat-icon-button color="primary" 
+                      matTooltip="Add Stock" 
+                      [matTooltipPosition]="'above'"
+                      (click)="handleAddStock(element)">
+                <mat-icon>add_circle</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" 
+                      matTooltip="Remove Stock" 
+                      [matTooltipPosition]="'above'"
+                      (click)="handleRemoveStock(element)">
+                <mat-icon>remove_circle</mat-icon>
+              </button>
+              <button mat-icon-button color="accent" 
+                      matTooltip="View History" 
+                      [matTooltipPosition]="'above'"
+                      (click)="viewTransactionHistory(element)">
+                <mat-icon>history</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+  
+          <!-- Header and Row Definitions -->
+          <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+              [ngClass]="{'bg-warning-subtle': row.quantity <= row.minQuantity}">
+          </tr>
+  
+          <!-- No Data Row -->
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell text-center" colspan="6">
+              <div class="p-4">
+                <mat-icon class="text-muted">inventory_2</mat-icon>
+                <p class="mt-2">{{searchText ? 'No products matching "' + searchText + '"' : 'No products available'}}</p>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </div>
+  
+      <!-- Paginator -->
+      <mat-paginator 
+        [pageSizeOptions]="[5, 10, 25, 100]"
+        [pageSize]="10"
+        showFirstLastButtons
+        aria-label="Select page of inventory items">
+      </mat-paginator>
+    </div>
+  </div>
