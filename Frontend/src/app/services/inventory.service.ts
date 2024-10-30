@@ -5,9 +5,7 @@ import { environment } from 'src/environments/environment';
 
 // Enums
 export enum TransactionType {
-  STOCK_IN = 'STOCK_IN',
-  STOCK_OUT = 'STOCK_OUT',
-  ADJUSTMENT = 'ADJUSTMENT',
+  OUT_OF_STOCK = 'OUT_OF_STOCK',
   IMPORT = 'IMPORT',
   EXPORT = 'EXPORT'
 }

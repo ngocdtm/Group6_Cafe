@@ -82,14 +82,12 @@ export class ViewTransactionHistoryComponent implements OnInit {
 
   getTypeClass(type: TransactionType): string {
     switch (type) {
-      case TransactionType.STOCK_IN:
+      case TransactionType.OUT_OF_STOCK:
+        return 'type-out-of-stock';
       case TransactionType.IMPORT:
         return 'type-stock-in';
-      case TransactionType.STOCK_OUT:
       case TransactionType.EXPORT:
         return 'type-stock-out';
-      case TransactionType.ADJUSTMENT:
-        return 'type-adjustment';
       default:
         return '';
     }
@@ -97,10 +95,10 @@ export class ViewTransactionHistoryComponent implements OnInit {
 
   getQuantityClass(type: TransactionType): string {
     switch (type) {
-      case TransactionType.STOCK_IN:
+      case TransactionType.OUT_OF_STOCK:
+        return 'quantity-danger';
       case TransactionType.IMPORT:
         return 'quantity-positive';
-      case TransactionType.STOCK_OUT:
       case TransactionType.EXPORT:
         return 'quantity-negative';
       default:
@@ -110,7 +108,7 @@ export class ViewTransactionHistoryComponent implements OnInit {
 
   getQuantityDisplay(transaction: InventoryTransactionWrapper): string {
     switch (transaction.transactionType) {
-      case TransactionType.STOCK_OUT:
+      case TransactionType.OUT_OF_STOCK:
       case TransactionType.EXPORT:
         return `-${transaction.quantity}`;
       default:

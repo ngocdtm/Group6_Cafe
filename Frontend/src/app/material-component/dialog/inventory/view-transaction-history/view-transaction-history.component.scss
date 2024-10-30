@@ -31,11 +31,11 @@
   }
 
   .type-stock-out, .quantity-negative {
-    color: red;
+    color: orange;
   }
 
-  .type-adjustment {
-    color: orange;
+  .type-out-of-stock, .quantity-danger {
+    color: red;
   }
 
   table {
