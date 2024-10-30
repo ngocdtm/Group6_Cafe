@@ -59,6 +59,13 @@ public class InventoryServiceImpl implements InventoryService {
                 return CafeUtils.getResponseEntity("Product not found", HttpStatus.NOT_FOUND);
             }
 
+            Product product = productOptional.get();
+            // Nếu thêm stock cho sản phẩm đang OUT_OF_STOCK, cập nhật lại status
+            if ("OUT_OF_STOCK".equals(product.getStatus())) {
+                product.setStatus("true");
+                productRepository.save(product);
+            }
+
             Inventory inventory = inventoryRepository.findByProductId(productId)
                     .orElseGet(() -> {
                         Inventory newInventory = new Inventory();
@@ -106,9 +113,9 @@ public class InventoryServiceImpl implements InventoryService {
     @Transactional
     public ResponseEntity<String> removeStock(Integer productId, Integer quantity, String note) {
         try {
-            if (!jwtRequestFilter.isAdmin()) {
-                return CafeUtils.getResponseEntity(CafeConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
-            }
+//            if (!jwtRequestFilter.isAdmin()) {
+//                return CafeUtils.getResponseEntity(CafeConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
+//            }
 
             Inventory inventory = inventoryRepository.findByProductId(productId)
                     .orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));
@@ -119,11 +126,30 @@ public class InventoryServiceImpl implements InventoryService {
             }
 
             // Cập nhật số lượng tồn kho
-            inventory.setQuantity(inventory.getQuantity() - quantity);
+            int newQuantity = inventory.getQuantity() - quantity;
+            inventory.setQuantity(newQuantity);
             inventory.setLastUpdated(new Date());
+
+            // Nếu số lượng = 0, cập nhật trạng thái sản phẩm thành OUT_OF_STOCK
+            if (newQuantity == 0) {
+                Product product = inventory.getProduct();
+                product.setStatus("OUT_OF_STOCK");
+                productRepository.save(product);
+
+                // Ghi lại transaction cho việc hết hàng
+                InventoryTransaction outOfStockTrans = new InventoryTransaction();
+                outOfStockTrans.setProduct(product);
+                outOfStockTrans.setTransactionType(TransactionType.OUT_OF_STOCK);
+                outOfStockTrans.setQuantity(0);
+                outOfStockTrans.setNote("Product is out of stock");
+                outOfStockTrans.setTransactionDate(new Date());
+                outOfStockTrans.setCreatedBy(jwtRequestFilter.getCurrentUser());
+                transactionRepository.save(outOfStockTrans);
+            }
+
             inventoryRepository.save(inventory);
 
-            // Ghi lại lịch sử giao dịch
+            // Ghi lại lịch sử giao dịch xuất hàng
             InventoryTransaction transaction = new InventoryTransaction();
             transaction.setProduct(inventory.getProduct());
             transaction.setTransactionType(TransactionType.EXPORT);

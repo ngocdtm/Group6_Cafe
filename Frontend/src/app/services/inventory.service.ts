@@ -5,9 +5,7 @@ import { environment } from 'src/environments/environment';
 
 // Enums
 export enum TransactionType {
-  STOCK_IN = 'STOCK_IN',
-  STOCK_OUT = 'STOCK_OUT',
-  ADJUSTMENT = 'ADJUSTMENT',
+  OUT_OF_STOCK = 'OUT_OF_STOCK',
   IMPORT = 'IMPORT',
   EXPORT = 'EXPORT'
 }
@@ -54,7 +52,7 @@ export class InventoryService {
     );
   }
 
-  addStock(productId: number, quantity: number, note: string, minQuantity: any, maxQuantity: any): Observable<string> {
+  addStock(productId: number, quantity: number, note: string): Observable<string> {
     return this.httpClient.post<string>(
       `${this.url}/api/v1/inventory/addStock`,
       null,

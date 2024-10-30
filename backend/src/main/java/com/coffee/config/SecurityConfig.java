@@ -142,7 +142,8 @@ public class SecurityConfig {
                                 "/api/v1/product/related/**",
 //                                "/api/v1/user/profile",
 //                                "/api/v1/user/avatar",
-                                "/api/v1/user/avatars/**"
+                                "/api/v1/user/avatars/**",
+                                "/api/v1/inventory/status/**"
                         ).permitAll()
                         .requestMatchers("/api/**").authenticated()
                 )
