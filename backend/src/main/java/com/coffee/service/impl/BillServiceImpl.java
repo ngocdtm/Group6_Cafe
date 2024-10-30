@@ -1,10 +1,8 @@
 package com.coffee.service.impl;
 
+
 import com.coffee.constants.CafeConstants;
-import com.coffee.entity.Bill;
-import com.coffee.entity.BillItem;
-import com.coffee.entity.Coupon;
-import com.coffee.entity.User;
+import com.coffee.entity.*;
 import com.coffee.enums.OrderStatus;
 import com.coffee.enums.OrderType;
 import com.coffee.repository.BillRepository;
@@ -13,6 +11,7 @@ import com.coffee.repository.ProductRepository;
 import com.coffee.repository.UserRepository;
 import com.coffee.security.JwtRequestFilter;
 import com.coffee.service.BillService;
+import com.coffee.service.InventoryService;
 import com.coffee.service.ShoppingCartService;
 import com.coffee.utils.CafeUtils;
 import com.coffee.wrapper.BillWrapper;
@@ -33,6 +32,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+
 import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -41,27 +41,39 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+
 @Slf4j
 @Service
 public class BillServiceImpl implements BillService {
 
+
     @Autowired
     BillRepository billRepository;
+
 
     @Autowired
     ProductRepository productRepository;
 
+
     @Autowired
     JwtRequestFilter jwtRequestFilter;
+
 
     @Autowired
     CouponRepository couponRepository;
 
+
     @Autowired
     private UserRepository userRepository;
 
+
     @Autowired
     private ShoppingCartService shoppingCartService;
+
+
+    @Autowired
+    private InventoryService inventoryService;
+
 
     @Override
     @Transactional
@@ -72,6 +84,12 @@ public class BillServiceImpl implements BillService {
                 String fileName = CafeUtils.getUUID();
                 requestMap.put("uuid", fileName);
                 Bill bill = createBillFromRequest(requestMap, OrderType.IN_STORE);
+
+
+                // Cập nhật số lượng hàng tồn kho
+                updateInventoryForOrder(bill);
+
+
                 generatePdf(bill, fileName);
                 return new ResponseEntity<>("{\"uuid\":\"" + fileName + "\"}", HttpStatus.OK);
             }
@@ -81,6 +99,7 @@ public class BillServiceImpl implements BillService {
             return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     @Override
     @Transactional
@@ -92,13 +111,21 @@ public class BillServiceImpl implements BillService {
                 requestMap.put("uuid", fileName);
                 Bill bill = createBillFromRequest(requestMap, OrderType.ONLINE);
 
+
+                // Cập nhật số lượng hàng tồn kho
+                updateInventoryForOrder(bill);
+
+
                 // Clear the user's shopping cart after successful order
                 shoppingCartService.clearCart();
+
 
                 // Generate PDF for order confirmation
                 generatePdf(bill, fileName);
 
+
                 // Could add email notification here
+
 
                 return new ResponseEntity<>("{\"uuid\":\"" + fileName + "\"}", HttpStatus.OK);
             }
@@ -108,6 +135,20 @@ public class BillServiceImpl implements BillService {
             return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
+    private void updateInventoryForOrder(Bill bill) {
+        for (BillItem billItem : bill.getBillItems()) {
+            try {
+                Product product = billItem.getProduct();
+                int quantity = billItem.getQuantity();
+                inventoryService.removeStock(product.getId(), quantity, "Order #" + bill.getUuid());
+            } catch (Exception ex) {
+                log.error("Error updating inventory for product: {}", billItem.getProduct().getName(), ex);
+            }
+        }
+    }
+
 
     private Bill createBillFromRequest(Map<String, Object> requestMap, OrderType orderType) throws JSONException {
         Bill bill = new Bill();
@@ -119,6 +160,7 @@ public class BillServiceImpl implements BillService {
         bill.setTotal((Integer) requestMap.get("total"));
         bill.setOrderType(orderType);
 
+
         // Set order status based on order type
         if (orderType == OrderType.IN_STORE) {
             bill.setOrderStatus(OrderStatus.COMPLETED);
@@ -126,8 +168,10 @@ public class BillServiceImpl implements BillService {
             bill.setOrderStatus(OrderStatus.PENDING);
         }
 
+
         bill.setOrderDate(LocalDateTime.now());
         bill.setLastUpdatedDate(LocalDateTime.now());
+
 
         // Set user if available (required for online orders)
         String userEmail = jwtRequestFilter.getCurrentUser();
@@ -139,14 +183,17 @@ public class BillServiceImpl implements BillService {
             }
         }
 
+
         // Handle discount and coupon with null checks
         String couponCode = (String) requestMap.get("couponCode");
         if (couponCode != null && !couponCode.isEmpty()) {
             bill.setCouponCode(couponCode);
 
+
             // Get discount and totalAfterDiscount from request with default values
             Integer discount = (Integer) requestMap.getOrDefault("discount", 0);
             Integer totalAfterDiscount = (Integer) requestMap.getOrDefault("totalAfterDiscount", bill.getTotal());
+
 
             bill.setDiscount(discount);
             bill.setTotalAfterDiscount(totalAfterDiscount);
@@ -157,9 +204,12 @@ public class BillServiceImpl implements BillService {
         }
 
 
+
+
         // Process bill items
         List<BillItem> billItems = new ArrayList<>();
         JSONArray jsonArray = CafeUtils.getJsonArrayFromString((String) requestMap.get("productDetails"));
+
 
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject jsonObject = jsonArray.getJSONObject(i);
@@ -171,9 +221,11 @@ public class BillServiceImpl implements BillService {
             billItems.add(billItem);
         }
 
+
         bill.setBillItems(billItems);
         return billRepository.save(bill);
     }
+
 
     @Override
     public ResponseEntity<String> updateOrderStatus(Integer id, OrderStatus status) {
@@ -181,11 +233,14 @@ public class BillServiceImpl implements BillService {
             Bill bill = billRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Bill not found"));
 
+
             bill.setOrderStatus(status);
             bill.setLastUpdatedDate(LocalDateTime.now());
             billRepository.save(bill);
 
+
             // Here you could add notifications based on status change
+
 
             return CafeUtils.getResponseEntity("Order status updated successfully", HttpStatus.OK);
         } catch (Exception ex) {
@@ -193,6 +248,7 @@ public class BillServiceImpl implements BillService {
             return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     private boolean validateOfflineBillRequest(Map<String, Object> requestMap) {
         return requestMap.containsKey("customerName") &&
@@ -204,6 +260,7 @@ public class BillServiceImpl implements BillService {
                 (Integer) requestMap.get("total") > 0; // Ensure total is greater than 0
     }
 
+
     private boolean validateOnlineOrderRequest(Map<String, Object> requestMap) {
         return requestMap.containsKey("customerName") &&
                 requestMap.containsKey("customerPhone") &&
@@ -213,6 +270,7 @@ public class BillServiceImpl implements BillService {
                 requestMap.containsKey("total");
     }
 
+
     // Updated PDF generation method
     private void generatePdf(Bill bill, String fileName) throws Exception {
         Document document = new Document();
@@ -220,15 +278,18 @@ public class BillServiceImpl implements BillService {
         document.open();
         setRectangleInPdf(document);
 
+
         Paragraph title = new Paragraph("Cafe Management System", getFont("Header"));
         title.setAlignment(Element.ALIGN_CENTER);
         document.add(title);
+
 
         String orderType = bill.getOrderType() == OrderType.ONLINE ? "Online Order" : "In-Store Purchase";
         Paragraph orderInfo = new Paragraph("Order Type: " + orderType + "\n" +
                 "Order Date: " + bill.getFormattedOrderDate() + "\n" +
                 "Order Status: " + bill.getOrderStatus() + "\n\n", getFont("Data"));
         document.add(orderInfo);
+
 
         // Customer Information
         String customerInfo = "Customer Information:\n" +
@@ -237,17 +298,21 @@ public class BillServiceImpl implements BillService {
                 (bill.getShippingAddress() != null ? "Shipping Address: " + bill.getShippingAddress() + "\n" : "") +
                 "Payment Method: " + bill.getPaymentMethod() + "\n\n";
 
+
         document.add(new Paragraph(customerInfo, getFont("Data")));
+
 
         // Products table
         PdfPTable table = new PdfPTable(5);
         table.setWidthPercentage(100);
         addTableHeader(table);
 
+
         for (BillItem item : bill.getBillItems()) {
             addRow(table, item);
         }
         document.add(table);
+
 
         // Total calculations
         Paragraph totals = new Paragraph(
@@ -257,8 +322,10 @@ public class BillServiceImpl implements BillService {
                         "Thank you for your purchase!", getFont("Data"));
         document.add(totals);
 
+
         document.close();
     }
+
 
     private void addRow(PdfPTable table, BillItem item) {
         log.info("Inside addRow");
@@ -268,6 +335,7 @@ public class BillServiceImpl implements BillService {
         table.addCell(String.valueOf(item.getPrice()));
         table.addCell(String.valueOf(item.getQuantity() * item.getPrice()));
     }
+
 
     private void addTableHeader(PdfPTable table) {
         log.info("Inside table header");
@@ -284,6 +352,7 @@ public class BillServiceImpl implements BillService {
                 });
     }
 
+
     private void setRectangleInPdf(Document doc) throws DocumentException {
         log.info("Inside setRectangleInPdf");
         Rectangle rect = new Rectangle(577, 825, 18, 15);
@@ -295,6 +364,7 @@ public class BillServiceImpl implements BillService {
         rect.setBorderWidth(1);
         doc.add(rect);
     }
+
 
     private Font getFont(String type){
         log.info("Inside getFont");
@@ -312,6 +382,7 @@ public class BillServiceImpl implements BillService {
         }
     }
 
+
     @Override
     public ResponseEntity<byte[]> getPdf(Map<String, Object> requestMap) {
         log.info("Inside getPdf");
@@ -319,6 +390,7 @@ public class BillServiceImpl implements BillService {
             if (validateGetPdfRequest(requestMap)) {
                 String uuid = (String) requestMap.get("uuid");
                 String filePath = CafeConstants.STORE_LOCATION + "/" + uuid + ".pdf";
+
 
                 // Check if file exists
                 File file = new File(filePath);
@@ -331,10 +403,12 @@ public class BillServiceImpl implements BillService {
                         return new ResponseEntity<>(new byte[0], HttpStatus.NOT_FOUND);
                     }
 
+
                     try {
                         // Regenerate the PDF
                         generatePdf(bill, uuid);
                         log.info("PDF regenerated successfully");
+
 
                         // Check if the file was created successfully
                         if (!new File(filePath).exists()) {
@@ -347,14 +421,17 @@ public class BillServiceImpl implements BillService {
                     }
                 }
 
+
                 // Read PDF file into byte array
                 byte[] pdfBytes = readPdfFile(filePath);
+
 
                 // Set response headers
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.APPLICATION_PDF);
                 headers.setContentDispositionFormData("filename", uuid + ".pdf");
                 headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
 
                 return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
             }
@@ -366,11 +443,13 @@ public class BillServiceImpl implements BillService {
         }
     }
 
+
     private boolean validateGetPdfRequest(Map<String, Object> requestMap) {
         return requestMap.containsKey("uuid") &&
                 requestMap.get("uuid") != null &&
                 !requestMap.get("uuid").toString().trim().isEmpty();
     }
+
 
     private byte[] readPdfFile(String filePath) throws IOException {
         File file = new File(filePath);
@@ -378,6 +457,7 @@ public class BillServiceImpl implements BillService {
             return IOUtils.toByteArray(fileInputStream);
         }
     }
+
 
     @Override
     public ResponseEntity<List<BillWrapper>> getBills() {
@@ -397,6 +477,7 @@ public class BillServiceImpl implements BillService {
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
     @Override
     public ResponseEntity<String> deleteBill(Integer id) {
         try{
@@ -413,16 +494,19 @@ public class BillServiceImpl implements BillService {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
     @Override
     public ResponseEntity<Map<String, Object>> applyCoupon(Map<String, Object> requestMap) {
         try {
             String couponCode = (String) requestMap.get("couponCode");
             Integer totalAmount = (Integer) requestMap.get("total");
 
+
             if (couponCode == null || totalAmount == null) {
                 return ResponseEntity.badRequest()
                         .body(Map.of("message", "Invalid request parameters"));
             }
+
 
             // Validate coupon
             Coupon coupon = couponRepository.findByCode(couponCode);
@@ -431,15 +515,18 @@ public class BillServiceImpl implements BillService {
                         .body(Map.of("message", "Invalid coupon code"));
             }
 
+
             // Check coupon expiration
             if (couponIsExpired(coupon)) {
                 return ResponseEntity.badRequest()
                         .body(Map.of("message", "Coupon is expired"));
             }
 
+
             // Calculate discount
             Integer discountAmount = (totalAmount * coupon.getDiscount().intValue()) / 100;
             Integer totalAfterDiscount = totalAmount - discountAmount;
+
 
             // Prepare response
             Map<String, Object> response = new HashMap<>();
@@ -450,7 +537,9 @@ public class BillServiceImpl implements BillService {
             response.put("couponCode", couponCode);
             response.put("message", "Coupon applied successfully");
 
+
             return ResponseEntity.ok(response);
+
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -459,9 +548,11 @@ public class BillServiceImpl implements BillService {
         }
     }
 
+
     private boolean couponIsExpired(Coupon coupon) {
         LocalDate currentDate = LocalDate.now();
         LocalDate expirationDate = coupon.getExpirationDate();
         return expirationDate != null && currentDate.isAfter(expirationDate);
     }
 }
+
