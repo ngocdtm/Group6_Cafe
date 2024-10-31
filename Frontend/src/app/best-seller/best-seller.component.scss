@@ -5,10 +5,14 @@
 }
 
 
+
+
 h1 {
   text-align: center;
   margin-bottom: 30px;
 }
+
+
 
 
 .category-filter {
@@ -16,6 +20,8 @@ h1 {
   justify-content: center;
   margin-bottom: 30px;
 }
+
+
 
 
 .category-filter button {
@@ -28,10 +34,14 @@ h1 {
 }
 
 
+
+
 .category-filter button.active {
   background-color: #007bff;
   color: white;
 }
+
+
 
 
 .product-grid {
@@ -39,6 +49,8 @@ h1 {
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 30px;
 }
+
+
 
 
 .product-card {
@@ -50,9 +62,13 @@ h1 {
   transition: transform 0.3s ease;
 
 
+
+
   &:hover {
     transform: translateY(-5px);
   }
+
+
 
 
   img {
@@ -62,11 +78,15 @@ h1 {
   }
 
 
+
+
   h3 {
     padding: 10px;
     margin: 0;
     font-size: 1.1em;
   }
+
+
 
 
   p {
@@ -75,8 +95,33 @@ h1 {
     font-weight: bold;
   }
 
-  
+
+  .inventory-status {
+    margin: 8px 0;
+   
+    .out-of-stock {
+      color: #dc3545;
+      font-weight: 500;
+    }
+   
+    .in-stock {
+      color: #28a745;
+      font-weight: 500;
+    }
+  }
+
+
 .add-to-cart-btn {
+  &.disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+   
+    &:hover {
+      background-color: #ccc;
+    }
+  }
+
+
   background-color: #28a745;
   color: white;
   border: none;
@@ -87,22 +132,25 @@ h1 {
 }
 
 
+
+
 .add-to-cart-btn:hover {
   background-color: #218838;
 }
+
 
 .view-controls {
   margin-bottom: 20px;
   display: flex;
   gap: 10px;
-  
+ 
   button {
     padding: 8px 16px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     background: #f0f0f0;
-    
+   
     &.active {
       background: #007bff;
       color: white;
@@ -111,4 +159,9 @@ h1 {
 }
 
 
+
+
 }
+
+
+
