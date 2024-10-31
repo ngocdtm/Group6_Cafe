@@ -2,6 +2,7 @@
   <app-recently-viewed></app-recently-viewed>
 </div>
 
+
 <div class="product-page-container">
     <div class="sidebar">
       <h2>Categories</h2>
@@ -23,20 +24,38 @@
         </div>
       </div>
     </div>
-  
-  
+ 
+ 
     <div class="product-grid">
       <div *ngFor="let product of filteredProducts" class="product-card">
-        <div  (click)="openProductDetail(product)">
+        <div (click)="openProductDetail(product)">
           <img [src]="getFirstImageUrl(product)" alt="{{ product.name }}">
           <h3>{{ product.name }}</h3>
           <p>{{ formatPrice(product.price) }}</p>
-        </div>   
-        <button (click)="addToCart(product)" class="add-to-cart-btn">Add to Cart</button>
-
+         
+          <!-- Thêm phần hiển thị inventory status -->
+          <div class="inventory-status">
+            <span *ngIf="isOutOfStock(product.id)" class="out-of-stock">
+              Out of Stock
+            </span>
+            <span *ngIf="!isOutOfStock(product.id)" class="in-stock">
+              In Stock: {{ getInventoryQuantity(product.id) }}
+            </span>
+          </div>
+        </div>  
+       
+        <button
+          (click)="addToCart(product)"
+          class="add-to-cart-btn"
+          [disabled]="isOutOfStock(product.id)"
+          [class.disabled]="isOutOfStock(product.id)">
+          {{ isOutOfStock(product.id) ? 'Out of Stock' : 'Add to Cart' }}
+        </button>
       </div>
     </div>
-    
+   
+
 
   </div>
-  
+ 
+
