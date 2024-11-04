@@ -10,9 +10,6 @@ import { ProductDetailDialogComponent } from '../material-component/dialog/produ
 import { LoginComponent } from '../login/login.component';
 import { InventoryService, InventoryWrapper } from '../services/inventory.service';
 
-
-
-
 @Component({
   selector: 'app-product-page',
   templateUrl: './product-page.component.html',
@@ -26,12 +23,10 @@ export class ProductPageComponent implements OnInit {
   isLoggedIn: boolean = false;
   inventoryMap: { [key: number]: InventoryWrapper } = {};
 
-
   minPrice: number = 0;
   maxPrice: number = 1000000;
   currentMinPrice: number = 0;
   currentMaxPrice: number = 1000000;
-
 
   constructor(
     private categoryService: CategoryService,
@@ -43,7 +38,6 @@ export class ProductPageComponent implements OnInit {
     private snackbarService: SnackbarService
   ) { }
 
-
   ngOnInit(): void {
     this.loadCategories();
     this.loadProducts();
@@ -51,7 +45,6 @@ export class ProductPageComponent implements OnInit {
       loggedIn => this.isLoggedIn = loggedIn
     );
   }
-
 
   loadCategories() {
     this.categoryService.getCategory().subscribe(
@@ -64,7 +57,6 @@ export class ProductPageComponent implements OnInit {
       }
     );
   }
-
 
   loadProducts() {
     this.productService.getProduct().subscribe(
@@ -81,7 +73,6 @@ export class ProductPageComponent implements OnInit {
       }
     );
   }
-
 
   loadInventoryInfo() {
     this.filteredProducts.forEach(product => {
@@ -105,12 +96,10 @@ export class ProductPageComponent implements OnInit {
     }
   }
 
-
   filterByCategory(categoryId: string) {
     this.selectedCategory = categoryId;
     this.filterProducts();
   }
-
 
   filterProducts() {
     this.filteredProducts = this.products.filter(product => {
@@ -123,7 +112,6 @@ export class ProductPageComponent implements OnInit {
     this.loadInventoryInfo(); // Thêm dòng này để cập nhật inventory cho sản phẩm đã lọc
   }
 
-
   isOutOfStock(productId: number): boolean {
     return this.inventoryMap[productId]?.quantity === 0;
   }
@@ -132,18 +120,15 @@ export class ProductPageComponent implements OnInit {
     return this.inventoryMap[productId]?.quantity || 0;
   }
 
-
   onMinPriceChange(event: any) {
     this.currentMinPrice = parseFloat(event.target.value);
     this.filterProducts();
   }
 
-
   onMaxPriceChange(event: any) {
     this.currentMaxPrice = parseFloat(event.target.value);
     this.filterProducts();
   }
-
 
   addToCart(product: any) {
     // Kiểm tra nếu người dùng đã đăng nhập
@@ -178,14 +163,10 @@ export class ProductPageComponent implements OnInit {
     }
   }  
 
-
   showLoginPrompt(product: any) {
     const dialogRef = this.dialog.open(LoginPromptComponent, {
       width: '300px'
     });
-
-
-
 
     dialogRef.afterClosed().subscribe(result => {
       if (result === 'login') {
@@ -194,14 +175,10 @@ export class ProductPageComponent implements OnInit {
     });
   }
 
-
   openLoginDialog(product: any) {
     const dialogRef = this.dialog.open(LoginComponent, {
       width: '350px'
     });
-
-
-
 
     dialogRef.afterClosed().subscribe(result => {
       if (result === 'success') {
@@ -211,16 +188,12 @@ export class ProductPageComponent implements OnInit {
     });
   }
 
-
   getFirstImageUrl(product: any): string {
     if (product.images && product.images.length > 0) {
       return this.productService.getImageUrl(product.images[0].imagePath);
     }
     return 'assets/default-product-image.png';
   }
-
-
-
 
   formatPrice(price: number): string {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
@@ -230,7 +203,6 @@ export class ProductPageComponent implements OnInit {
     this.filterProducts();
   }
 
-
   openProductDetail(product: any) {
     this.dialog.open(ProductDetailDialogComponent, {
       data: product,
@@ -238,10 +210,3 @@ export class ProductPageComponent implements OnInit {
     });
   }
 }
-
-
-
-
-
-
-

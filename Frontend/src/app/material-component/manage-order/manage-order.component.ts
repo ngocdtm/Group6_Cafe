@@ -1,4 +1,4 @@
-import { CategoryService } from './../../services/category.service';
+import { CategoryService } from '../../services/category.service';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { saveAs } from 'file-saver';

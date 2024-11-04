@@ -10,6 +10,20 @@ export interface Product {
   // Add other product fields as needed
 }
 
+export interface ProductHistory {
+  id: number;
+  modifiedDate: string;
+  modifiedBy: string;
+  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'RESTORE' | 'ADD_IMAGES' | 'DELETE_IMAGES' | 'STATUS_CHANGE';
+  previousData: string | null;
+  newData: string | null;
+  details: string | null;
+  formattedChanges?: string; // Added for UI display
+}
+
+type ProductHistoryAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'RESTORE' | 
+                          'ADD_IMAGES' | 'DELETE_IMAGES' | 'STATUS_CHANGE';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -50,10 +64,6 @@ export class ProductService {
     return this.httpClient.post(`${this.url}/api/v1/product/delete/${id}`, {});
   }
 
-  deleteImage(productId: number, imageId: number) {
-    return this.httpClient.delete(`${this.url}/api/v1/product/deleteImage/${productId}/${imageId}`);
-  }
-
   getProductsByCategory(id:any) {
     return this.httpClient.get(`${this.url}/api/v1/product/getByCategory/${id}`);
   }
@@ -72,13 +82,31 @@ export class ProductService {
 
   addToRecentlyViewed(productId: number): Observable<any> {
     return new Observable(observer => {
+      // Kiểm tra xem user đã đăng nhập chưa
+      const token = localStorage.getItem('token');
+      if (!token) {
+        // Nếu chưa đăng nhập, không gọi API và kết thúc observable
+        observer.next(null);
+        observer.complete();
+        return;
+      }
+
+      // Nếu đã đăng nhập, tiếp tục gọi API
       this.httpClient.post(`${this.url}/api/v1/product/recently-viewed/${productId}`, {}).subscribe({
         next: (response) => {
           this.recentlyViewedUpdateSubject.next();
           observer.next(response);
           observer.complete();
         },
-        error: (error) => observer.error(error)
+        error: (error) => {
+          // Bỏ qua lỗi 401 và các lỗi liên quan đến authentication
+          if (error.status === 401) {
+            observer.next(null);
+            observer.complete();
+          } else {
+            observer.error(error);
+          }
+        }
       });
     });
   }
@@ -91,4 +119,31 @@ export class ProductService {
     return this.httpClient.get(`${this.url}/api/v1/product/recently-viewed`);
   }
 
+  restoreProduct(id: number) {
+    return this.httpClient.post(`${this.url}/api/v1/product/restore/${id}`, {});
+  }
+
+  getActiveImages(productId: number): Observable<any> {
+    return this.httpClient.get(`${this.url}/api/v1/product/images/active/${productId}`);
+  }
+
+  getDeletedImages(productId: number): Observable<any> {
+    return this.httpClient.get(`${this.url}/api/v1/product/images/deleted/${productId}`);
+  }
+
+  restoreImage(imageId: number): Observable<any> {
+    return this.httpClient.post(`${this.url}/api/v1/product/image/restore/${imageId}`, {});
+  }
+
+  getProductHistory(id: number): Observable<ProductHistory[]> {
+    return this.httpClient.get<ProductHistory[]>(`${this.url}/api/v1/product/history/${id}`);
+  }
+
+  getActiveProducts() {
+    return this.httpClient.get(`${this.url}/api/v1/product/active`);
+  }
+
+  getDeletedProducts() {
+    return this.httpClient.get(`${this.url}/api/v1/product/deleted`);
+  }
 }
