@@ -1,6 +1,5 @@
 package com.coffee.service.impl;
 
-
 import com.coffee.constants.CafeConstants;
 import com.coffee.entity.CartItems;
 import com.coffee.entity.Product;
@@ -30,37 +29,28 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 @Service
 public class ShoppingCartServiceImpl implements ShoppingCartService {
 
-
     private static final Logger logger = LoggerFactory.getLogger(ShoppingCartServiceImpl.class);
-
 
     @Autowired
     private ShoppingCartRepository cartRepository;
 
-
     @Autowired
     private CartItemsRepository cartItemsRepository;
-
 
     @Autowired
     private ProductRepository productRepository;
 
-
     @Autowired
     private UserRepository userRepository;
-
 
     @Autowired
     private JwtRequestFilter jwtRequestFilter;
 
-
     @Autowired
     private InventoryService inventoryService;
-
 
     @Override
     @Transactional
@@ -71,7 +61,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                 Product product = productRepository.findById(Integer.parseInt(requestMap.get("productId")))
                         .orElseThrow(() -> new RuntimeException("Product not found"));
 
-
                 // Kiểm tra số lượng hàng tồn kho
                 ResponseEntity<InventoryWrapper> inventoryStatus = inventoryService.getInventoryStatus(product.getId());
                 if (inventoryStatus.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -79,7 +68,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                 }
                 InventoryWrapper inventory = inventoryStatus.getBody();
                 int availableQuantity = inventory.getQuantity();
-
 
                 // Kiểm tra số lượng sản phẩm hiện tại trong giỏ
                 ShoppingCart cart = cartRepository.findByUser(user).orElseGet(() -> {
@@ -89,21 +77,17 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                     return cartRepository.save(newCart);
                 });
 
-
                 Optional<CartItems> existingItem = cart.getCartItems().stream()
                         .filter(item -> item.getProduct().getId().equals(product.getId()))
                         .findFirst();
 
-
                 int currentQuantityInCart = existingItem.map(CartItems::getQuantity).orElse(0);
                 int requestedQuantity = Integer.parseInt(requestMap.get("quantity"));
-
 
                 // Nếu tổng số lượng sản phẩm trong giỏ hàng >= tồn kho, không cho phép thêm vào
                 if (currentQuantityInCart + requestedQuantity > availableQuantity) {
                     return CafeUtils.getResponseEntity("Không thể thêm vào giỏ hàng. Sản phẩm đã đạt đến giới hạn tồn kho.", HttpStatus.BAD_REQUEST);
                 }
-
 
                 // Thực hiện thêm vào giỏ nếu chưa đạt giới hạn
                 if (existingItem.isPresent()) {
@@ -117,7 +101,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                     cart.getCartItems().add(cartItem);
                 }
 
-
                 updateCartTotal(cart);
                 cartRepository.save(cart);
                 return CafeUtils.getResponseEntity("Added to cart successfully", HttpStatus.OK);
@@ -129,9 +112,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         }
     }
 
-
-
-
     @Override
     @Transactional
     public ResponseEntity<String> updateCartItem(Map<String, String> requestMap) {
@@ -141,30 +121,22 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                 return CafeUtils.getResponseEntity("Missing required fields", HttpStatus.BAD_REQUEST);
             }
 
-
             Integer cartItemId = Integer.parseInt(requestMap.get("cartItemId"));
             Integer quantity = Integer.parseInt(requestMap.get("quantity"));
-
 
             if (quantity < 0) {
                 return CafeUtils.getResponseEntity("Invalid quantity", HttpStatus.BAD_REQUEST);
             }
 
-
             CartItems cartItem = cartItemsRepository.findById(cartItemId)
                     .orElseThrow(() -> new ResourceNotFoundException("Cart item not found"));
-
-
-
 
             // Kiểm tra quyền truy cập
             if (!cartItem.getShoppingCart().getUser().getEmail().equals(jwtRequestFilter.getCurrentUser())) {
                 return CafeUtils.getResponseEntity(CafeConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
             }
 
-
             Product product = cartItem.getProduct();
-
 
             // Kiểm tra trạng thái sản phẩm
             if ("OUT_OF_STOCK".equals(product.getStatus()) || !"true".equals(product.getStatus())) {
@@ -172,19 +144,16 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                 return removeFromCart(cartItemId);
             }
 
-
             // Kiểm tra inventory
             ResponseEntity<InventoryWrapper> inventoryStatus = inventoryService.getInventoryStatus(product.getId());
             if (inventoryStatus.getStatusCode() == HttpStatus.NOT_FOUND) {
                 return CafeUtils.getResponseEntity("Product not found in inventory", HttpStatus.NOT_FOUND);
             }
 
-
             InventoryWrapper inventory = inventoryStatus.getBody();
             if (inventory == null) {
                 return CafeUtils.getResponseEntity("Invalid inventory data", HttpStatus.BAD_REQUEST);
             }
-
 
             if (quantity > inventory.getQuantity()) {
                 return CafeUtils.getResponseEntity(
@@ -193,18 +162,15 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                         HttpStatus.BAD_REQUEST);
             }
 
-
             if (quantity == 0) {
                 return removeFromCart(cartItemId);
             }
-
 
             // Cập nhật số lượng và giá mới nhất
             cartItem.setQuantity(quantity);
             cartItem.setPrice(product.getPrice());
             updateCartTotal(cartItem.getShoppingCart());
             cartItemsRepository.save(cartItem);
-
 
             return CafeUtils.getResponseEntity("Cart updated successfully", HttpStatus.OK);
         } catch (ResourceNotFoundException ex) {
@@ -217,7 +183,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         }
     }
 
-
     @Override
     @Transactional
     public ResponseEntity<String> removeFromCart(Integer cartItemId) {
@@ -225,17 +190,14 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             CartItems cartItem = cartItemsRepository.findById(cartItemId)
                     .orElseThrow(() -> new RuntimeException("Cart item not found"));
 
-
             if (!cartItem.getShoppingCart().getUser().getEmail().equals(jwtRequestFilter.getCurrentUser())) {
                 return CafeUtils.getResponseEntity(CafeConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
             }
-
 
             ShoppingCart cart = cartItem.getShoppingCart();
             cart.getCartItems().remove(cartItem);
             updateCartTotal(cart);
             cartRepository.save(cart);
-
 
             return CafeUtils.getResponseEntity("Item removed from cart", HttpStatus.OK);
         } catch (Exception ex) {
@@ -243,7 +205,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
 
     @Override
     public ResponseEntity<ShoppingCartWrapper> getCart() {
@@ -257,13 +218,11 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                         return cartRepository.save(newCart);
                     });
 
-
             // Kiểm tra và cập nhật trạng thái các sản phẩm trong giỏ hàng
             boolean hasOutOfStockItems = false;
             for (CartItems item : cart.getCartItems()) {
                 Product product = item.getProduct();
                 ResponseEntity<InventoryWrapper> inventoryStatus = inventoryService.getInventoryStatus(product.getId());
-
 
                 // Kiểm tra trạng thái sản phẩm và inventory
                 boolean isOutOfStock = "OUT_OF_STOCK".equals(product.getStatus())
@@ -271,13 +230,10 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                         || inventoryStatus.getStatusCode() == HttpStatus.NOT_FOUND
                         || (inventoryStatus.getBody() != null && inventoryStatus.getBody().getQuantity() < item.getQuantity());
 
-
                 if (isOutOfStock) {
                     hasOutOfStockItems = true;
                 }
             }
-
-
             ShoppingCartWrapper cartWrapper = convertToDTO(cart);
             cartWrapper.setHasOutOfStockItems(hasOutOfStockItems);
             return new ResponseEntity<>(cartWrapper, HttpStatus.OK);
@@ -287,13 +243,11 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         }
     }
 
-
     private ShoppingCartWrapper convertToDTO(ShoppingCart cart) {
         ShoppingCartWrapper dto = new ShoppingCartWrapper();
         dto.setId(cart.getId());
         dto.setTotalAmount(cart.getTotalAmount());
         dto.setUserId(cart.getUser().getId());
-
 
         if (cart.getCartItems() != null) {
             dto.setCartItems(cart.getCartItems().stream()
@@ -303,11 +257,8 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             logger.warn("Cart items list is null for cart ID: {}", cart.getId());
             dto.setCartItems(Collections.emptyList());
         }
-
-
         return dto;
     }
-
 
     private CartItemWrapper convertToCartItemDTO(CartItems item) {
         CartItemWrapper dto = new CartItemWrapper();
@@ -323,7 +274,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         return dto;
     }
 
-
     @Override
     @Transactional
     public ResponseEntity<String> clearCart() {
@@ -337,22 +287,17 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                 cart.get().setTotalAmount(0);
                 cartRepository.save(cart.get());
             }
-
-
             return CafeUtils.getResponseEntity("Cart cleared successfully", HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
             return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-
     @Override
     public ResponseEntity<Integer> getCartItemCount() {
         try {
             User user = userRepository.findByEmail(jwtRequestFilter.getCurrentUser());
             Optional<ShoppingCart> cartOptional = cartRepository.findByUser(user);
-
 
             if (cartOptional.isPresent()) {
                 ShoppingCart cart = cartOptional.get();
@@ -370,11 +315,9 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         }
     }
 
-
     private boolean validateCartMap(Map<String, String> requestMap) {
         return requestMap.containsKey("productId") && requestMap.containsKey("quantity");
     }
-
 
     private void updateCartTotal(ShoppingCart cart) {
         int total = cart.getCartItems().stream()
@@ -383,6 +326,3 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         cart.setTotalAmount(total);
     }
 }
-
-
-

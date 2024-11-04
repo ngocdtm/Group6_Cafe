@@ -10,7 +10,6 @@ import { LoginPromptComponent } from '../login-prompt/login-prompt.component';
 import { ProductDetailDialogComponent } from '../material-component/dialog/product-detail-dialog/product-detail-dialog.component';
 import { InventoryService, InventoryWrapper } from '../services/inventory.service';
 
-
 @Component({
   selector: 'app-best-seller',
   templateUrl: './best-seller.component.html',
@@ -18,14 +17,12 @@ import { InventoryService, InventoryWrapper } from '../services/inventory.servic
 })
 export class BestSellerComponent implements OnInit {
 
-
   products: any[] = [];
   categories: any[] = [];
   filteredProducts: any[] = [];
   selectedCategory: string = 'all';
   isLoggedIn: boolean = false;
   inventoryMap: { [key: number]: InventoryWrapper } = {};
-
 
   constructor(
     private productService: ProductService,
@@ -37,7 +34,6 @@ export class BestSellerComponent implements OnInit {
     private snackbarService: SnackbarService
   ) { }
 
-
   ngOnInit(): void {
     this.loadProducts();
     this.loadCategories();
@@ -45,7 +41,6 @@ export class BestSellerComponent implements OnInit {
       loggedIn => this.isLoggedIn = loggedIn
     );
   }
-
 
   loadProducts() {
     this.productService.getProduct().subscribe(
@@ -62,7 +57,6 @@ export class BestSellerComponent implements OnInit {
     );
   }
 
-
   loadInventoryInfo() {
     this.filteredProducts.forEach(product => {
       this.inventoryService.getInventoryStatus(product.id).subscribe(
@@ -76,7 +70,6 @@ export class BestSellerComponent implements OnInit {
     });
   }
 
-
   loadCategories() {
     this.categoryService.getCategory().subscribe(
       (data: any) => {
@@ -88,7 +81,6 @@ export class BestSellerComponent implements OnInit {
     );
   }
 
-
   filterByCategory(categoryId: string) {
     this.selectedCategory = categoryId;
     if (categoryId === 'all') {
@@ -99,7 +91,6 @@ export class BestSellerComponent implements OnInit {
       );
     }
   }
-
 
   isOutOfStock(productId: number): boolean {
     return this.inventoryMap[productId]?.quantity === 0;
@@ -141,14 +132,11 @@ export class BestSellerComponent implements OnInit {
       this.showLoginPrompt(product);
     }
   }
- 
-
 
   showLoginPrompt(product: any) {
     const dialogRef = this.dialog.open(LoginPromptComponent, {
       width: '300px'
     });
-
 
     dialogRef.afterClosed().subscribe(result => {
       if (result === 'login') {
@@ -157,12 +145,10 @@ export class BestSellerComponent implements OnInit {
     });
   }
 
-
   openLoginDialog(product: any) {
     const dialogRef = this.dialog.open(LoginComponent, {
       width: '350px'
     });
-
 
     dialogRef.afterClosed().subscribe(result => {
       if (result === 'success') {
@@ -172,14 +158,12 @@ export class BestSellerComponent implements OnInit {
     });
   }
 
-
   getFirstImageUrl(product: any): string {
     if (product.images && product.images.length > 0) {
       return this.productService.getImageUrl(product.images[0].imagePath);
     }
     return 'assets/default-product-image.png'; // Đường dẫn đến ảnh mặc định
   }
-
 
   openProductDetail(product: any) {
     this.dialog.open(ProductDetailDialogComponent, {
@@ -188,9 +172,7 @@ export class BestSellerComponent implements OnInit {
     });
   }
 
-
   formatPrice(price: number): string {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
   }
 }
-

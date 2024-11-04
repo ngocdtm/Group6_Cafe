@@ -1,9 +1,10 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { ThemePalette } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { forkJoin } from 'rxjs';
-import { BillService } from 'src/app/services/bill.service';
+
+import { Bill, BillItem, BillService } from 'src/app/services/bill.service';
 import { ProductService } from 'src/app/services/product.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-bill-details-dialog',
@@ -12,29 +13,38 @@ import { ProductService } from 'src/app/services/product.service';
 })
 export class BillDetailsDialogComponent implements OnInit {
   isLoading = false;
+  bill: Bill;
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: any,
+    @Inject(MAT_DIALOG_DATA) public data: Bill,
     private dialogRef: MatDialogRef<BillDetailsDialogComponent>,
     private billService: BillService,
-    private productService: ProductService
-  ) {}
+    private productService: ProductService  
+  ) {
+    this.bill = data;
+  }
 
   ngOnInit() {
     // Không cần loadProductDetails nữa vì dữ liệu đã có từ backend
   }
 
-  getImageUrl(item: any): string {
-    // Cập nhật cách lấy image url
-    if (item?.images && item.images.length > 0) {
-      const imagePath = item.images[0].imagePath;
-      return imagePath ? this.productService.getImageUrl(imagePath) : 'assets/images/placeholder.png';
+  getImageUrl(item: BillItem): string {
+    if (item?.productImages && item.productImages.length > 0) {
+      // Sử dụng service để lấy đường dẫn ảnh đúng, tương tự như BestSellerComponent
+      return this.productService.getImageUrl(item.productImages[0]);
     }
     return 'assets/images/placeholder.png';
   }
 
-  getProductName(item: any): string {
-    return item?.productName || 'Product Name Not Available';
+  getProductDetails(item: BillItem): string {
+    let details = item.productName;
+    if (item.productCategory) {
+      details += ` - ${item.productCategory}`;
+    }
+    if (item.productDescription) {
+      details += `\n${item.productDescription}`;
+    }
+    return details;
   }
 
   formatPrice(price: number): string {
@@ -44,21 +54,18 @@ export class BillDetailsDialogComponent implements OnInit {
     }).format(price);
   }
 
+  getOrderTypeLabel(type: string): string {
+    return type === 'ONLINE' ? 'Online Order' : 'In-Store Purchase';
+  }
   
   getOrderStatusColor(status: string): ThemePalette {
     switch (status?.toUpperCase()) {
-      case 'PENDING':
-        return 'warn';
-      case 'CONFIRMED':
-        return 'primary';
-      case 'PROCESSING':
-        return 'accent';
-      case 'COMPLETED':
-        return 'primary';
-      case 'CANCELLED':
-        return 'warn';
-      default:
-        return undefined;
+      case 'PENDING': return 'warn';
+      case 'CONFIRMED': return 'primary';
+      case 'PROCESSING': return 'accent';
+      case 'COMPLETED': return 'primary';
+      case 'CANCELLED': return 'warn';
+      default: return undefined;
     }
   }
 
@@ -79,7 +86,6 @@ export class BillDetailsDialogComponent implements OnInit {
     }
   }
 
-  
   downloadPdf(): void {
     this.isLoading = true;
     this.billService.getPdf({ uuid: this.data.uuid }).subscribe({

@@ -65,7 +65,7 @@ export class ProductDetailDialogComponent implements OnInit {
     this.isLoading = true;
     this.productService.getRelatedProducts(this.data.id).subscribe({
       next: (products) => {
-        console.log('Related products with images:', products);
+        // console.log('Related products with images:', products);
         this.relatedProducts = products;
         this.isLoading = false;
       },
@@ -77,7 +77,7 @@ export class ProductDetailDialogComponent implements OnInit {
     });
   }
   openProduct(product: any): void {
-    console.log('Opening product:', product); // Để debug
+    // console.log('Opening product:', product); // Để debug
     this.dialogRef.close(product);
   }
 
