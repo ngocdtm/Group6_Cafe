@@ -5,16 +5,16 @@ import { NgxUiLoaderService } from 'ngx-ui-loader';
 import { InventoryWrapper, InventoryService } from 'src/app/services/inventory.service';
 import { SnackbarService } from 'src/app/services/snackbar.service';
 import { GlobalConstants } from 'src/app/shared/global-constants';
-import { RemoveStockComponent } from '../dialog/inventory/remove-stock/remove-stock.component';
-import { AddStockComponent } from '../dialog/inventory/add-stock/add-stock.component';
-import { ViewTransactionHistoryComponent } from '../dialog/inventory/view-transaction-history/view-transaction-history.component';
+import { RemoveStockComponent } from '../remove-stock/remove-stock.component';
+import { AddStockComponent } from '../add-stock/add-stock.component';
+import { ViewTransactionHistoryComponent } from '../view-transaction-history/view-transaction-history.component';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { FormControl } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { Product, ProductService } from 'src/app/services/product.service';
 import { map, startWith } from 'rxjs/operators';
-import { UpdateMinMaxStockComponent } from '../dialog/inventory/update-min-max-stock/update-min-max-stock.component';
+import { UpdateMinMaxStockComponent } from '../update-min-max-stock/update-min-max-stock.component';
 
 @Component({
   selector: 'app-manage-inventory',
