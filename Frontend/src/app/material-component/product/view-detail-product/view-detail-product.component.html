@@ -1,0 +1,37 @@
+<mat-toolbar color="primary">
+    <mat-toolbar-row>
+      <span>View Detail Product</span>
+      <span class="spacer"></span>
+      <button class="mat-dialog-close" mat-icon-button mat-dialog-close>
+        <mat-icon>cancel</mat-icon>
+      </button>
+    </mat-toolbar-row>
+</mat-toolbar>
+
+<div class="responsive_table">
+    <table id="products">
+        <tr>
+          <td><b>Name Product: </b>{{data?.name}}</td>
+          <td><b>Category: </b>{{data?.categoryName}}</td>
+        </tr>
+        <tr>
+          <td><b>Original Price: </b>{{data?.originalPrice}}</td>
+          <td><b>Price: </b>{{data?.price}}</td>
+        </tr>
+        <tr>
+          <td colspan="2"><b>Description: </b>{{data?.description}}</td>
+        </tr>
+      </table>
+</div>
+
+<div class="image-gallery">
+  <h3>Product Images</h3>
+  <div class="image-container">
+      <div *ngFor="let imageUrl of imageUrls" class="image-item">
+          <img [src]="imageUrl" 
+               (error)="handleImageError($event)"
+               alt="Product image"
+               class="product-image">
+      </div>
+  </div>
+</div>
