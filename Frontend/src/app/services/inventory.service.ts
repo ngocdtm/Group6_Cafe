@@ -18,7 +18,7 @@ export interface InventoryWrapper {
   quantity: number;
   minQuantity: number;
   maxQuantity: number;
-  lastUpdated: Date;
+  lastUpdated: string;
 }
 
 export interface InventoryTransactionWrapper {
@@ -28,7 +28,7 @@ export interface InventoryTransactionWrapper {
   transactionType: TransactionType;
   quantity: number;
   note: string;
-  transactionDate: Date;
+  transactionDate: string;
   createdBy: string;
 }
 

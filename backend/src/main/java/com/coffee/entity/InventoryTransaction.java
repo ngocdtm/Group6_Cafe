@@ -6,6 +6,8 @@ import lombok.Data;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 @Entity
@@ -36,9 +38,16 @@ public class InventoryTransaction implements Serializable {
     @Column(name = "note")
     private String note;
 
-    @Column(name = "transaction_date")
-    private Date transactionDate;
+    @Column(name = "transaction_date", columnDefinition = "DATETIME")
+    private LocalDateTime transactionDate;
 
     @Column(name = "created_by")
     private String createdBy;
+
+    public String getFormattedTransactionDate() {
+        if (transactionDate != null) {
+            return transactionDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"));
+        }
+        return null;
+    }
 }

@@ -1,6 +1,8 @@
 package com.coffee.wrapper;
 
 import lombok.Data;
+
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -11,16 +13,16 @@ public class InventoryWrapper {
     private Integer quantity;
     private Integer minQuantity;
     private Integer maxQuantity;
-    private Date lastUpdated;
+    private String lastUpdated;
 
-    public InventoryWrapper(Integer id, Integer productId, String productName, Integer quantity, Integer minQuantity, Integer maxQuantity, Date lastUpdated) {
+    public InventoryWrapper(Integer id, Integer productId, String productName, Integer quantity, Integer minQuantity, Integer maxQuantity, LocalDateTime lastUpdated) {
         this.id = id;
         this.productId = productId;
         this.productName = productName;
         this.quantity = quantity;
         this.minQuantity = minQuantity;
         this.maxQuantity = maxQuantity;
-        this.lastUpdated = lastUpdated;
+        this.lastUpdated = (String.valueOf(lastUpdated));
     }
 
     public InventoryWrapper() {

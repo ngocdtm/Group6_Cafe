@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
@@ -11,7 +12,8 @@ import { GlobalConstants } from 'src/app/shared/global-constants';
 @Component({
   selector: 'app-view-transaction-history',
   templateUrl: './view-transaction-history.component.html',
-  styleUrls: ['./view-transaction-history.component.scss']
+  styleUrls: ['./view-transaction-history.component.scss'],
+  providers: [DatePipe]
 })
 export class ViewTransactionHistoryComponent implements OnInit {
 
