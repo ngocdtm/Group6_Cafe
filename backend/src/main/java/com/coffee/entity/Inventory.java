@@ -5,6 +5,8 @@ import lombok.Data;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 @Entity
@@ -33,6 +35,13 @@ public class Inventory implements Serializable {
     @Column(name = "max_quantity")
     private Integer maxQuantity;
 
-    @Column(name = "last_updated")
-    private Date lastUpdated;
+    @Column(name = "last_updated", columnDefinition = "DATETIME")
+    private LocalDateTime lastUpdated;
+
+    public String getFormattedLastUpdated() {
+        if (lastUpdated != null) {
+            return lastUpdated.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"));
+        }
+        return null;
+    }
 }

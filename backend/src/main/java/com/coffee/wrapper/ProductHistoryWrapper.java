@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Builder
 public class ProductHistoryWrapper {
     private Integer id;
-    private LocalDateTime modifiedDate;
+    private String modifiedDate;
     private String modifiedBy;
     private String action;
     private String previousData;

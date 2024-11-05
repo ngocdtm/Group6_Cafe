@@ -1,6 +1,9 @@
 import { DatePipe } from '@angular/common';
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
 import { ProductHistory, ProductService } from 'src/app/services/product.service';
 import { SnackbarService } from 'src/app/services/snackbar.service';
 import { GlobalConstants } from 'src/app/shared/global-constants';
@@ -13,11 +16,9 @@ import { GlobalConstants } from 'src/app/shared/global-constants';
 })
 export class ProductHistoryComponent implements OnInit {
 
-  historyData: ProductHistory[] = [];
-  loading = false;
-  error = '';
+  dataSource: MatTableDataSource<ProductHistory>;
   displayedColumns = ['modifiedDate', 'modifiedBy', 'action', 'changes'];
-  actionIcons : any= {
+  actionIcons: any = {
     'CREATE': 'add_circle',
     'UPDATE': 'edit',
     'DELETE': 'delete',
@@ -27,56 +28,68 @@ export class ProductHistoryComponent implements OnInit {
     'STATUS_CHANGE': 'swap_horiz'
   };
 
+  // Add sorting and pagination
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
+
+  searchText: string = '';
+  
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: { productId: number },
     private productService: ProductService,
-    private snackbarService: SnackbarService,
-    private datePipe: DatePipe
-  ) {}
+    private snackbarService: SnackbarService
+  ) {
+    this.dataSource = new MatTableDataSource();
+  }
 
   ngOnInit() {
     this.loadHistory();
   }
 
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+  }
+
   loadHistory() {
-    this.loading = true;
-    this.error = '';
-  
     this.productService.getProductHistory(this.data.productId).subscribe({
       next: (response: ProductHistory[]) => {
-        this.historyData = response.map(history => ({
-          ...history,
-          modifiedDate: history.modifiedDate,
-          formattedChanges: this.formatChanges(history)
-        }));
+        this.dataSource = new MatTableDataSource<ProductHistory>(
+          response.map(history => ({
+            ...history,
+            modifiedDate: history.modifiedDate,
+            formattedChanges: this.formatChanges(history)
+          }))
+        );
+        this.dataSource.paginator = this.paginator;
+        this.dataSource.sort = this.sort;
+        this.applyFilter();
       },
       error: (error) => {
+        let errorMessage = GlobalConstants.genericError;
         if (error.status === 401) {
-          this.error = 'Unauthorized access';
+          errorMessage = 'Unauthorized access';
         } else if (error.status === 404) {
-          this.error = 'Product not found';
-        } else {
-          this.error = GlobalConstants.genericError;
+          errorMessage = 'Product not found';
         }
-        this.snackbarService.openSnackBar(this.error, GlobalConstants.error);
-      },
-      complete: () => {
-        this.loading = false;
+        this.snackbarService.openSnackBar(errorMessage, GlobalConstants.error);
       }
     });
   }
 
-  formatDate(dateString: string): string {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        throw new Error('Invalid date');
-      }
-      return this.datePipe.transform(date, 'MMM d, y, h:mm:ss a') || dateString;
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return dateString;
-    }
+  applyFilter() {
+    this.dataSource.filterPredicate = (data: ProductHistory, filter: string) => {
+      return (
+        data.modifiedBy.toLowerCase().includes(filter.toLowerCase()) ||
+        data.action.toLowerCase().includes(filter.toLowerCase())
+      );
+    };
+    this.dataSource.filter = this.searchText.trim().toLowerCase();
+  }
+
+  clearSearch() {
+    this.searchText = '';
+    this.applyFilter();
   }
 
   getActionIcon(action: string): string {

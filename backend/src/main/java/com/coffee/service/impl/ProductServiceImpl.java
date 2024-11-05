@@ -764,7 +764,7 @@ public class ProductServiceImpl implements ProductService {
     private ProductHistoryWrapper convertToWrapper(ProductHistory history) {
         return ProductHistoryWrapper.builder()
                 .id(history.getId())
-                .modifiedDate(history.getModifiedDate())
+                .modifiedDate((String.valueOf(history.getModifiedDate())))
                 .modifiedBy(history.getModifiedBy())
                 .action(history.getAction())
                 .previousData(history.getPreviousData())

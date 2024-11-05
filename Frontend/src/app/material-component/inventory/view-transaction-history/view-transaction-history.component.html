@@ -16,7 +16,7 @@
       
       <ng-container matColumnDef="transactionDate">
         <th mat-header-cell *matHeaderCellDef mat-sort-header> Date </th>
-        <td mat-cell *matCellDef="let row"> {{row.transactionDate | date:'medium'}} </td>
+        <td mat-cell *matCellDef="let row"> {{row.transactionDate | date:'MMM d, y, h:mm a'}}</td>
       </ng-container>
 
       <ng-container matColumnDef="transactionType">
