@@ -31,7 +31,8 @@ export class ProductComponent implements OnInit {
   newImages: File[] = [];
   newImagePreviews: { file: File; preview: string }[] = [];
   deletedImageIds: number[] = [];
-
+  activeImages: ImageItem[] = [];
+  deletedImages: ImageItem[] = [];
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public dialogData:any,
@@ -61,19 +62,55 @@ export class ProductComponent implements OnInit {
     });
   }
 
-
   private setupEditMode(): void {
     this.dialogAction = "Edit";
     this.action = "Update";
     this.productForm.patchValue(this.dialogData.data);
     
-    // Load existing images if available
-    if (this.dialogData.data.images && Array.isArray(this.dialogData.data.images)) {
-      this.existingImages = this.dialogData.data.images.map((img: any) => ({
-        id: img.id,
-        imagePath: img.imagePath
-      }));
+    // Load both active and deleted images
+    if (this.dialogData.data.id) {
+      this.loadActiveImages(this.dialogData.data.id);
+      this.loadDeletedImages(this.dialogData.data.id);
     }
+  }
+
+  private loadActiveImages(productId: number): void {
+    this.productService.getActiveImages(productId).subscribe({
+      next: (images: ImageItem[]) => {
+        this.activeImages = images;
+        this.existingImages = images; // For compatibility with existing code
+      },
+      error: (error: any) => {
+        this.handleError(error);
+      }
+    });
+  }
+
+  private loadDeletedImages(productId: number): void {
+    this.productService.getDeletedImages(productId).subscribe({
+      next: (images: ImageItem[]) => {
+        this.deletedImages = images;
+      },
+      error: (error: any) => {
+        this.handleError(error);
+      }
+    });
+  }
+
+  restoreImage(image: ImageItem): void {
+    this.productService.restoreImage(image.id).subscribe({
+      next: (response: any) => {
+        // Move image from deleted to active
+        this.deletedImages = this.deletedImages.filter(img => img.id !== image.id);
+        this.activeImages.push(image);
+        this.existingImages = this.activeImages; // Update existingImages for consistency
+        
+        this.snackbarService.openSnackBar("Image restored successfully", "success");
+      },
+      error: (error: any) => {
+        this.handleError(error);
+      }
+    });
   }
 
   onFileSelected(event: any): void {
@@ -104,9 +141,12 @@ export class ProductComponent implements OnInit {
   removeExistingImage(image: ImageItem): void {
     if (image && image.id) {
       this.deletedImageIds.push(image.id);
-      this.existingImages = this.existingImages.filter(img => img.id !== image.id);
+      this.activeImages = this.activeImages.filter(img => img.id !== image.id);
+      this.existingImages = this.activeImages; // Update existingImages for consistency
+      this.deletedImages.push(image); // Add to deleted images immediately for UI feedback
     }
   }
+  
   private createFormData(): FormData {
     const formData = new FormData();
     const formValue = this.productForm.value;
