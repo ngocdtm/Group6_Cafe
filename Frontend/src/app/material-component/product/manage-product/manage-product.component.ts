@@ -13,7 +13,6 @@ import { ProductComponent } from '../product/product.component';
 import { forkJoin } from 'rxjs';
 import { ProductHistoryComponent } from '../product-history/product-history.component';
 
-
 @Component({
   selector: 'app-manage-product',
   templateUrl: './manage-product.component.html',
@@ -21,9 +20,8 @@ import { ProductHistoryComponent } from '../product-history/product-history.comp
 })
 export class ManageProductComponent implements OnInit {
 
-
   displayedColumns: string[] = ['images', 'name', 'categoryName', 'price', 'originalPrice', 'action'];
- 
+  
   dataSource: MatTableDataSource<any>;
   activeDataSource: MatTableDataSource<any>;
   deletedDataSource: MatTableDataSource<any>;
@@ -32,7 +30,6 @@ export class ManageProductComponent implements OnInit {
   selectedCategory: string = '';
   searchText: string = '';
   selectedTab: number = 0;
-
 
   constructor(
     public productService: ProductService,
@@ -46,11 +43,9 @@ export class ManageProductComponent implements OnInit {
     this.deletedDataSource = new MatTableDataSource();
   }
 
-
   ngOnInit(): void {
     this.loadAllData();
   }
-
 
   loadAllData() {
     this.ngxService.start();
@@ -61,7 +56,7 @@ export class ManageProductComponent implements OnInit {
     }).subscribe({
       next: (response: any) => {
         this.ngxService.stop();
-       
+        
         // Process active products
         this.activeDataSource = new MatTableDataSource(
           response.active.map((product: any) => ({
@@ -69,7 +64,7 @@ export class ManageProductComponent implements OnInit {
             images: product.images || []
           }))
         );
-       
+        
         // Process deleted products
         this.deletedDataSource = new MatTableDataSource(
           response.deleted.map((product: any) => ({
@@ -78,13 +73,11 @@ export class ManageProductComponent implements OnInit {
           }))
         );
 
-
         // Gather all unique categories from both active and deleted products
         this.categories = new Set([
           ...response.active.map((product: any) => product.categoryName),
           ...response.deleted.map((product: any) => product.categoryName)
         ]);
-
 
         // Apply filters for both tables
         this.applyFilters();
@@ -95,7 +88,6 @@ export class ManageProductComponent implements OnInit {
     });
   }
 
-
   loadData() {
     if (this.selectedTab === 0) {
       this.loadActiveProducts();
@@ -103,7 +95,6 @@ export class ManageProductComponent implements OnInit {
       this.loadDeletedProducts();
     }
   }
-
 
   loadActiveProducts() {
     this.productService.getActiveProducts().subscribe(
@@ -123,7 +114,6 @@ export class ManageProductComponent implements OnInit {
     );
   }
 
-
   loadDeletedProducts() {
     this.productService.getDeletedProducts().subscribe(
       (response: any) => {
@@ -142,14 +132,12 @@ export class ManageProductComponent implements OnInit {
     );
   }
 
-
   onTabChange(event: any) {
     this.selectedTab = event.index;
     this.searchText = '';
     this.selectedCategory = '';
     this.loadData();
   }
-
 
   handleRestoreAction(values: any) {
     const dialogConfig = new MatDialogConfig();
@@ -165,7 +153,6 @@ export class ManageProductComponent implements OnInit {
     });
   }
 
-
   restoreProduct(id: number) {
     this.productService.restoreProduct(id).subscribe(
       (response: any) => {
@@ -180,7 +167,6 @@ export class ManageProductComponent implements OnInit {
     );
   }
 
-
   private handleError(error: any) {
     this.ngxService.stop();
     console.log(error);
@@ -192,7 +178,6 @@ export class ManageProductComponent implements OnInit {
     this.snackbarService.openSnackBar(this.responseMessage, GlobalConstants.error);
   }
 
-
   viewImages(product: any): void {
     const images = product.images.map((image: any) => this.productService.getImageUrl(image.imagePath));
     this.dialog.open(ImagePreviewDialogComponent, {
@@ -200,7 +185,7 @@ export class ManageProductComponent implements OnInit {
       data: { images: images }
     });
   }
- 
+  
   tableData() {
     this.productService.getProduct().subscribe(
       (response: any) => {
@@ -234,39 +219,33 @@ export class ManageProductComponent implements OnInit {
     });
   }
 
-
    applyFilters() {
     const filterFunction = (data: any): boolean => {
-      const matchesSearch = this.searchText ?
+      const matchesSearch = this.searchText ? 
         data.name.toLowerCase().includes(this.searchText.toLowerCase()) : true;
-     
-      const matchesCategory = this.selectedCategory ?
+      
+      const matchesCategory = this.selectedCategory ? 
         data.categoryName === this.selectedCategory : true;
-     
+      
       return matchesSearch && matchesCategory;
     };
 
-
     this.activeDataSource.filterPredicate = filterFunction;
     this.deletedDataSource.filterPredicate = filterFunction;
-
 
     // Trigger filtering for both data sources
     this.activeDataSource.filter = 'trigger';
     this.deletedDataSource.filter = 'trigger';
   }
 
-
   onSearch(event: Event) {
     this.searchText = (event.target as HTMLInputElement).value;
     this.applyFilters();
   }
 
-
   onCategoryChange() {
     this.applyFilters();
   }
-
 
   clearFilters() {
     this.searchText = '';
@@ -274,14 +253,12 @@ export class ManageProductComponent implements OnInit {
     this.applyFilters();
   }
 
-
   viewHistory(product: any) {
     const dialogConfig = new MatDialogConfig();
     dialogConfig.data = { productId: product.id };
     dialogConfig.width = "800px";
     this.dialog.open(ProductHistoryComponent, dialogConfig);
   }
-
 
   handleAddAction(){
     const dialogConfig = new MatDialogConfig();
@@ -297,7 +274,6 @@ export class ManageProductComponent implements OnInit {
       this.tableData();
     });
   }
-
 
   handleEditAction(values:any){
     const dialogConfig = new MatDialogConfig();
@@ -315,7 +291,6 @@ export class ManageProductComponent implements OnInit {
     });
   }
 
-
   handleDeleteAction(values:any){
     const dialogConfig = new MatDialogConfig();
     dialogConfig.data = {
@@ -330,7 +305,6 @@ export class ManageProductComponent implements OnInit {
     });
   }
 
-
   deleteProduct(id: any) {
     this.productService.delete(id).subscribe(
       (response: any) => {
@@ -344,7 +318,6 @@ export class ManageProductComponent implements OnInit {
       }
     );
   }
-
 
   onChange(status:any,id:any){
     this.ngxService.start();
@@ -368,4 +341,3 @@ export class ManageProductComponent implements OnInit {
     })
   }
 }
-

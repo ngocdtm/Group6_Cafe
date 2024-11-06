@@ -4,7 +4,6 @@
   padding: 20px;
 }
 
-
 .header-container {
   display: flex;
   justify-content: space-between;
@@ -12,25 +11,22 @@
   margin-bottom: 20px;
 }
 
-
 .title {
   font-size: 24px;
   font-weight: bold;
 }
 
-
 .tab-container {
   margin-top: 20px;
- 
+  
   ::ng-deep .mat-tab-labels {
     justify-content: center;
   }
- 
+  
   ::ng-deep .mat-tab-label {
     min-width: 200px;
   }
 }
-
 
 .search-container {
   margin: 20px 0;
@@ -39,19 +35,18 @@
   border-radius: 4px;
 }
 
-
 .table-container {
   margin: 20px 0;
   overflow: auto;
- 
+  
   table {
     width: 100%;
-   
+    
     th.mat-header-cell,
     td.mat-cell {
       padding: 12px 16px;
     }
-   
+    
     th.mat-header-cell {
       font-weight: bold;
       background: #f5f5f5;
@@ -59,21 +54,18 @@
   }
 }
 
-
 .action-link {
   button {
     margin: 0 4px;
   }
 }
 
-
 .image-preview-cell {
   display: flex;
   align-items: center;
- 
+  
   .image-count {
     margin-left: 4px;
     color: #666;
   }
 }
-

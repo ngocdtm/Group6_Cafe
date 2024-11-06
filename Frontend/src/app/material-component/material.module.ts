@@ -30,6 +30,7 @@ import { RemoveStockComponent } from './inventory/remove-stock/remove-stock.comp
 import { ViewTransactionHistoryComponent } from './inventory/view-transaction-history/view-transaction-history.component';
 import { UpdateMinMaxStockComponent } from './inventory/update-min-max-stock/update-min-max-stock.component';
 import { ProductHistoryComponent } from './product/product-history/product-history.component';
+import { StatisticsComponent } from './statistics/statistics.component';
 
 @NgModule({
   imports: [
@@ -66,7 +67,8 @@ import { ProductHistoryComponent } from './product/product-history/product-histo
     RemoveStockComponent,
     ViewTransactionHistoryComponent,
     UpdateMinMaxStockComponent,
-    ProductHistoryComponent
+    ProductHistoryComponent,
+    StatisticsComponent
   ]
 })
 export class MaterialComponentsModule {}

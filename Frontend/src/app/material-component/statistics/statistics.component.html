@@ -1,0 +1,86 @@
+<div class="container mx-auto p-6">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+      <!-- Filter Section -->
+      <form [formGroup]="filterForm" class="mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Time Frame Selection -->
+          <mat-form-field class="w-full">
+            <mat-label>Time Frame</mat-label>
+            <mat-select formControlName="timeFrame" [disabled]="filterForm.get('useCustomDates')?.value">
+              <mat-option *ngFor="let option of timeFrameOptions" [value]="option.value">
+                {{option.label}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+  
+          <!-- Custom Date Range Toggle -->
+          <div class="flex items-center">
+            <mat-checkbox formControlName="useCustomDates">Use Custom Date Range</mat-checkbox>
+          </div>
+  
+          <!-- Date Range Pickers -->
+          <mat-form-field class="w-full">
+            <mat-label>Start Date</mat-label>
+            <input matInput [matDatepicker]="startPicker" formControlName="startDate" 
+                   [disabled]="!filterForm.get('useCustomDates')?.value">
+            <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+            <mat-datepicker #startPicker></mat-datepicker>
+          </mat-form-field>
+  
+          <mat-form-field class="w-full">
+            <mat-label>End Date</mat-label>
+            <input matInput [matDatepicker]="endPicker" formControlName="endDate"
+                   [disabled]="!filterForm.get('useCustomDates')?.value">
+            <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+            <mat-datepicker #endPicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+  
+        <!-- Apply Filter Button -->
+        <div class="flex justify-end mt-4">
+          <button mat-raised-button color="primary" (click)="loadStatistics()">
+            Apply Filters
+          </button>
+        </div>
+      </form>
+  
+      <!-- Statistics Tabs -->
+      <mat-tab-group (selectedTabChange)="onTabChanged($event)" [selectedIndex]="selectedTab" 
+                     class="statistics-tabs">
+        <!-- Revenue Tab -->
+        <mat-tab label="Revenue">
+          <div class="chart-container">
+            <canvas id="revenue"></canvas>
+          </div>
+        </mat-tab>
+  
+        <!-- Profit Tab -->
+        <mat-tab label="Profit">
+          <div class="chart-container">
+            <canvas id="profit"></canvas>
+          </div>
+        </mat-tab>
+  
+        <!-- Orders Tab -->
+        <mat-tab label="Orders">
+          <div class="chart-container">
+            <canvas id="orders"></canvas>
+          </div>
+        </mat-tab>
+  
+        <!-- Category Performance Tab -->
+        <mat-tab label="Category Performance">
+          <div class="chart-container">
+            <canvas id="category"></canvas>
+          </div>
+        </mat-tab>
+  
+        <!-- Inventory Turnover Tab -->
+        <mat-tab label="Inventory Turnover">
+          <div class="chart-container">
+            <canvas id="inventory"></canvas>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
+  </div>
