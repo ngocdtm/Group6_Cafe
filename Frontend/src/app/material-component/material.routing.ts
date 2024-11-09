@@ -7,7 +7,7 @@ import { ViewBillComponent } from './view-bill/view-bill.component';
 import { ManageUserComponent } from './manage-user/manage-user.component';
 import { ManageCouponComponent } from './manage-coupon/manage-coupon.component';
 import { ManageInventoryComponent } from './inventory/manage-inventory/manage-inventory.component';
-import { StatisticsComponent } from './statistics/statistics.component';
+import { StatisticsDashboardComponent } from './statistics-dashboard/statistics-dashboard.component';
 
 export const MaterialRoutes: Routes = [
   {
@@ -68,7 +68,7 @@ export const MaterialRoutes: Routes = [
   },
   {
     path: 'statistics',
-    component:StatisticsComponent,
+    component:StatisticsDashboardComponent,
     canActivate:[RouteGuardService],
     data:{
       expectedRole: ['ADMIN']

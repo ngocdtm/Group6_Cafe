@@ -4,10 +4,7 @@ import com.coffee.constants.CafeConstants;
 import com.coffee.entity.*;
 import com.coffee.enums.OrderStatus;
 import com.coffee.enums.OrderType;
-import com.coffee.repository.BillRepository;
-import com.coffee.repository.CouponRepository;
-import com.coffee.repository.ProductRepository;
-import com.coffee.repository.UserRepository;
+import com.coffee.repository.*;
 import com.coffee.security.JwtRequestFilter;
 import com.coffee.service.BillService;
 import com.coffee.service.InventoryService;
@@ -54,6 +51,12 @@ public class BillServiceImpl implements BillService {
 
     @Autowired
     CouponRepository couponRepository;
+
+    @Autowired
+    InventorySnapshotRepository inventorySnapshotRepository;
+
+    @Autowired
+    InventoryRepository inventoryRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -121,10 +124,19 @@ public class BillServiceImpl implements BillService {
         for (BillItem billItem : bill.getBillItems()) {
             try {
                 Integer productId = billItem.getOriginalProductId();
-                Optional<Product> productOpt = productRepository.findById(productId);
-                if (productOpt.isPresent()) {
+                Optional<Inventory> inventoryOpt = inventoryRepository.findByProductId(productId);
+                if (inventoryOpt.isPresent()) {
+                    Inventory inventory = inventoryOpt.get();
                     int quantity = billItem.getQuantity();
                     inventoryService.removeStock(productId, quantity, "Order #" + bill.getUuid());
+
+                    // Create new InventorySnapshot
+                    InventorySnapshot snapshot = new InventorySnapshot();
+                    snapshot.setProduct(inventory.getProduct());
+                    snapshot.setQuantity(inventory.getQuantity());
+                    snapshot.setSnapshotDate(LocalDate.now());
+                    snapshot.setCreatedAt(LocalDateTime.now());
+                    inventorySnapshotRepository.save(snapshot);
                 } else {
                     // Log warning nếu product không tồn tại (có thể đã bị xóa hoàn toàn)
                     log.warn("Product with ID {} not found while updating inventory for Order #{}",
