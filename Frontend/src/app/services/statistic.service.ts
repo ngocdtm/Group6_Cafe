@@ -1,81 +1,208 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { DatePipe } from '@angular/common';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
-export interface StatisticsTimeFrame {
-  timeFrame?: string;
-  startDate?: Date;
-  endDate?: Date;
+// Enums
+export enum OrderStatus {
+  PENDING = 'PENDING',
+  CONFIRMED = 'CONFIRMED',
+  PROCESSING = 'PROCESSING',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED'
+}
+
+export enum OrderType {
+  ONLINE = 'ONLINE',
+  IN_STORE = 'IN_STORE'
+}
+
+export enum StockLevel {
+  OUT_OF_STOCK = 'OUT_OF_STOCK',
+  IMPORT = 'IMPORT',
+  EXPORT = 'EXPORT'
+}
+
+// Interfaces
+export interface DateRange {
+  startDateTime: string;
+  endDateTime: string;
+}
+
+export interface ProductStatistics {
+  productId: number;
+  productName: string;
+  totalQuantitySold: number;
+  totalRevenue: number;
+  averageRating: number;
+  stockLevel: StockLevel;
+}
+
+export interface CategoryStatistics {
+  categoryId: number;
+  categoryName: string;
+  totalProducts: number;
+  totalSales: number;
+  totalRevenue: number;
+  percentageOfTotalSales: number;
+}
+
+export interface CategoryPerformance {
+  categoryId: number;
+  categoryName: string;
+  productCount: number;
+  totalQuantitySold: number;
+  totalRevenue: number;
+}
+
+export interface InventoryTurnover {
+  productId: number;
+  productName: string;
+  beginningInventory: number;
+  endingInventory: number;
+  soldQuantity: number;
+  turnoverRate: number;
+  averageInventory: number;
+}
+
+export interface DashboardSummary {
+  todayOrders: number;
+  todayRevenue: number;
+  revenueGrowth: number;
+  lowStockItems: number;
+  bestSellers: ProductStatistics[];
+  categoryPerformance: CategoryPerformance[];
+  monthlyOrdersTrend: { [key: string]: number };
+  monthlyRevenueTrend: { [key: string]: number };
+  dateRanges: { [key: string]: DateRange };
 }
 
 @Injectable({
   providedIn: 'root'
 })
-
 export class StatisticsService {
   private url = environment.apiUrl;
 
-  constructor(private httpClient: HttpClient) { }
-
-  getRevenueStatistics(params: StatisticsTimeFrame): Observable<any> {
-    return this.httpClient.get(`${this.url}/api/v1/statistics/revenue`, {
-      params: this.buildParams(params)
+  constructor(
+    private httpClient: HttpClient,
+    private datePipe: DatePipe
+  ) { }
+  
+  private getHeaders(): HttpHeaders {
+    // Lấy token từ localStorage hoặc service quản lý auth
+    const token = localStorage.getItem('auth_token');
+    return new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
     });
   }
-
-  getProfitStatistics(params: StatisticsTimeFrame): Observable<any> {
-    return this.httpClient.get(`${this.url}/api/v1/statistics/profit`, {
-      params: this.buildParams(params)
-    });
+  
+  getRevenueStatistics(
+    timeFrame: string = 'monthly',
+    specificDate?: any,
+    startDate?: any, 
+    endDate?: any
+  ): Observable<any> {
+    const params = this.buildParams(timeFrame, specificDate, startDate, endDate);
+    return this.httpClient.get<any>(
+      `${this.url}/api/v1/statistics/revenue`, 
+      { params, headers: this.getHeaders() }
+    );
   }
 
-  getBestSellingProducts(startDate?: Date, endDate?: Date, limit: number = 10): Observable<any> {
-    let params = new HttpParams();
-    if (startDate) params = params.set('startDate', startDate.toISOString().split('T')[0]);
-    if (endDate) params = params.set('endDate', endDate.toISOString().split('T')[0]);
-    params = params.set('limit', limit.toString());
-
-    return this.httpClient.get(`${this.url}/api/v1/statistics/best-selling`, { params });
+  getProfitStatistics(
+    timeFrame: string = 'monthly',
+    specificDate?: any,
+    startDate?: any,
+    endDate?: any
+  ): Observable<any> {
+    const params = this.buildParams(timeFrame, specificDate, startDate, endDate);
+    return this.httpClient.get<any>(
+      `${this.url}/api/v1/statistics/profit`,
+      { params, headers: this.getHeaders() }
+    );
   }
 
-  getCategoryPerformance(startDate?: Date, endDate?: Date): Observable<any> {
-    return this.httpClient.get(`${this.url}/api/v1/statistics/category-performance`, {
-      params: this.buildParams({ startDate, endDate })
-    });
+  getCategoryPerformance(
+    timeFrame: string = 'monthly',
+    specificDate?: any,
+    startDate?: any,
+    endDate?: any
+  ): Observable<any> {
+    const params = this.buildParams(timeFrame, specificDate, startDate, endDate);
+    return this.httpClient.get<any>(
+      `${this.url}/api/v1/statistics/category-performance`,
+      { params, headers: this.getHeaders() }
+    );
   }
 
-  getOrderStatistics(params: StatisticsTimeFrame): Observable<any> {
-    return this.httpClient.get(`${this.url}/api/v1/statistics/orders`, {
-      params: this.buildParams(params)
-    });
+  getOrderStatistics(
+    timeFrame: string = 'monthly',
+    specificDate?: any,
+    startDate?: any,
+    endDate?: any
+  ): Observable<any> {
+    const params = this.buildParams(timeFrame, specificDate, startDate, endDate);
+    return this.httpClient.get<any>(
+      `${this.url}/api/v1/statistics/orders`,
+      { params, headers: this.getHeaders() }
+    );
   }
 
-  getInventoryTurnover(startDate?: Date, endDate?: Date): Observable<any> {
-    return this.httpClient.get(`${this.url}/api/v1/statistics/inventory-turnover`, {
-      params: this.buildParams({ startDate, endDate })
-    });
+  getInventoryTurnover(
+    timeFrame: string = 'monthly',
+    specificDate?: any,
+    startDate?: any,
+    endDate?: any
+  ): Observable<any> {
+    const params = this.buildParams(timeFrame, specificDate, startDate, endDate);
+    return this.httpClient.get<any>(
+      `${this.url}/api/v1/statistics/inventory-turnover`,
+      { params, headers: this.getHeaders() }
+    );
   }
 
   getDashboardSummary(): Observable<any> {
-    return this.httpClient.get(`${this.url}/api/v1/statistics/dashboard-summary`);
+    return this.httpClient.get<any>(
+      `${this.url}/api/v1/statistics/dashboard-summary`,
+      { headers: this.getHeaders() }
+    );
   }
 
-  private buildParams(params: StatisticsTimeFrame): HttpParams {
-    let httpParams = new HttpParams();
-    
-    if (params.timeFrame) {
-      httpParams = httpParams.set('timeFrame', params.timeFrame);
-    }
-    
-    if (params.startDate) {
-      httpParams = httpParams.set('startDate', params.startDate.toISOString().split('T')[0]);
-    }
-    
-    if (params.endDate) {
-      httpParams = httpParams.set('endDate', params.endDate.toISOString().split('T')[0]);
-    }
-    
-    return httpParams;
+  private formatDate(date: any): string | null {
+    if (!date) return null;
+    // Chuyển đổi date object thành string format yyyy-MM-dd
+    return this.datePipe.transform(date, 'yyyy-MM-dd');
   }
+
+  private buildParams(timeFrame: string, specificDate?: any, startDate?: any, endDate?: any): { [key: string]: string } {
+    const params: { [key: string]: string } = {
+      timeFrame
+    };
+
+    if (specificDate) {
+      const formattedSpecificDate = this.formatDate(specificDate);
+      if (formattedSpecificDate) {
+        params.specificDate = formattedSpecificDate;
+      }
+    }
+    
+    if (startDate) {
+      const formattedStartDate = this.formatDate(startDate);
+      if (formattedStartDate) {
+        params.startDate = formattedStartDate;
+      }
+    }
+    
+    if (endDate) {
+      const formattedEndDate = this.formatDate(endDate);
+      if (formattedEndDate) {
+        params.endDate = formattedEndDate;
+      }
+    }
+
+    return params;
+  }
+
 }

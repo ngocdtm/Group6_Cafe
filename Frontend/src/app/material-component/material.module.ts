@@ -1,7 +1,6 @@
-import { CdkTableModule } from "@angular/cdk/table";
-import { CommonModule } from "@angular/common";
+import { CommonModule, DatePipe } from "@angular/common";
 import { HttpClientModule } from "@angular/common/http";
-import { NgModule } from "@angular/core";
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { FlexLayoutModule } from "@angular/flex-layout";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { RouterModule } from "@angular/router";
@@ -30,7 +29,18 @@ import { RemoveStockComponent } from './inventory/remove-stock/remove-stock.comp
 import { ViewTransactionHistoryComponent } from './inventory/view-transaction-history/view-transaction-history.component';
 import { UpdateMinMaxStockComponent } from './inventory/update-min-max-stock/update-min-max-stock.component';
 import { ProductHistoryComponent } from './product/product-history/product-history.component';
-import { StatisticsComponent } from './statistics/statistics.component';
+import { CdkTableModule } from "@angular/cdk/table";
+import { NgxChartsModule } from "@swimlane/ngx-charts";
+import { StatisticsDashboardComponent } from './statistics-dashboard/statistics-dashboard.component';
+import { MatButtonModule } from "@angular/material/button";
+import { MatCardModule } from "@angular/material/card";
+import { MatNativeDateModule } from "@angular/material/core";
+import { MatDatepickerModule } from "@angular/material/datepicker";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatIconModule } from "@angular/material/icon";
+import { MatInputModule } from "@angular/material/input";
+import { MatMenuModule } from "@angular/material/menu";
+import { MatSelectModule } from "@angular/material/select";
 
 @NgModule({
   imports: [
@@ -42,8 +52,20 @@ import { StatisticsComponent } from './statistics/statistics.component';
     ReactiveFormsModule,
     FlexLayoutModule,
     CdkTableModule,
+    NgxChartsModule,
+    MatCardModule,
+    MatCardModule,
+    MatIconModule,
+    MatButtonModule,
+    MatSelectModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatMenuModule
   ],
-  providers: [],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  providers: [DatePipe],
   declarations: [
     ViewBillProductsComponent,
     ConfirmationComponent,
@@ -68,7 +90,7 @@ import { StatisticsComponent } from './statistics/statistics.component';
     ViewTransactionHistoryComponent,
     UpdateMinMaxStockComponent,
     ProductHistoryComponent,
-    StatisticsComponent
+    StatisticsDashboardComponent
   ]
 })
 export class MaterialComponentsModule {}

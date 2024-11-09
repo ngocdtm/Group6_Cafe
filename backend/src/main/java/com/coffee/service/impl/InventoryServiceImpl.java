@@ -1,6 +1,5 @@
 package com.coffee.service.impl;
 
-
 import com.coffee.constants.CafeConstants;
 import com.coffee.entity.Inventory;
 import com.coffee.entity.InventorySnapshot;
@@ -25,41 +24,32 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
 @Service
 @Transactional
 public class InventoryServiceImpl implements InventoryService {
 
-
     private static final Logger log = LoggerFactory.getLogger(InventoryServiceImpl.class);
-
 
     @Autowired
     private InventorySnapshotRepository inventorySnapshotRepository;
 
-
     @Autowired
     private InventoryRepository inventoryRepository;
-
 
     @Autowired
     private InventoryTransactionRepository transactionRepository;
 
-
     @Autowired
     private ProductRepository productRepository;
 
-
     @Autowired
     private JwtRequestFilter jwtRequestFilter;
-
 
     @Override
     @Transactional
@@ -69,17 +59,14 @@ public class InventoryServiceImpl implements InventoryService {
                 return CafeUtils.getResponseEntity(CafeConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
             }
 
-
             if (quantity <= 0) {
                 return CafeUtils.getResponseEntity("Quantity must be greater than 0", HttpStatus.BAD_REQUEST);
             }
-
 
             Optional<Product> productOptional = productRepository.findById(productId);
             if (productOptional.isEmpty()) {
                 return CafeUtils.getResponseEntity("Product not found", HttpStatus.NOT_FOUND);
             }
-
 
             Product product = productOptional.get();
             // Nếu thêm stock cho sản phẩm đang OUT_OF_STOCK, cập nhật lại status
@@ -87,7 +74,6 @@ public class InventoryServiceImpl implements InventoryService {
                 product.setStatus("true");
                 productRepository.save(product);
             }
-
 
             Inventory inventory = inventoryRepository.findByProductId(productId)
                     .orElseGet(() -> {
@@ -100,7 +86,6 @@ public class InventoryServiceImpl implements InventoryService {
                         return newInventory;
                     });
 
-
             // Kiểm tra số lượng tối đa nếu maxQuantity được thiết lập
             Integer maxQty = inventory.getMaxQuantity();
             if (maxQty != null && (inventory.getQuantity() + quantity) > maxQty) {
@@ -111,12 +96,10 @@ public class InventoryServiceImpl implements InventoryService {
                 );
             }
 
-
             // Cập nhật số lượng tồn kho
             inventory.setQuantity(inventory.getQuantity() + quantity);
             inventory.setLastUpdated(LocalDateTime.now());
             inventoryRepository.save(inventory);
-
 
             // Ghi lại lịch sử giao dịch
             InventoryTransaction transaction = new InventoryTransaction();
@@ -128,7 +111,6 @@ public class InventoryServiceImpl implements InventoryService {
             transaction.setCreatedBy(jwtRequestFilter.getCurrentUser());
             transactionRepository.save(transaction);
 
-
             // Ghi lại snapshot cho inventory
             InventorySnapshot snapshot = new InventorySnapshot();
             snapshot.setProduct(product);
@@ -137,14 +119,12 @@ public class InventoryServiceImpl implements InventoryService {
             snapshot.setCreatedAt(LocalDateTime.now());
             inventorySnapshotRepository.save(snapshot);
 
-
             return CafeUtils.getResponseEntity("Stock added successfully", HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(CafeConstants.SOMETHING_WENT_WRONG, ex);
         }
     }
-
 
     @Override
     @Transactional
@@ -154,29 +134,24 @@ public class InventoryServiceImpl implements InventoryService {
 //                return CafeUtils.getResponseEntity(CafeConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
 //            }
 
-
             Inventory inventory = inventoryRepository.findByProductId(productId)
                     .orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));
-
 
             // Kiểm tra số lượng hàng cần trừ
             if (inventory.getQuantity() < quantity) {
                 return CafeUtils.getResponseEntity("Insufficient stock", HttpStatus.BAD_REQUEST);
             }
 
-
             // Cập nhật số lượng tồn kho
             int newQuantity = inventory.getQuantity() - quantity;
             inventory.setQuantity(newQuantity);
             inventory.setLastUpdated(LocalDateTime.now());
-
 
             // Nếu số lượng = 0, cập nhật trạng thái sản phẩm thành OUT_OF_STOCK
             if (newQuantity == 0) {
                 Product product = inventory.getProduct();
                 product.setStatus("OUT_OF_STOCK");
                 productRepository.save(product);
-
 
                 // Ghi lại transaction cho việc hết hàng
                 InventoryTransaction outOfStockTrans = new InventoryTransaction();
@@ -189,9 +164,7 @@ public class InventoryServiceImpl implements InventoryService {
                 transactionRepository.save(outOfStockTrans);
             }
 
-
             inventoryRepository.save(inventory);
-
 
             // Ghi lại lịch sử giao dịch xuất hàng
             InventoryTransaction transaction = new InventoryTransaction();
@@ -203,7 +176,6 @@ public class InventoryServiceImpl implements InventoryService {
             transaction.setCreatedBy(jwtRequestFilter.getCurrentUser());
             transactionRepository.save(transaction);
 
-
             // Ghi lại snapshot cho inventory
             InventorySnapshot snapshot = new InventorySnapshot();
             snapshot.setProduct(inventory.getProduct());
@@ -211,7 +183,6 @@ public class InventoryServiceImpl implements InventoryService {
             snapshot.setSnapshotDate(LocalDate.now());
             snapshot.setCreatedAt(LocalDateTime.now());
             inventorySnapshotRepository.save(snapshot);
-
 
             return CafeUtils.getResponseEntity("Stock removed successfully", HttpStatus.OK);
         } catch (ResourceNotFoundException ex) {
@@ -222,7 +193,6 @@ public class InventoryServiceImpl implements InventoryService {
         }
     }
 
-
     @Override
     public ResponseEntity<InventoryWrapper> getInventoryStatus(Integer productId) {
         try {
@@ -230,7 +200,6 @@ public class InventoryServiceImpl implements InventoryService {
             if (inventoryOptional.isEmpty()) {
                 return new ResponseEntity<>(new InventoryWrapper(), HttpStatus.NOT_FOUND);
             }
-
 
             Inventory inventory = inventoryOptional.get();
             InventoryWrapper wrapper = new InventoryWrapper(
@@ -243,7 +212,6 @@ public class InventoryServiceImpl implements InventoryService {
                     inventory.getLastUpdated()
             );
 
-
             return new ResponseEntity<>(wrapper, HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -251,12 +219,10 @@ public class InventoryServiceImpl implements InventoryService {
         }
     }
 
-
     @Override
     public ResponseEntity<List<InventoryWrapper>> getLowStockProducts() {
         try {
             List<Inventory> lowStockInventories = inventoryRepository.findLowStockInventories();
-
 
             List<InventoryWrapper> wrappers = lowStockInventories.stream()
                     .map(inventory -> new InventoryWrapper(
@@ -270,7 +236,6 @@ public class InventoryServiceImpl implements InventoryService {
                     ))
                     .collect(Collectors.toList());
 
-
             return new ResponseEntity<>(wrappers, HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -278,12 +243,10 @@ public class InventoryServiceImpl implements InventoryService {
         }
     }
 
-
     @Override
     public ResponseEntity<List<InventoryTransactionWrapper>> getTransactionHistory(Integer productId) {
         try {
             List<InventoryTransaction> transactions = transactionRepository.findByProductIdOrderByTransactionDateDesc(productId);
-
 
             List<InventoryTransactionWrapper> wrappers = transactions.stream()
                     .map(transaction -> new InventoryTransactionWrapper(
@@ -298,14 +261,12 @@ public class InventoryServiceImpl implements InventoryService {
                     ))
                     .collect(Collectors.toList());
 
-
             return new ResponseEntity<>(wrappers, HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
             return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
 
     @Override
     public ResponseEntity<List<InventoryWrapper>> getAllInventory() {
@@ -314,9 +275,7 @@ public class InventoryServiceImpl implements InventoryService {
                 return new ResponseEntity<>(new ArrayList<>(), HttpStatus.UNAUTHORIZED);
             }
 
-
             List<Inventory> inventories = inventoryRepository.findAll();
-
 
             List<InventoryWrapper> wrappers = inventories.stream()
                     .map(inventory -> new InventoryWrapper(
@@ -330,14 +289,12 @@ public class InventoryServiceImpl implements InventoryService {
                     ))
                     .collect(Collectors.toList());
 
-
             return new ResponseEntity<>(wrappers, HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
             return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
 
     @Override
     @Transactional
@@ -347,24 +304,19 @@ public class InventoryServiceImpl implements InventoryService {
                 return CafeUtils.getResponseEntity(CafeConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
             }
 
-
             Inventory inventory = inventoryRepository.findByProductId(productId)
                     .orElseThrow(() -> new ResourceNotFoundException("Product not found in inventory"));
-
 
             if (minQuantity != null) {
                 inventory.setMinQuantity(minQuantity);
             }
 
-
             if (maxQuantity != null) {
                 inventory.setMaxQuantity(maxQuantity);
             }
 
-
             inventory.setLastUpdated(LocalDateTime.now());
             inventoryRepository.save(inventory);
-
 
             return CafeUtils.getResponseEntity("Min and max stock updated successfully", HttpStatus.OK);
         } catch (ResourceNotFoundException ex) {
@@ -374,7 +326,6 @@ public class InventoryServiceImpl implements InventoryService {
             throw new RuntimeException(CafeConstants.SOMETHING_WENT_WRONG, ex);
         }
     }
-
 
     public Map<Integer, Integer> getInventorySnapshotForDate(LocalDate date) {
         List<InventorySnapshot> snapshots = inventorySnapshotRepository.findLatestSnapshotBeforeDate(date);
@@ -388,7 +339,6 @@ public class InventoryServiceImpl implements InventoryService {
                         InventorySnapshot::getQuantity
                 ));
     }
-
 
     private Map<Integer, Integer> calculateInventoryFromTransactions(LocalDate date) {
         List<InventoryTransaction> transactions = transactionRepository
@@ -406,10 +356,8 @@ public class InventoryServiceImpl implements InventoryService {
         return inventoryMap;
     }
 
-
     @Override
     public InventorySnapshot getLatestInventorySnapshot(Integer productId) {
         return inventorySnapshotRepository.findTopByProductIdOrderBySnapshotDateDescCreatedAtDesc(productId);
     }
 }
-
