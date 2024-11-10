@@ -2,22 +2,30 @@ package com.coffee.controller;
 
 import com.coffee.entity.InventorySnapshot;
 import com.coffee.service.InventoryService;
+import com.coffee.service.impl.ShoppingCartServiceImpl;
+import com.coffee.wrapper.InventorySnapshotWrapper;
 import com.coffee.wrapper.InventoryTransactionWrapper;
 import com.coffee.wrapper.InventoryWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/inventory")
 public class InventoryController {
+
+    private static final Logger log = LoggerFactory.getLogger(InventoryController.class);
 
     @Autowired
     private InventoryService inventoryService;
@@ -102,14 +110,35 @@ public class InventoryController {
     }
 
     @GetMapping("/snapshot/{date}")
-    public ResponseEntity<Map<Integer, Integer>> getInventorySnapshotForDate(@PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
-        Map<Integer, Integer> snapshot = inventoryService.getInventorySnapshotForDate(date);
-        return ResponseEntity.ok(snapshot);
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<?> getInventorySnapshotForDate(
+            @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
+        try {
+            Map<Integer, Integer> snapshot = inventoryService.getInventorySnapshotForDate(date);
+            return ResponseEntity.ok(snapshot);
+        } catch (Exception e) {
+            log.error("Error getting inventory snapshot for date: {}", date, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new HashMap<String, String>() {{
+                        put("error", "Failed to retrieve inventory snapshot");
+                        put("message", e.getMessage());
+                    }});
+        }
     }
 
     @GetMapping("/snapshot/latest")
-    public ResponseEntity<InventorySnapshot> getLatestInventorySnapshot(@RequestParam Integer productId) {
-        InventorySnapshot latestSnapshot = inventoryService.getLatestInventorySnapshot(productId);
-        return ResponseEntity.ok(latestSnapshot);
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<?> getLatestInventorySnapshot(@RequestParam Integer productId) {
+        try {
+            InventorySnapshotWrapper snapshot = inventoryService.getLatestInventorySnapshotWrapper(productId);
+            return ResponseEntity.ok(snapshot);
+        } catch (Exception e) {
+            log.error("Error getting latest inventory snapshot for product: {}", productId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new HashMap<String, String>() {{
+                        put("error", "Failed to retrieve latest snapshot");
+                        put("message", e.getMessage());
+                    }});
+        }
     }
 }

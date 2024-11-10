@@ -1,5 +1,9 @@
 package com.coffee.entity;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.DynamicInsert;
@@ -17,14 +21,17 @@ import java.time.LocalDateTime;
 @Data
 @DynamicUpdate
 @DynamicInsert
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class InventorySnapshot implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER) // Changed to EAGER loading
     @JoinColumn(name = "product_id", nullable = false)
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+    @JsonIdentityReference(alwaysAsId = true)
     private Product product;
 
     @Column(name = "quantity", nullable = false)
