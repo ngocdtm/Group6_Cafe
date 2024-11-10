@@ -361,31 +361,110 @@ export class StatisticsDashboardComponent implements OnInit {
     if (this.inventoryChart) {
       this.inventoryChart.destroy();
     }
-    
+      
     const config: ChartConfiguration = {
       type: 'bar',
       data: {
         labels: data.map((item: any) => item.productName),
-        datasets: [{
-          label: 'Turnover Rate',
-          data: data.map((item: any) => item.turnoverRate) as number[],
-          backgroundColor: 'rgba(153, 102, 255, 0.5)'
-        }]
+        datasets: [
+          {
+            label: 'Beginning Inventory',
+            data: data.map((item: any) => item.beginningInventory),
+            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+            order: 1
+          },
+          {
+            label: 'Ending Inventory',
+            data: data.map((item: any) => item.endingInventory),
+            backgroundColor: 'rgba(75, 192, 192, 0.5)',
+            order: 2
+          },
+          {
+            label: 'Sold Quantity',
+            data: data.map((item: any) => item.soldQuantity),
+            backgroundColor: 'rgba(255, 206, 86, 0.5)',
+            order: 3
+          },
+          {
+            label: 'Turnover Rate',
+            data: data.map((item: any) => item.turnoverRate),
+            type: 'line',
+            borderColor: 'rgba(255, 99, 132, 1)',
+            borderWidth: 2,
+            fill: false,
+            yAxisID: 'y1',
+            order: 0
+          }
+        ]
       },
       options: {
         responsive: true,
+        interaction: {
+          intersect: false,
+          mode: 'index'
+        },
+        plugins: {
+          title: {
+            display: true,
+            text: 'Inventory Turnover Analysis'
+          },
+          tooltip: {
+            enabled: true,
+            callbacks: {
+              label: function(context) {
+                let label = context.dataset.label || '';
+                if (label) {
+                  label += ': ';
+                }
+                if (context.parsed.y !== null) {
+                  if (label.includes('Rate')) {
+                    label += context.parsed.y.toFixed(2);
+                  } else {
+                    label += context.parsed.y.toFixed(0);
+                  }
+                }
+                return label;
+              }
+            }
+          }
+        },
         scales: {
           x: {
-            display: true
+            ticks: {
+              maxRotation: 45,
+              minRotation: 45
+            }
           },
           y: {
+            type: 'linear',
             display: true,
-            beginAtZero: true
+            position: 'left',
+            title: {
+              display: true,
+              text: 'Quantity'
+            },
+            grid: {
+              drawOnChartArea: true
+            }
+          },
+          y1: {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            title: {
+              display: true,
+              text: 'Turnover Rate'
+            },
+            min: 0,
+            max: Math.max(...data.map((item: any) => item.turnoverRate)) * 1.2,
+            grid: {
+              drawOnChartArea: false
+            }
           }
         }
       }
     };
-
+  
     this.inventoryChart = new Chart(ctx, config);
   }
 

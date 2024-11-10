@@ -7,6 +7,7 @@ import com.coffee.enums.OrderStatus;
 import com.coffee.enums.OrderType;
 import com.coffee.enums.TransactionType;
 import com.coffee.repository.*;
+import com.coffee.service.InventoryService;
 import com.coffee.service.StatisticsService;
 import com.coffee.utils.DateUtils;
 import com.coffee.wrapper.*;
@@ -32,6 +33,8 @@ public class StatisticsServiceImpl implements StatisticsService {
     private BillRepository billRepository;
     @Autowired
     private InventoryRepository inventoryRepository;
+    @Autowired
+    private InventoryService inventoryService;
     @Autowired
     private InventoryTransactionRepository inventoryTransactionRepository;
 
@@ -409,38 +412,29 @@ public class StatisticsServiceImpl implements StatisticsService {
             String timeFrame, LocalDate specificDate, LocalDate startDate, LocalDate endDate) {
         try {
             DateRange dateRange = DateUtils.calculateDateRange(timeFrame, specificDate, startDate, endDate);
+
+            // Get inventory snapshots for start and end dates using inventoryService
+            Map<Integer, Integer> beginningInventory = inventoryService.getInventorySnapshotForDate(
+                    dateRange.getStartDateTime().toLocalDate()
+            );
+
+            // Get sales data
             List<Object[]> results = billRepository.findInventoryTurnover(
                     dateRange.getStartDateTime(),
                     dateRange.getEndDateTime()
             );
 
-            // Get beginning inventory from snapshot
-            Map<Integer, Integer> beginningInventory = getInventorySnapshotAtDate(
-                    dateRange.getStartDateTime().toLocalDate());
+            // Get current inventory for ending values
+            Map<Integer, Integer> endingInventory = inventoryService.getInventorySnapshotForDate(
+                    dateRange.getEndDateTime().toLocalDate()
+            );
 
             List<InventoryTurnoverWrapper> statistics = results.stream()
-                    .map(result -> {
-                        Integer productId = ((Number) result[0]).intValue();
-                        String productName = (String) result[1];
-                        Integer soldQuantity = ((Number) result[2]).intValue();
-
-                        Inventory currentInventory = inventoryRepository.findByProductId(productId)
-                                .orElse(null);
-                        Integer endingInventory = currentInventory != null ? currentInventory.getQuantity() : 0;
-                        Integer beginningInv = beginningInventory.getOrDefault(productId, 0);
-                        Double averageInventory = (beginningInv + endingInventory) / 2.0;
-                        Double turnoverRate = averageInventory > 0 ? soldQuantity / averageInventory : 0.0;
-
-                        return InventoryTurnoverWrapper.builder()
-                                .productId(productId)
-                                .productName(productName)
-                                .beginningInventory(beginningInv)
-                                .endingInventory(endingInventory)
-                                .soldQuantity(soldQuantity)
-                                .turnoverRate(turnoverRate)
-                                .averageInventory(averageInventory)
-                                .build();
-                    })
+                    .map(result -> createInventoryTurnoverWrapper(
+                            result,
+                            beginningInventory,
+                            endingInventory
+                    ))
                     .collect(Collectors.toList());
 
             return ResponseEntity.ok(statistics);
@@ -448,6 +442,30 @@ public class StatisticsServiceImpl implements StatisticsService {
             log.error("Error calculating inventory turnover", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<>());
         }
+    }
+
+    private InventoryTurnoverWrapper createInventoryTurnoverWrapper(
+            Object[] result,
+            Map<Integer, Integer> beginningInventory,
+            Map<Integer, Integer> endingInventory) {
+        Integer productId = ((Number) result[0]).intValue();
+        String productName = (String) result[1];
+        Integer soldQuantity = ((Number) result[2]).intValue();
+
+        Integer beginningInv = beginningInventory.getOrDefault(productId, 0);
+        Integer endingInv = endingInventory.getOrDefault(productId, 0);
+        Double averageInventory = (beginningInv + endingInv) / 2.0;
+        Double turnoverRate = averageInventory > 0 ? soldQuantity / averageInventory : 0.0;
+
+        return InventoryTurnoverWrapper.builder()
+                .productId(productId)
+                .productName(productName)
+                .beginningInventory(beginningInv)
+                .endingInventory(endingInv)
+                .soldQuantity(soldQuantity)
+                .turnoverRate(turnoverRate)
+                .averageInventory(averageInventory)
+                .build();
     }
 
     private InventoryTurnoverWrapper mapToInventoryTurnoverWrapper(Object[] result, LocalDate startDate) {

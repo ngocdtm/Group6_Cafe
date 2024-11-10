@@ -1,6 +1,7 @@
 package com.coffee.service;
 
 import com.coffee.entity.InventorySnapshot;
+import com.coffee.wrapper.InventorySnapshotWrapper;
 import com.coffee.wrapper.InventoryTransactionWrapper;
 import com.coffee.wrapper.InventoryWrapper;
 import org.springframework.http.ResponseEntity;
@@ -26,5 +27,5 @@ public interface InventoryService {
 
     Map<Integer, Integer> getInventorySnapshotForDate(LocalDate date);
 
-    InventorySnapshot getLatestInventorySnapshot(Integer productId);
+    InventorySnapshotWrapper getLatestInventorySnapshotWrapper(Integer productId);
 }

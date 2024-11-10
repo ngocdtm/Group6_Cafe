@@ -14,6 +14,7 @@ import com.coffee.security.JwtRequestFilter;
 import com.coffee.security.ResourceNotFoundException;
 import com.coffee.service.InventoryService;
 import com.coffee.utils.CafeUtils;
+import com.coffee.wrapper.InventorySnapshotWrapper;
 import com.coffee.wrapper.InventoryTransactionWrapper;
 import com.coffee.wrapper.InventoryWrapper;
 import jakarta.transaction.Transactional;
@@ -327,37 +328,61 @@ public class InventoryServiceImpl implements InventoryService {
         }
     }
 
+    @Override
     public Map<Integer, Integer> getInventorySnapshotForDate(LocalDate date) {
-        List<InventorySnapshot> snapshots = inventorySnapshotRepository.findLatestSnapshotBeforeDate(date);
-        if (snapshots.isEmpty()) {
-            log.warn("No snapshot found for date: {}. Calculating from transaction history...", date);
-            return calculateInventoryFromTransactions(date);
-        }
-        return snapshots.stream()
-                .collect(Collectors.toMap(
-                        snapshot -> snapshot.getProduct().getId(),
-                        InventorySnapshot::getQuantity
-                ));
-    }
-
-    private Map<Integer, Integer> calculateInventoryFromTransactions(LocalDate date) {
-        List<InventoryTransaction> transactions = transactionRepository
-                .findAllByTransactionDateLessThanEqual(date.atTime(LocalTime.MAX));
-        Map<Integer, Integer> inventoryMap = new HashMap<>();
-        for (InventoryTransaction transaction : transactions) {
-            Integer productId = transaction.getProduct().getId();
-            Integer quantity = transaction.getQuantity();
-            if (transaction.getTransactionType() == TransactionType.IMPORT) {
-                inventoryMap.merge(productId, quantity, Integer::sum);
-            } else {
-                inventoryMap.merge(productId, -quantity, Integer::sum);
+        try {
+            List<InventorySnapshot> snapshots = inventorySnapshotRepository.findLatestSnapshotBeforeDate(date);
+            if (snapshots.isEmpty()) {
+                log.info("No snapshot found for date: {}. Calculating from transaction history...", date);
+                return calculateInventoryFromTransactions(date);
             }
+
+            return snapshots.stream()
+                    .collect(Collectors.toMap(
+                            snapshot -> snapshot.getProduct().getId(),
+                            InventorySnapshot::getQuantity,
+                            (v1, v2) -> v2, // Keep the latest value in case of duplicates
+                            HashMap::new
+                    ));
+        } catch (Exception e) {
+            log.error("Error getting inventory snapshot for date: {}", date, e);
+            throw new RuntimeException("Failed to retrieve inventory snapshot", e);
         }
-        return inventoryMap;
     }
 
     @Override
-    public InventorySnapshot getLatestInventorySnapshot(Integer productId) {
-        return inventorySnapshotRepository.findTopByProductIdOrderBySnapshotDateDescCreatedAtDesc(productId);
+    public InventorySnapshotWrapper getLatestInventorySnapshotWrapper(Integer productId) {
+        InventorySnapshot snapshot = inventorySnapshotRepository
+                .findTopByProductIdOrderBySnapshotDateDescCreatedAtDesc(productId);
+
+        if (snapshot == null) {
+            throw new ResourceNotFoundException("No snapshot found for product ID: " + productId);
+        }
+
+        return InventorySnapshotWrapper.builder()
+                .id(snapshot.getId())
+                .productId(snapshot.getProduct().getId())
+                .productName(snapshot.getProduct().getName())
+                .quantity(snapshot.getQuantity())
+                .snapshotDate(snapshot.getSnapshotDate())
+                .createdAt(snapshot.getCreatedAt())
+                .build();
+    }
+
+    // 6. Optimized calculateInventoryFromTransactions method
+    private Map<Integer, Integer> calculateInventoryFromTransactions(LocalDate date) {
+        List<InventoryTransaction> transactions = transactionRepository
+                .findAllByTransactionDateLessThanEqual(date.atTime(LocalTime.MAX));
+
+        return transactions.stream()
+                .collect(Collectors.groupingBy(
+                        transaction -> transaction.getProduct().getId(),
+                        Collectors.reducing(
+                                0,
+                                transaction -> transaction.getTransactionType() == TransactionType.IMPORT ?
+                                        transaction.getQuantity() : -transaction.getQuantity(),
+                                Integer::sum
+                        )
+                ));
     }
 }
