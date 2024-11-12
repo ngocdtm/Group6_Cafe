@@ -11,32 +11,6 @@
   },
   "private": true,
   "dependencies": {
-<<<<<<< HEAD
-    "@angular-devkit/architect": "^0.1101.2",
-    "@angular-devkit/core": "^11.1.2",
-    "@angular-devkit/schematics": "^11.1.2",
-    "@angular/animations": "^11.1.2",
-    "@angular/cdk": "^11.2.13",
-    "@angular/common": "^11.1.2",
-    "@angular/compiler": "^11.1.2",
-    "@angular/core": "^11.1.2",
-    "@angular/flex-layout": "^11.0.0-beta.33",
-    "@angular/forms": "^11.1.2",
-    "@angular/material": "^11.2.13",
-    "@angular/platform-browser": "^11.1.2",
-    "@angular/platform-browser-dynamic": "^11.1.2",
-    "@angular/router": "^11.1.2",
-    "@radix-ui/react-select": "^2.1.2",
-    "@types/chart.js": "^2.9.41",
-    "chart.js": "^4.4.6",
-    "date-fns": "^4.1.0",
-    "file-saver": "^2.0.2",
-    "jwt-decode": "^4.0.0",
-    "lucide-react": "^0.456.0",
-    "ngx-ui-loader": "^11.0.0",
-    "recharts": "^2.13.3",
-    "rxjs": "^6.6.7",
-=======
     "@angular/animations": "~11.2.10",
     "@angular/cdk": "^11.2.13",
     "@angular/common": "~11.2.10",
@@ -64,20 +38,13 @@
     "react-dom": "^18.3.1",
     "recharts": "^2.13.3",
     "rxjs": "~6.6.0",
->>>>>>> 05d25448827b87095aa1114be9ee0d81d4a417e1
     "tslib": "^2.0.0",
     "zone.js": "~0.11.3"
   },
   "devDependencies": {
-<<<<<<< HEAD
-    "@angular-devkit/build-angular": "^0.1101.2",
-    "@angular/cli": "^11.1.2",
-    "@angular/compiler-cli": "^11.1.2",
-=======
     "@angular-devkit/build-angular": "~0.1102.9",
     "@angular/cli": "~11.2.9",
     "@angular/compiler-cli": "~11.2.10",
->>>>>>> 05d25448827b87095aa1114be9ee0d81d4a417e1
     "@types/file-saver": "^2.0.7",
     "@types/jasmine": "~3.6.0",
     "@types/node": "^12.11.1",
@@ -94,10 +61,6 @@
     "protractor": "~7.0.0",
     "ts-node": "~8.3.0",
     "tslint": "~6.1.0",
-<<<<<<< HEAD
-    "typescript": "^4.0.5"
-=======
     "typescript": "~4.1.5"
->>>>>>> 05d25448827b87095aa1114be9ee0d81d4a417e1
   }
 }
