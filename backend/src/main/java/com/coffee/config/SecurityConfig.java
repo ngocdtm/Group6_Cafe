@@ -157,7 +157,9 @@ public class SecurityConfig {
 //                                "/api/v1/user/profile",
 //                                "/api/v1/user/avatar",
                                 "/api/v1/user/avatars/**",
-                                "/api/v1/inventory/status/**"
+                                "/api/v1/inventory/status/**",
+                                "/api/v1/vnpay/payment-callback",
+                                "/api/v1/vnpay/create-payment"
                         ).permitAll()
                         .requestMatchers("/api/**").authenticated()
                 )

@@ -52,7 +52,9 @@ public class Bill implements Serializable {
     private Integer discount;
     private Integer totalAfterDiscount;
     private String couponCode;
-
+    private String bankCode;
+    private String payDate;
+    private String failureReason;
     // Thông tin thời gian
     @Column(name= "order_date", columnDefinition = "DATETIME")
     private LocalDateTime orderDate;
