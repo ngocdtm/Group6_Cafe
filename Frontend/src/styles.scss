@@ -46,3 +46,46 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .spacer {
   flex: 1 auto;
 }
+
+/* Mobile-first responsive design */
+@media screen and (max-width: 599px) {
+  .mat-toolbar {
+    padding: 0 8px;
+  }
+  
+  .mat-card {
+    margin: 8px;
+  }
+  
+  .product-grid {
+    grid-template-columns: repeat(1, 1fr) !important;
+  }
+}
+
+/* Tablet */
+@media screen and (min-width: 600px) and (max-width: 959px) {
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Offline indicator */
+.offline-indicator {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  background: #f44336;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 1000;
+  
+  mat-icon {
+    font-size: 20px;
+    height: 20px;
+    width: 20px;
+  }
+}
