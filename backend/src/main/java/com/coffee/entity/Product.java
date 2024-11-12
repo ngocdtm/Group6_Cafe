@@ -5,9 +5,9 @@ import lombok.Data;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
-
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +25,7 @@ import java.util.List;
         query = "SELECT new com.coffee.wrapper.ProductWrapper(p.id, p.name, p.description, p.price, p.originalPrice, p.status, p.category.id, p.category.name) " +
                 "FROM Product p WHERE p.id=:id")
 
-@NamedQuery(name = "Product.findByNameProduct", query = "SELECT p FROM Product p WHERE p.name=:name")
+@NamedQuery(name = "Product.findByNameProduct", query = "SELECT p FROM Product p WHERE p.name=:name AND p.deleted = 'false' ")
 
 @NamedQuery(name = "Product.getRelatedProducts",
         query = "SELECT new com.coffee.wrapper.ProductWrapper(p.id, p.name, p.description, p.price, p.originalPrice, p.status, p.category.id, p.category.name) " +
@@ -46,6 +46,7 @@ import java.util.List;
 @DynamicUpdate
 @DynamicInsert
 @Table(name = "product")
+//@Where(clause = "deleted = 'false'")
 public class Product implements Serializable {
 
     @Serial
@@ -78,10 +79,27 @@ public class Product implements Serializable {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> images = new ArrayList<>();
 
+    @Column(name = "deleted")
+    private String deleted = "false";
+
+    @Column(name = "deleted_date")
+    private LocalDateTime deletedDate;
+
+    @Column(name = "restored_date")
+    private LocalDateTime restoredDate;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<ProductHistory> histories = new ArrayList<>();
+
+    @Version
+    private Long version = 0L; // Initialize version with 0
+
     public Product() {
+        this.version = 0L; // Initialize in constructor as well
     }
 
     public Product(Integer id) {
         this.id = id;
+        this.version = 0L;
     }
 }

@@ -1,0 +1,16 @@
+<h2 mat-dialog-title>User Details</h2>
+<mat-dialog-content>
+  <div class="user-details">
+    <p><strong>Name:</strong> {{data.name}}</p>
+    <p><strong>Email:</strong> {{data.email}}</p>
+    <p><strong>Phone:</strong> {{data.phoneNumber}}</p>
+    <p><strong>Role:</strong> {{data.role}}</p>
+    <p><strong>Status:</strong> {{data.status}}</p>
+    <p><strong>Address:</strong> {{data.address || 'N/A'}}</p>
+    <p><strong>Loyalty Points:</strong> {{data.loyaltyPoints || 0}}</p>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Close</button>
+</mat-dialog-actions>
+

@@ -1,5 +1,6 @@
 package com.coffee.controller;
 
+
 import com.coffee.constants.CafeConstants;
 import com.coffee.service.UserService;
 import com.coffee.utils.CafeUtils;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
@@ -26,14 +28,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+
 @RestController
 @RequestMapping("/api/v1/user")
 public class UserController {
 
+
     @Autowired
     UserService userService;
 
+
     Path fileStorageLocation;
+
 
     public UserController(@Value("${app.file.avatar-dir}") String uploadDir) {
         this.fileStorageLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
@@ -43,6 +49,7 @@ public class UserController {
             throw new RuntimeException("Could not create the directory where the uploaded files will be stored.", ex);
         }
     }
+
 
     @Operation(
             summary = "User Signup",
@@ -58,6 +65,7 @@ public class UserController {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
     @Operation(
             summary = "User Login",
             description = "Endpoint to authenticate and login a user"
@@ -71,6 +79,7 @@ public class UserController {
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
 
     @Operation(
             summary = "Get All Users",
@@ -87,6 +96,7 @@ public class UserController {
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
     @Operation(
             summary = "Get All Customers",
             description = "Endpoint to retrieve a list of all customers"
@@ -101,6 +111,23 @@ public class UserController {
         }
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+
+    @Operation(
+            summary = "Get All Employees",
+            description = "Endpoint to retrieve a list of all employees"
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/employees")
+    public ResponseEntity<List<UserWrapper>> getAllEmployees(){
+        try{
+            return userService.getAllEmployees();
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
+        return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 
     @Operation(
             summary = "Update Customer",
@@ -117,6 +144,7 @@ public class UserController {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
     @Operation(
             summary = "Update User",
             description = "Endpoint to update user information"
@@ -131,6 +159,7 @@ public class UserController {
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
 
     @Operation(
             summary = "Check Token",
@@ -147,6 +176,7 @@ public class UserController {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
     @Operation(
             summary = "Change Password",
             description = "Endpoint to change the password"
@@ -162,6 +192,7 @@ public class UserController {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
     @Operation(
             summary = "Forgot Password",
             description = "Endpoint to forgot the password"
@@ -175,6 +206,7 @@ public class UserController {
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
 
     @Operation(
             summary = "Get User Profile",
@@ -191,6 +223,7 @@ public class UserController {
         }
     }
 
+
     @Operation(
             summary = "Update Avatar",
             description = "Endpoint to update user avatar"
@@ -206,18 +239,23 @@ public class UserController {
         }
     }
 
+
     @GetMapping("/avatars/{filename:.+}")
     @ResponseBody
     public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
         try {
 
+
             Path filePath = this.fileStorageLocation.resolve(filename).normalize();
             Resource resource = new UrlResource(filePath.toUri());
+
+
 
 
             if (resource.exists() || resource.isReadable()) {
                 // Determine the media type of the file
                 String contentType = determineContentType(filename);
+
 
                 return ResponseEntity.ok()
                         .contentType(MediaType.parseMediaType(contentType))
@@ -245,4 +283,6 @@ public class UserController {
         }
     }
 }
+
+
 

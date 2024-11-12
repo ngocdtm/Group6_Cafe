@@ -2,8 +2,10 @@
   <app-recently-viewed></app-recently-viewed>
 </div>
 
+
 <div class="container">
   <h1>Our Products</h1>
+
 
   <div class="category-filter">
       <button (click)="filterByCategory('all')" [class.active]="selectedCategory === 'all'">All</button>
@@ -14,15 +16,34 @@
       </button>
     </div>
    
-      <div class="product-grid">
-        <div *ngFor="let product of filteredProducts" class="product-card" >
-          <div (click)="openProductDetail(product)">
-            <img [src]="getFirstImageUrl(product)" [alt]="product.name">
-            <h3>{{product.name}}</h3>
-            <p>{{ formatPrice(product.price) }}</p>
-          </div>     
-          <button (click)="addToCart(product)" class="add-to-cart-btn">Add to Cart</button>
-        </div>
+    <div class="product-grid">
+      <div *ngFor="let product of filteredProducts" class="product-card">
+        <div (click)="openProductDetail(product)">
+          <img [src]="getFirstImageUrl(product)" [alt]="product.name">
+          <h3>{{product.name}}</h3>
+          <p>{{ formatPrice(product.price) }}</p>
+         
+         <!-- Thêm phần hiển thị inventory status -->
+      <div class="inventory-status">
+        <span *ngIf="isOutOfStock(product.id)" class="out-of-stock">
+          Out of Stock
+        </span>
+        <span *ngIf="!isOutOfStock(product.id)" class="in-stock">
+          In Stock: {{ getInventoryQuantity(product.id) }}
+        </span>
       </div>
+    </div>  
+   
+    <button
+      (click)="addToCart(product)"
+      class="add-to-cart-btn"
+      [disabled]="isOutOfStock(product.id)"
+      [class.disabled]="isOutOfStock(product.id)">
+      {{ isOutOfStock(product.id) ? 'Out of Stock' : 'Add to Cart' }}
+    </button>
+  </div>
+</div>
+
 
 </div>
+

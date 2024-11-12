@@ -4,13 +4,25 @@ import { BehaviorSubject, Observable, of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
+export interface UserWrapper {
+  id: number;
+  name: string;
+  email: string;
+  phoneNumber: string;
+  status: string;
+  address: string;
+  loyaltyPoints: number;
+  avatar: string;
+  role: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
 
   url = environment.apiUrl;
-  
+ 
   private loggedIn = new BehaviorSubject<boolean>(false);
   private userName = new BehaviorSubject<string>('');
   private userRole = new BehaviorSubject<string>('');
@@ -32,7 +44,7 @@ export class UserService {
 
     // Load user info from localStorage first
     this.loadUserInfoFromStorage();
-    
+   
     // Set logged in state based on token presence
     this.setLoggedIn(true);
 
@@ -57,13 +69,12 @@ export class UserService {
     ).subscribe();
   }
 
-
   private loadUserInfoFromStorage() {
     const name = localStorage.getItem('userName');
     const role = localStorage.getItem('userRole');
     const id = localStorage.getItem('userId');
     const userDetails = localStorage.getItem('userDetails');
-    
+   
     if (name) this.userName.next(name);
     if (role) this.userRole.next(role);
     if (id) this.userId.next(Number(id));
@@ -100,88 +111,88 @@ export class UserService {
     return this.userDetails;
   }
 
-  checkToken() {return this.httpClient.get(`${this.url}/api/v1/user/checkToken`);
-}
+  checkToken() {
+    return this.httpClient.get(`${this.url}/api/v1/user/checkToken`);
+  }
 
-changePassword(data:any) {
-  return this.httpClient.post(`${this.url}/api/v1/user/changePassword`, data,{
-      headers: new HttpHeaders().set('Content-Type', 'application/json')
-  })
-}
-
-getUsers(): Observable<any[]> {
-  return this.httpClient.get<any[]>(`${this.url}/api/v1/user/get`).pipe(
-    catchError(error => {
-      console.error('Error fetching users:', error);
-      return [];
+  changePassword(data:any) {
+    return this.httpClient.post(`${this.url}/api/v1/user/changePassword`, data,{
+       headers: new HttpHeaders().set('Content-Type', 'application/json')
     })
-  );
-}
+  }
 
-update(data:any){
-  return this.httpClient.post(`${this.url}/api/v1/user/update`, data,{
-    headers: new HttpHeaders().set('Content-Type', 'application/json')
-})
-}
+  getUsers(): Observable<UserWrapper[]> {
+    return this.httpClient.get<UserWrapper[]>(`${this.url}/api/v1/user/get`).pipe(
+      tap(users => console.log('Fetched users:', users)),
+    );
+  }
 
-isLoggedIn() {
-  return this.loggedIn.asObservable();
-}
+  update(data: any): Observable<any> {
+    return this.httpClient.post(`${this.url}/api/v1/user/update`, data, {
+      headers: new HttpHeaders().set('Content-Type', 'application/json')
+    }).pipe(
+      tap(response => console.log('Update response:', response)),
+    );
+  }
 
-setLoggedIn(value: boolean) {
-  this.loggedIn.next(value);
-}
+  isLoggedIn() {
+    return this.loggedIn.asObservable();
+  }
 
-logout() {
-  localStorage.clear();
-  this.loggedIn.next(false);
-  this.userName.next('');
-  this.userRole.next('');
-  this.userId.next(null);
-  this.userDetails = null;
-}
+  setLoggedIn(value: boolean) {
+    this.loggedIn.next(value);
+  }
 
-setUserInfo(name: string, role: string, id?: number) {
-  localStorage.setItem('userName', name);
-  localStorage.setItem('userRole', role);
-  if (id) localStorage.setItem('userId', id.toString());
-  
-  this.userName.next(name);
-  this.userRole.next(role);
-  if (id) this.userId.next(id);
-}
+  logout() {
+    localStorage.clear();
+    this.loggedIn.next(false);
+    this.userName.next('');
+    this.userRole.next('');
+    this.userId.next(null);
+    this.userDetails = null;
+  }
 
-getUserId(): Observable<number | null> {
-  return this.userId.asObservable();
-}
+  setUserInfo(name: string, role: string, id?: number) {
+    localStorage.setItem('userName', name);
+    localStorage.setItem('userRole', role);
+    if (id) localStorage.setItem('userId', id.toString());
+ 
+    this.userName.next(name);
+    this.userRole.next(role);
+    if (id) this.userId.next(id);
+  }
 
-getUserName() {
-  return this.userName.value;
-}
+  getUserId(): Observable<number | null> {
+    return this.userId.asObservable();
+  }
+
+  getUserName() {
+    return this.userName.value;
+  }
 
 getUserRole() {
   return this.userRole.value;
 }
 
-getProfile(): Observable<any> {
-  return this.httpClient.get(`${this.url}/api/v1/user/profile`);
-}
-
-updateCustomer(data: any): Observable<any> {
-  return this.httpClient.post(`${this.url}/api/v1/user/customer/update`, data, {
-    headers: new HttpHeaders().set('Content-Type', 'application/json')
-  });
-}
-
-updateAvatar(formData: FormData) {
-  return this.httpClient.post(`${this.url}/api/v1/user/avatar`, formData);
-}
-
- getAvatar(avatarFilename: string): string {
-  if (!avatarFilename) {
-    return 'assets/default-avatar.png';
+  getProfile(): Observable<any> {
+    return this.httpClient.get(`${this.url}/api/v1/user/profile`);
   }
-  return `${this.url}/api/v1/user/avatars/${avatarFilename}`;
+
+  updateCustomer(data: any): Observable<any> {
+    return this.httpClient.post(`${this.url}/api/v1/user/customer/update`, data, {
+      headers: new HttpHeaders().set('Content-Type', 'application/json')
+    });
+  }
+
+  updateAvatar(formData: FormData) {
+    return this.httpClient.post(`${this.url}/api/v1/user/avatar`, formData);
+  }
+
+  getAvatar(avatarFilename: string): string {
+    if (!avatarFilename) {
+      return 'assets/default-avatar.png';
+    }
+    return `${this.url}/api/v1/user/avatars/${avatarFilename}`;
+  }
 }
 
-}

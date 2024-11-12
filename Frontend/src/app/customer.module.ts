@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FlexLayoutModule } from '@angular/flex-layout';
@@ -17,7 +17,7 @@ import { CartComponent } from './cart/cart.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CheckoutComponent } from './checkout/checkout.component';
 import { ProfileComponent } from './profile/profile.component';
-import { BillHistoryComponent } from './bill-history/bill-history.component';
+import { BillHistoryComponent } from './customer-bill/bill-history/bill-history.component';
 import { RecentlyViewedComponent } from './recently-viewed/recently-viewed.component';
 import { MatDividerModule } from '@angular/material/divider';
 
@@ -46,7 +46,6 @@ import { MatDividerModule } from '@angular/material/divider';
     MatSliderModule,
     ReactiveFormsModule,
     MatProgressSpinnerModule,
-    MatDividerModule
   ],
   providers: [CustomerMenuItems]
 })

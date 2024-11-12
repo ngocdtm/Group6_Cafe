@@ -1,5 +1,8 @@
 package com.coffee.service;
 
+import com.coffee.entity.ProductHistory;
+import com.coffee.wrapper.ProductHistoryWrapper;
+import com.coffee.wrapper.ProductImageWrapper;
 import com.coffee.wrapper.ProductWrapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,8 +24,6 @@ public interface ProductService {
 
     ResponseEntity<ProductWrapper> getById(Integer id);
 
-    ResponseEntity<String> deleteProductImage(Integer productId, Integer imageId);
-
     ResponseEntity<List<ProductWrapper>> searchProducts(String keyword);
 
     ResponseEntity<List<ProductWrapper>> getRelatedProducts(Integer productId, Integer limit);
@@ -30,5 +31,19 @@ public interface ProductService {
     ResponseEntity<String> addToRecentlyViewed(Integer productId);
 
     ResponseEntity<List<ProductWrapper>> getRecentlyViewedProducts();
+
+    ResponseEntity<String> restoreProduct(Integer id);
+
+    ResponseEntity<List<ProductHistoryWrapper>> getProductHistory(Integer id);
+
+    ResponseEntity<List<ProductWrapper>> getActiveProducts();
+
+    ResponseEntity<List<ProductWrapper>> getDeletedProducts();
+
+    ResponseEntity<String> restoreImage(Integer id);
+
+    ResponseEntity<List<ProductImageWrapper>> getActiveImages(Integer productId);
+
+    ResponseEntity<List<ProductImageWrapper>> getDeletedImages(Integer productId);
 }
 

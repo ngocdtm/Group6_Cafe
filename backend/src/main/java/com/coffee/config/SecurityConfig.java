@@ -3,10 +3,13 @@ package com.coffee.config;
 import com.coffee.security.CustomUserDetailsService;
 import com.coffee.security.JwtRequestFilter;
 import com.coffee.security.UnauthorizedHandler;
+import com.coffee.service.InventorySnapshotService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.Customizer;
@@ -34,6 +37,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 
 @Configuration
+@EnableScheduling
 @EnableWebSecurity
 @EnableWebMvc
 public class SecurityConfig {
@@ -41,6 +45,15 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final JwtRequestFilter jwtRequestFilter;
     private final UnauthorizedHandler unauthorizedHandler;
+    @Autowired
+    private InventorySnapshotService snapshotService;
+
+//    // Run at 23:59 every day
+//    @Scheduled(cron = "0 59 23 * * *")
+    @Scheduled(cron = "0 0 0 * * ?") // Chạy lúc 12h đêm hàng ngày
+    public void scheduleSnapshotCreation() {
+        snapshotService.createDailySnapshot();
+    }
 
     @Autowired
     public SecurityConfig(CustomUserDetailsService userDetailsService, JwtRequestFilter jwtRequestFilter, UnauthorizedHandler unauthorizedHandler) {
@@ -94,7 +107,7 @@ public class SecurityConfig {
 
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:4200")
+                .allowedOrigins("http://192.168.1.10:8081", "http://127.0.0.1:8081", "http://localhost:4200")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)
@@ -104,7 +117,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
+        configuration.setAllowedOrigins(Arrays.asList("http://192.168.1.10:8081", "http://127.0.0.1:8081", "http://localhost:4200"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
@@ -113,6 +126,7 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -142,7 +156,8 @@ public class SecurityConfig {
                                 "/api/v1/product/related/**",
 //                                "/api/v1/user/profile",
 //                                "/api/v1/user/avatar",
-                                "/api/v1/user/avatars/**"
+                                "/api/v1/user/avatars/**",
+                                "/api/v1/inventory/status/**"
                         ).permitAll()
                         .requestMatchers("/api/**").authenticated()
                 )

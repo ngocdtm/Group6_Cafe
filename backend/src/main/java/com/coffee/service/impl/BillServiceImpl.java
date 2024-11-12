@@ -1,18 +1,13 @@
 package com.coffee.service.impl;
 
 import com.coffee.constants.CafeConstants;
-import com.coffee.entity.Bill;
-import com.coffee.entity.BillItem;
-import com.coffee.entity.Coupon;
-import com.coffee.entity.User;
+import com.coffee.entity.*;
 import com.coffee.enums.OrderStatus;
 import com.coffee.enums.OrderType;
-import com.coffee.repository.BillRepository;
-import com.coffee.repository.CouponRepository;
-import com.coffee.repository.ProductRepository;
-import com.coffee.repository.UserRepository;
+import com.coffee.repository.*;
 import com.coffee.security.JwtRequestFilter;
 import com.coffee.service.BillService;
+import com.coffee.service.InventoryService;
 import com.coffee.service.ShoppingCartService;
 import com.coffee.utils.CafeUtils;
 import com.coffee.wrapper.BillWrapper;
@@ -58,10 +53,19 @@ public class BillServiceImpl implements BillService {
     CouponRepository couponRepository;
 
     @Autowired
+    InventorySnapshotRepository inventorySnapshotRepository;
+
+    @Autowired
+    InventoryRepository inventoryRepository;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private ShoppingCartService shoppingCartService;
+
+    @Autowired
+    private InventoryService inventoryService;
 
     @Override
     @Transactional
@@ -72,6 +76,10 @@ public class BillServiceImpl implements BillService {
                 String fileName = CafeUtils.getUUID();
                 requestMap.put("uuid", fileName);
                 Bill bill = createBillFromRequest(requestMap, OrderType.IN_STORE);
+
+                // Cập nhật số lượng hàng tồn kho
+                updateInventoryForOrder(bill);
+
                 generatePdf(bill, fileName);
                 return new ResponseEntity<>("{\"uuid\":\"" + fileName + "\"}", HttpStatus.OK);
             }
@@ -92,6 +100,9 @@ public class BillServiceImpl implements BillService {
                 requestMap.put("uuid", fileName);
                 Bill bill = createBillFromRequest(requestMap, OrderType.ONLINE);
 
+                // Cập nhật số lượng hàng tồn kho
+                updateInventoryForOrder(bill);
+
                 // Clear the user's shopping cart after successful order
                 shoppingCartService.clearCart();
 
@@ -106,6 +117,35 @@ public class BillServiceImpl implements BillService {
         } catch (Exception ex) {
             ex.printStackTrace();
             return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private void updateInventoryForOrder(Bill bill) {
+        for (BillItem billItem : bill.getBillItems()) {
+            try {
+                Integer productId = billItem.getOriginalProductId();
+                Optional<Inventory> inventoryOpt = inventoryRepository.findByProductId(productId);
+                if (inventoryOpt.isPresent()) {
+                    Inventory inventory = inventoryOpt.get();
+                    int quantity = billItem.getQuantity();
+                    inventoryService.removeStock(productId, quantity, "Order #" + bill.getUuid());
+
+                    // Create new InventorySnapshot
+                    InventorySnapshot snapshot = new InventorySnapshot();
+                    snapshot.setProduct(inventory.getProduct());
+                    snapshot.setQuantity(inventory.getQuantity());
+                    snapshot.setSnapshotDate(LocalDate.now());
+                    snapshot.setCreatedAt(LocalDateTime.now());
+                    inventorySnapshotRepository.save(snapshot);
+                } else {
+                    // Log warning nếu product không tồn tại (có thể đã bị xóa hoàn toàn)
+                    log.warn("Product with ID {} not found while updating inventory for Order #{}",
+                            productId, bill.getUuid());
+                }
+
+            } catch (Exception ex) {
+                log.error("Error updating inventory for product: {}", billItem.getProductName(), ex);
+            }
         }
     }
 
@@ -156,18 +196,22 @@ public class BillServiceImpl implements BillService {
             bill.setTotalAfterDiscount(bill.getTotal());
         }
 
-
         // Process bill items
         List<BillItem> billItems = new ArrayList<>();
         JSONArray jsonArray = CafeUtils.getJsonArrayFromString((String) requestMap.get("productDetails"));
 
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject jsonObject = jsonArray.getJSONObject(i);
-            BillItem billItem = new BillItem();
+            Product product = productRepository.findById(jsonObject.getInt("id"))
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
+
+            // Create bill item with snapshot of current product state
+            BillItem billItem = BillItem.createFromProduct(
+                    product,
+                    jsonObject.getInt("quantity"),
+                    jsonObject.getInt("price")
+            );
             billItem.setBill(bill);
-            billItem.setProduct(productRepository.findById(jsonObject.getInt("id")).orElseThrow());
-            billItem.setQuantity(jsonObject.getInt("quantity"));
-            billItem.setPrice(jsonObject.getInt("price"));
             billItems.add(billItem);
         }
 
@@ -180,7 +224,6 @@ public class BillServiceImpl implements BillService {
         try {
             Bill bill = billRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Bill not found"));
-
             bill.setOrderStatus(status);
             bill.setLastUpdatedDate(LocalDateTime.now());
             billRepository.save(bill);
@@ -256,14 +299,13 @@ public class BillServiceImpl implements BillService {
                         "Total Amount: " + bill.getTotalAfterDiscount() + "\n\n" +
                         "Thank you for your purchase!", getFont("Data"));
         document.add(totals);
-
         document.close();
     }
 
     private void addRow(PdfPTable table, BillItem item) {
         log.info("Inside addRow");
-        table.addCell(item.getProduct().getName());
-        table.addCell(item.getProduct().getCategory().getName());
+        table.addCell(item.getProductName());
+        table.addCell(item.getProductCategory());
         table.addCell(String.valueOf(item.getQuantity()));
         table.addCell(String.valueOf(item.getPrice()));
         table.addCell(String.valueOf(item.getQuantity() * item.getPrice()));
@@ -335,6 +377,7 @@ public class BillServiceImpl implements BillService {
                         // Regenerate the PDF
                         generatePdf(bill, uuid);
                         log.info("PDF regenerated successfully");
+
 
                         // Check if the file was created successfully
                         if (!new File(filePath).exists()) {
@@ -418,6 +461,7 @@ public class BillServiceImpl implements BillService {
         try {
             String couponCode = (String) requestMap.get("couponCode");
             Integer totalAmount = (Integer) requestMap.get("total");
+
 
             if (couponCode == null || totalAmount == null) {
                 return ResponseEntity.badRequest()

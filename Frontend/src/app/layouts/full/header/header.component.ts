@@ -8,15 +8,33 @@ import { UserService } from 'src/app/services/user.service';
 @Component({
   selector: 'app-header',
   templateUrl: './header.component.html',
-  styleUrls: []
+  styleUrls: ['./header.component.scss']
 })
 export class AppHeaderComponent {
 
   role:any;
+  isLoggedIn: boolean = false;
+  userName: string = '';
+  
   constructor(private router:Router,
     private userService: UserService,
     private dialog:MatDialog) {
   }
+
+  ngOnInit(): void {
+
+   this.userService.isLoggedIn().subscribe(loggedIn => {
+     this.isLoggedIn = loggedIn;
+     if (loggedIn) {
+        this.userName = this.userService.getUserName();
+     }
+   });
+   this.userService.getUserId().subscribe(userId => {
+     console.log('User ID:', userId);
+       this.userName = this.userService.getUserName();
+     }
+   );
+ }
 
   logout() {
     const dialogConfig = new MatDialogConfig();

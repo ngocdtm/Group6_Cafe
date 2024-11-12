@@ -29,4 +29,7 @@ public interface UserService {
     ResponseEntity<UserWrapper> getProfile();
 
     ResponseEntity<String> updateAvatar(MultipartFile file);
+
+    ResponseEntity<List<UserWrapper>> getAllEmployees();
+
 }

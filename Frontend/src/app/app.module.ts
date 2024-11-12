@@ -18,6 +18,9 @@ import { LoginComponent } from './login/login.component';
 import { TokenInterceptorInterceptor } from './services/token-interceptor.interceptor';
 import { DatePipe } from '@angular/common';
 import { LoginPromptComponent } from './login-prompt/login-prompt.component';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { environment } from 'src/environments/environment';
+import { ServiceWorkerModule } from '@angular/service-worker';
 
 const ngxUiLoaderConfig: NgxUiLoaderConfig = {
     text:"Loading...",
@@ -47,11 +50,16 @@ const ngxUiLoaderConfig: NgxUiLoaderConfig = {
     BrowserAnimationsModule,
     FormsModule,
     ReactiveFormsModule,
+    MatAutocompleteModule,
     MaterialModule,
     FlexLayoutModule,
     SharedModule,
     HttpClientModule,
-    NgxUiLoaderModule.forRoot(ngxUiLoaderConfig)
+    NgxUiLoaderModule.forRoot(ngxUiLoaderConfig),
+    ServiceWorkerModule.register('ngsw-worker.js', {
+      enabled: environment.production,
+      registrationStrategy: 'registerWhenStable:30000'
+    })
   ],
   providers: [DatePipe,HttpClientModule,{provide:HTTP_INTERCEPTORS, useClass:TokenInterceptorInterceptor,multi:true}],
   bootstrap: [AppComponent]

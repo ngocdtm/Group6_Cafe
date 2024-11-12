@@ -1,0 +1,43 @@
+.search-container {
+    margin-bottom: 1rem;
+  }
+  
+  .search-field {
+    width: 100%;
+  }
+
+  .mat-column-transactionDate {
+    min-width: 160px;
+  }
+
+  .mat-column-transactionType {
+    min-width: 120px;
+  }
+
+  .mat-column-quantity {
+    min-width: 100px;
+  }
+
+  .mat-column-note {
+    min-width: 200px;
+  }
+
+  .mat-column-createdBy {
+    min-width: 120px;
+  }
+
+  .type-stock-in, .quantity-positive {
+    color: green;
+  }
+
+  .type-stock-out, .quantity-negative {
+    color: orange;
+  }
+
+  .type-out-of-stock, .quantity-danger {
+    color: red;
+  }
+
+  table {
+    width: 100%;
+  }

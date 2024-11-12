@@ -1,9 +1,11 @@
 package com.coffee.controller;
 
-
 import com.coffee.constants.CafeConstants;
+import com.coffee.entity.ProductHistory;
 import com.coffee.service.ProductService;
 import com.coffee.utils.CafeUtils;
+import com.coffee.wrapper.ProductHistoryWrapper;
+import com.coffee.wrapper.ProductImageWrapper;
 import com.coffee.wrapper.ProductWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -37,9 +39,7 @@ public class ProductController {
     @Autowired
     ProductService productService;
 
-
     private final Path fileStorageLocation;
-
 
     public ProductController(@Value("${app.file.upload-dir}") String uploadDir) {
         this.fileStorageLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
@@ -49,7 +49,6 @@ public class ProductController {
             throw new RuntimeException("Could not create the directory where the uploaded files will be stored.", ex);
         }
     }
-
 
     @GetMapping("/images/{filename:.+}")
     @ResponseBody
@@ -96,7 +95,6 @@ public class ProductController {
         return fileName;
     }
 
-
     @Operation(
             summary = "Add a new product",
             description = "Endpoint to add a new product to the category."
@@ -117,7 +115,6 @@ public class ProductController {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
     @Operation(
             summary = "Get all product",
             description = "Endpoint to get all product."
@@ -132,7 +129,6 @@ public class ProductController {
         }
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 
     @Operation(
             summary = "Update a product",
@@ -157,23 +153,6 @@ public class ProductController {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
-    @Operation(
-            summary = "Delete product image",
-            description = "Endpoint to delete a specific product image."
-    )
-    @SecurityRequirement(name = "bearerAuth")
-    @DeleteMapping("/deleteImage/{productId}/{imageId}")
-    public ResponseEntity<String> deleteProductImage(@PathVariable Integer productId, @PathVariable Integer imageId){
-        try{
-            return productService.deleteProductImage(productId, imageId);
-        }catch(Exception ex){
-            ex.printStackTrace();
-        }
-        return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-
     @Operation(
             summary = "Delete a product",
             description = "Endpoint to delete a product."
@@ -188,7 +167,6 @@ public class ProductController {
         }
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 
     @Operation(
             summary = "Update a product status",
@@ -205,7 +183,6 @@ public class ProductController {
         return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
     @Operation(
             summary = "Get a product by category",
             description = "Endpoint to get a product by category."
@@ -221,7 +198,6 @@ public class ProductController {
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
     @Operation(
             summary = "Get a product by id",
             description = "Endpoint to get a product by id."
@@ -236,7 +212,6 @@ public class ProductController {
         }
         return new ResponseEntity<>(new ProductWrapper(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 
     @Operation(
             summary = "Search products",
@@ -294,6 +269,111 @@ public class ProductController {
     public ResponseEntity<List<ProductWrapper>> getRecentlyViewedProducts() {
         try {
             return productService.getRecentlyViewedProducts();
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        }
+        return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Operation(
+            summary = "Restore a deleted product",
+            description = "Endpoint to restore a soft-deleted product and its images."
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/restore/{id}")
+    public ResponseEntity<String> restoreProduct(@PathVariable Integer id) {
+        try {
+            return productService.restoreProduct(id);
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        }
+        return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Operation(
+            summary = "Restore a deleted product image",
+            description = "Endpoint to restore a soft-deleted product images."
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/image/restore/{id}")
+    public ResponseEntity<String> restoreImage(@PathVariable Integer id) {
+        try {
+            return productService.restoreImage(id);
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        }
+        return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Operation(
+            summary = "Get product history",
+            description = "Endpoint to get modification history of a product."
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/history/{id}")
+    public ResponseEntity<List<ProductHistoryWrapper>> getProductHistory(@PathVariable Integer id) {
+        try {
+            return productService.getProductHistory(id);
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        }
+        return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Operation(
+            summary = "Get active products",
+            description = "Endpoint to get all active (non-deleted) products."
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/active")
+    public ResponseEntity<List<ProductWrapper>> getActiveProducts() {
+        try {
+            return productService.getActiveProducts();
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        }
+        return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Operation(
+            summary = "Get active images of a product",
+            description = "Endpoint to get all non-deleted images of a specific product."
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/images/active/{productId}")
+    public ResponseEntity<List<ProductImageWrapper>> getActiveImages(@PathVariable Integer productId) {
+        try {
+            return productService.getActiveImages(productId);
+        } catch(Exception ex) {
+            ex.printStackTrace();
+            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Operation(
+            summary = "Get deleted images of a product",
+            description = "Endpoint to get all soft-deleted images of a specific product. Requires admin access."
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/images/deleted/{productId}")
+    public ResponseEntity<List<ProductImageWrapper>> getDeletedImages(@PathVariable Integer productId) {
+        try {
+            return productService.getDeletedImages(productId);
+        } catch(Exception ex) {
+            ex.printStackTrace();
+            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Operation(
+            summary = "Get deleted products",
+            description = "Endpoint to get all soft-deleted products."
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/deleted")
+    public ResponseEntity<List<ProductWrapper>> getDeletedProducts() {
+        try {
+            return productService.getDeletedProducts();
         } catch(Exception ex) {
             ex.printStackTrace();
         }

@@ -1,5 +1,6 @@
 package com.coffee.security;
 
+import com.coffee.enums.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -25,10 +26,6 @@ public class JwtUtil {
         return extractClaim(token, Claims::getSubject);
     }
 
-//    public String extractRole(String token) {
-//        return extractClaim(token, claims -> claims.get("role", String.class));
-//    }
-
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
@@ -46,9 +43,9 @@ public class JwtUtil {
         return extractExpiration(token).before(new Date());
     }
 
-    public String generateToken(String username, String role) {
+    public String generateToken(String username, UserRole role) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("role", role);
+        claims.put("role", role.name());
         return createToken(claims, username);
     }
 
@@ -62,10 +59,9 @@ public class JwtUtil {
                 .compact();
     }
 
-    public Key getSignKey(){
-        byte[] keybytes = Decoders.BASE64.decode(String.valueOf(secret));
-        return Keys.hmacShaKeyFor(keybytes);
-
+    public Key getSignKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(String.valueOf(secret));
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     public Boolean validateToken(String token, UserDetails userDetails) {
