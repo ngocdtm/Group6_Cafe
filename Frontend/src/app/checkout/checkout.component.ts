@@ -1,11 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CartService } from '../services/cart.service';
 import { BillService } from '../services/bill.service';
 import { UserService } from '../services/user.service';
 import { SnackbarService } from '../services/snackbar.service';
 import { ProductService } from '../services/product.service';
+import { VnpayService } from '../services/vnpay.service';
+import { query } from '@angular/animations';
 
 @Component({
   selector: 'app-checkout',
@@ -33,7 +35,9 @@ export class CheckoutComponent implements OnInit {
     private productService: ProductService,
     private userService: UserService,
     private snackbarService: SnackbarService,
-    private router: Router
+    private router: Router,
+    private vnpayService: VnpayService,
+    private route: ActivatedRoute
   ) {
     this.checkoutForm = this.formBuilder.group({
       customerName: ['', [Validators.required]],
@@ -55,6 +59,27 @@ export class CheckoutComponent implements OnInit {
       this.loadUserProfile();
       this.loadCart();
     });
+    this.route.queryParams.subscribe(params => {
+      if (params['vnp_ResponseCode']){
+        this.handleVNPayCallBack(params);
+      }
+    })
+  }
+
+  private handleVNPayCallBack(params: any): void {
+    const responseCode = params['vnp_ResponseCode'];
+    const orderId = params['vnp_TxnRef'];
+
+    if(responseCode === '00'){
+      //payment successful
+      this.snackbarService.openSnackBar('Payment complete successfully!', 'Close');
+      this.router.navigate(['order-confirmation'],{
+        queryParams: {orderId: orderId}
+      });
+    } else {
+      //payment failed
+      this.snackbarService.openSnackBar('Payment failed. Please try again.', 'Close');
+    }
   }
 
   private loadUserInfo(): void {
@@ -191,7 +216,24 @@ export class CheckoutComponent implements OnInit {
         discount: this.discountAmount,
         totalAfterDiscount: this.totalAfterDiscount
       };
-
+      if (orderData.paymentMethod === 'VNPAY'){
+        //process vnpay payment
+        this.vnpayService.createPayment(this.totalAfterDiscount, orderData.uuid).subscribe({
+        next: (response) => {
+          if(response.paymentUrl){
+            window.location.href = response.paymentUrl;
+          } else {
+            this.snackbarService.openSnackBar('Error creating payment', 'Close');
+          }
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error creating payment:', error);
+          this.snackbarService.openSnackBar('Error creating payment', 'Close');
+          this.loading = false;
+        }  
+        })
+      }  else {
       // Process online order
       this.billService.processOnlineOrder(orderData).subscribe({
         next: (response) => {
@@ -218,7 +260,8 @@ export class CheckoutComponent implements OnInit {
           this.snackbarService.openSnackBar('Error placing order', 'Close');
         }
       });
-    } else {
+    }
+   } else {
       this.snackbarService.openSnackBar('Please fill all required fields', 'Close');
     }
   }

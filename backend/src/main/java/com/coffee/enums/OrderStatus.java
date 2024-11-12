@@ -8,7 +8,8 @@ public enum OrderStatus {
     CONFIRMED("Order confirmed"),
     PROCESSING("Processing"),
     COMPLETED("Completed"),
-    CANCELLED("Cancelled");
+    CANCELLED("Cancelled"),
+    FAILED("Failed");
 
     private final String description;
 
