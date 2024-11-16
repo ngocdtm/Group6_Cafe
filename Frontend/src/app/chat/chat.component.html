@@ -1,0 +1,47 @@
+<!-- chat.component.html -->
+<div class="chat-container">
+  <div class="users-list">
+    <h3>Users</h3>
+    <ul>
+      <li *ngFor="let user of users" 
+          [class.active]="selectedUser?.id === user.id" 
+          (click)="selectUser(user)">
+        <div class="user-item">
+          <img [src]="user.avatar || 'assets/default-avatar.png'" alt="avatar" class="user-avatar">
+          <div class="user-info">
+            <span class="user-name">{{ user.name }}</span>
+            <span class="user-role">{{ user.role }}</span>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="chat-area" *ngIf="selectedUser">
+    <div class="chat-header">
+      <h3>Chat with {{ selectedUser.name }}</h3>
+    </div>
+    
+    <div class="messages" #scrollMe>
+      <div *ngFor="let message of messages" 
+           [class.sent]="message.sender.id === currentUser.id"
+           [class.received]="message.sender.id !== currentUser.id">
+        <div class="message-bubble">
+          <span class="message-sender">{{ message.sender.name }}</span>
+          <p class="message-content">{{ message.content }}</p>
+          <span class="message-timestamp">{{ message.timestamp | date:'short' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="message-input">
+      <input type="text" 
+             placeholder="Type your message..." 
+             [(ngModel)]="newMessage" 
+             (keyup.enter)="sendMessage()">
+      <button (click)="sendMessage()" [disabled]="!newMessage.trim()">
+        Send
+      </button>
+    </div>
+  </div>
+</div>

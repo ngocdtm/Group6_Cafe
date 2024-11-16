@@ -29,7 +29,7 @@
                 <mat-form-field appearance="outline" class="w-full">
                   <mat-label>Phone Number</mat-label>
                   <input matInput formControlName="customerPhone" required>
-                  <mat-error *ngIf="checkoutForm.get('customerPhone')?.invalid && checkoutForm.get('customerPhone')?.touched">
+                  <mat-error *ngIf="checkoutForm.get('customerPhone')?.hasError('required') && checkoutForm.get('customerPhone')?.touched">
                     Please enter a valid phone number
                   </mat-error>
                 </mat-form-field>
@@ -41,7 +41,7 @@
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Shipping Address</mat-label>
                 <textarea matInput formControlName="shippingAddress" required rows="3"></textarea>
-                <mat-error *ngIf="checkoutForm.get('shippingAddress')?.invalid && checkoutForm.get('shippingAddress')?.touched">
+                <mat-error *ngIf="checkoutForm.get('shippingAddress')?.hasError('required') && checkoutForm.get('shippingAddress')?.touched">
                   Shipping address is required
                 </mat-error>
               </mat-form-field>
@@ -81,36 +81,11 @@
   
             <!-- Payment Method -->
             <div class="form-group">
-              <h3 class="text-lg font-medium mb-4 text-gray-800">Payment Method</h3>
-              <mat-radio-group formControlName="paymentMethod" class="flex flex-col gap-4">
-                <mat-radio-button value="COD" class="payment-option">
-                  <div class="flex items-center gap-3">
-                    <span class="material-icons">local_shipping</span>
-                    <div>
-                      <div class="font-medium">Cash on Delivery</div>
-                      <div class="text-sm text-gray-600">Pay when you receive your order</div>
-                    </div>
-                  </div>
-                </mat-radio-button>
-                <mat-radio-button value="BANK_TRANSFER" class="payment-option">
-                  <div class="flex items-center gap-3">
-                    <span class="material-icons">account_balance</span>
-                    <div>
-                      <div class="font-medium">Bank Transfer</div>
-                      <div class="text-sm text-gray-600">Pay via bank transfer</div>
-                    </div>
-                  </div>
-                </mat-radio-button>
-                <mat-radio-button value="VNPAY" class="payment-option">
-                  <div class="flex items-center gap-3">
-                    <span class="material-icons">credit_card</span>
-                    <div>
-                      <div class="font-medium">VNPay</div>
-                      <div class="text-sm text-gray-600">Pay securely with VNPay</div>
-                    </div>
-                  </div>
-                </mat-radio-button>
-              </mat-radio-group>
+            <label for="paymentMethod">Payment Method</label>
+            <select class="form-control" formControlName="paymentMethod">
+              <option value="COD">Cash on Delivery (COD)</option>
+              <option value="VNPAY">VNPAY</option>
+            </select>
             </div>
   
             <button mat-raised-button color="primary" type="submit" 

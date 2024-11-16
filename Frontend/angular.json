@@ -25,7 +25,8 @@
           "options": {
             "serviceWorker": true,
             "ngswConfigPath": "src/ngsw-config.json",
-            "allowedCommonJsDependencies": ["file-saver"],
+            "allowedCommonJsDependencies": ["file-saver", "@stomp/stompjs",
+            "sockjs-client"],
             "outputPath": "dist/Frontend",
             "index": "src/index.html",
             "main": "src/main.ts",

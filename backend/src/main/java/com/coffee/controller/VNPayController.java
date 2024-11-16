@@ -1,13 +1,16 @@
 package com.coffee.controller;
 
-
 import com.coffee.entity.Payment;
 import com.coffee.service.VNPayService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,11 +19,15 @@ import java.util.Map;
 @Slf4j
 public class VNPayController {
 
+    @Value("${frontend.url}")
+    private String frontendUrl;
+
     @Autowired
     private VNPayService vnPayService;
 
     @PostMapping("/create-payment")
     public ResponseEntity<?> createPayment(@RequestBody Payment paymentDTO, HttpServletRequest request) {
+        log.info("Controller received payment request with shipping address: '{}'", paymentDTO.getShippingAddress());
         try {
             log.info("Received payment request: {}", paymentDTO);
             String paymentUrl = vnPayService.createPayment(paymentDTO, request);
@@ -41,34 +48,30 @@ public class VNPayController {
     }
 
     @GetMapping("/payment-callback")
-    public ResponseEntity<?> paymentCallback(HttpServletRequest request) {
+    public void paymentCallback(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             String vnpayResponse = vnPayService.paymentCallback(request);
             String txnRef = request.getParameter("vnp_TxnRef");
-            String responseCode = request.getParameter("vnp_ResponseCode");
             String transactionNo = request.getParameter("vnp_TransactionNo");
 
-            Map<String, String> response = new HashMap<>();
-            response.put("orderId", txnRef);
-            response.put("transactionNo", transactionNo);
+            StringBuilder redirectUrl = new StringBuilder(frontendUrl + "/payment-success");
+            redirectUrl.append("?orderId=").append(txnRef);
+            redirectUrl.append("&transactionNo=").append(transactionNo);
 
             if ("Payment Success".equals(vnpayResponse)) {
-                response.put("status", "success");
-                response.put("message", "Payment completed successfully");
-                return ResponseEntity.ok(response);
+                redirectUrl.append("&status=success");
             } else {
-                response.put("status", "failed");
-                response.put("message", vnpayResponse); // Now includes detailed error message
-                response.put("responseCode", responseCode);
-                return ResponseEntity.badRequest().body(response);
+                redirectUrl.append("&status=failed");
+                redirectUrl.append("&message=").append(java.net.URLEncoder.encode(vnpayResponse, "UTF-8"));
             }
+
+            log.info("Redirecting to: {}", redirectUrl.toString());
+            response.sendRedirect(redirectUrl.toString());
+
         } catch (Exception e) {
             log.error("Error processing payment callback: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body(Map.of(
-                    "status", "error",
-                    "message", "Internal server error: " + e.getMessage(),
-                    "orderId", request.getParameter("vnp_TxnRef")
-            ));
+            response.sendRedirect(frontendUrl + "/payment-failed?error=" +
+                    java.net.URLEncoder.encode("Internal server error: " + e.getMessage(), "UTF-8"));
         }
     }
 }

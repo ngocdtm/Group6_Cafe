@@ -3,9 +3,14 @@ package com.coffee.service.impl;
 import com.coffee.config.VNPayConfig;
 import com.coffee.entity.Bill;
 import com.coffee.entity.Payment;
+import com.coffee.entity.User;
 import com.coffee.enums.OrderStatus;
+import com.coffee.enums.OrderType;
 import com.coffee.repository.BillRepository;
+import com.coffee.repository.UserRepository;
+import com.coffee.security.JwtRequestFilter;
 import com.coffee.service.VNPayService;
+import com.coffee.utils.EmailUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +29,12 @@ public class VNPayServiceImpl implements VNPayService {
     @Autowired
     private BillRepository billRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private JwtRequestFilter jwtRequestFilter;
+
     @Override
     public String createPayment(Payment paymentDTO, HttpServletRequest request) throws UnsupportedEncodingException {
         log.info("Creating payment with data: {}", paymentDTO);
@@ -32,14 +43,67 @@ public class VNPayServiceImpl implements VNPayService {
         if (paymentDTO.getAmount() < 1000) {
             throw new IllegalArgumentException("Amount must be greater than 1000 VND");
         }
-
+        log.info("Received shipping address: '{}'", paymentDTO.getShippingAddress());
         // Tạo Bill record trước khi tạo payment URL
         Bill bill = new Bill();
         bill.setUuid(paymentDTO.getOrderId());
-        bill.setTotal(paymentDTO.getAmount());
+        bill.setTotal(paymentDTO.getTotal());
         bill.setOrderStatus(OrderStatus.PENDING);
         bill.setOrderDate(LocalDateTime.now());
-        billRepository.save(bill);
+        bill.setOrderType(OrderType.ONLINE);
+        bill.setPaymentMethod("VNPAY");
+        bill.setCustomerName(paymentDTO.getCustomerName());
+        bill.setCustomerPhone(paymentDTO.getCustomerPhone());
+        if (paymentDTO.getShippingAddress() != null && !paymentDTO.getShippingAddress().trim().isEmpty()) {
+            bill.setShippingAddress(paymentDTO.getShippingAddress().trim());
+        } else {
+            throw new IllegalArgumentException("Shipping address is required for online orders");
+        }
+
+        // Xử lý coupon và tính toán giá sau giảm giá
+        if (paymentDTO.getCouponCode() != null && !paymentDTO.getCouponCode().isEmpty()) {
+            bill.setCouponCode(paymentDTO.getCouponCode());
+            // Validate discount value
+            if (paymentDTO.getDiscount() != null && paymentDTO.getDiscount() >= 0 &&
+                    paymentDTO.getDiscount() <= paymentDTO.getTotal()) {
+                bill.setDiscount(paymentDTO.getDiscount());
+                // Tính toán lại tổng tiền sau giảm giá
+                bill.setTotalAfterDiscount(paymentDTO.getTotal() - paymentDTO.getDiscount());
+            } else {
+                throw new IllegalArgumentException("Invalid discount amount");
+            }
+        } else {
+            bill.setDiscount(0);
+            bill.setTotalAfterDiscount(paymentDTO.getTotal());
+        }
+
+        // Xử lý thông tin user nếu đã đăng nhập
+        String userEmail = jwtRequestFilter.getCurrentUser();
+        if (userEmail != null) {
+            User user = userRepository.findByEmail(userEmail);
+            if (user != null) {
+                bill.setUser(user);
+                bill.setCreatedByUser(userEmail);
+                // Chỉ ghi đè thông tin customer nếu không được cung cấp
+                if (bill.getCustomerName() == null || bill.getCustomerName().trim().isEmpty()) {
+                    bill.setCustomerName(user.getName());
+                }
+                if (bill.getCustomerPhone() == null || bill.getCustomerPhone().trim().isEmpty()) {
+                    bill.setCustomerPhone(user.getPhoneNumber());
+                }
+            }
+        }
+        // Validate final amount matches VNPay amount
+        long expectedAmount = bill.getTotalAfterDiscount().longValue();
+        if (paymentDTO.getAmount() != expectedAmount) {
+            throw new IllegalArgumentException("Payment amount does not match order total");
+        }
+        try {
+            billRepository.save(bill);
+        } catch (Exception e) {
+            log.error("Error saving bill: ", e);
+            throw new RuntimeException("Error saving bill", e);
+        }
 
         Map<String, String> vnp_Params = new HashMap<>();
         vnp_Params.put("vnp_Version", "2.1.0");
@@ -148,7 +212,7 @@ public class VNPayServiceImpl implements VNPayService {
                     Bill bill = billRepository.findByUuid(orderId);
                     if (bill != null) {
                         long vnpayAmount = Long.parseLong(amount) / 100;
-                        if (vnpayAmount == bill.getTotal()) {
+                        if (vnpayAmount == bill.getTotalAfterDiscount()) {
                             bill.setOrderStatus(OrderStatus.COMPLETED);
                             bill.setLastUpdatedDate(LocalDateTime.now());
                             bill.setBankCode(bankCode);
@@ -169,6 +233,7 @@ public class VNPayServiceImpl implements VNPayService {
                     if (bill != null) {
                         bill.setOrderStatus(OrderStatus.FAILED);
                         bill.setLastUpdatedDate(LocalDateTime.now());
+                        bill.setFailureReason(getResponseDescription(vnp_ResponseCode));
                         billRepository.save(bill);
                     }
                     return "Payment Failed - " + getResponseDescription(vnp_ResponseCode);

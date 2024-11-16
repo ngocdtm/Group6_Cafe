@@ -7,16 +7,15 @@ import { UserService } from '../services/user.service';
 import { SnackbarService } from '../services/snackbar.service';
 import { ProductService } from '../services/product.service';
 import { VnpayService } from '../services/vnpay.service';
-import { query } from '@angular/animations';
-
+import { timeStamp } from 'console';
 @Component({
   selector: 'app-checkout',
   templateUrl: './checkout.component.html',
   styleUrls: ['./checkout.component.scss']
 })
-export class CheckoutComponent implements OnInit {
 
-  
+
+export class CheckoutComponent implements OnInit {
   checkoutForm: FormGroup;
   cartItems: any[] = [];
   totalAmount: number = 0;
@@ -43,45 +42,30 @@ export class CheckoutComponent implements OnInit {
       customerName: ['', [Validators.required]],
       customerPhone: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
       shippingAddress: ['', [Validators.required]],
-      paymentMethod: ['COD', [Validators.required]], // Default to COD
+      paymentMethod: ['', [Validators.required]], // Default to COD
       couponCode: [''] // New form control for coupon
     });
   }
 
   ngOnInit(): void {
     // Check if user is logged in
-    this.userService.isLoggedIn().subscribe(loggedIn => {
-      if (!loggedIn) {
-        this.router.navigate(['/login']);
-        return;
-      }
-      this.loadUserInfo();
-      this.loadUserProfile();
-      this.loadCart();
-    });
     this.route.queryParams.subscribe(params => {
-      if (params['vnp_ResponseCode']){
-        this.handleVNPayCallBack(params);
+      if (params['vnp_ResponseCode']) {
+        this.handleVNPayCallback(params);
+      } else {
+        // Normal checkout page load
+        this.userService.isLoggedIn().subscribe(loggedIn => {
+          if (!loggedIn) {
+            this.router.navigate(['/login']);
+            return;
+          }
+          this.loadUserInfo();
+          this.loadUserProfile();
+          this.loadCart();
+        });
       }
-    })
+    });
   }
-
-  private handleVNPayCallBack(params: any): void {
-    const responseCode = params['vnp_ResponseCode'];
-    const orderId = params['vnp_TxnRef'];
-
-    if(responseCode === '00'){
-      //payment successful
-      this.snackbarService.openSnackBar('Payment complete successfully!', 'Close');
-      this.router.navigate(['order-confirmation'],{
-        queryParams: {orderId: orderId}
-      });
-    } else {
-      //payment failed
-      this.snackbarService.openSnackBar('Payment failed. Please try again.', 'Close');
-    }
-  }
-
   private loadUserInfo(): void {
     const userDetails = this.userService.getUserDetails();
     
@@ -214,26 +198,14 @@ export class CheckoutComponent implements OnInit {
         total: this.totalAmount,
         couponCode: this.appliedCoupon?.code || null,
         discount: this.discountAmount,
-        totalAfterDiscount: this.totalAfterDiscount
+        totalAfterDiscount: this.totalAfterDiscount,
+        paymentMethod: this.checkoutForm.get('paymentMethod')?.value
       };
       if (orderData.paymentMethod === 'VNPAY'){
         //process vnpay payment
-        this.vnpayService.createPayment(this.totalAfterDiscount, orderData.uuid).subscribe({
-        next: (response) => {
-          if(response.paymentUrl){
-            window.location.href = response.paymentUrl;
-          } else {
-            this.snackbarService.openSnackBar('Error creating payment', 'Close');
-          }
-          this.loading = false;
-        },
-        error: (error) => {
-          console.error('Error creating payment:', error);
-          this.snackbarService.openSnackBar('Error creating payment', 'Close');
-          this.loading = false;
-        }  
-        })
-      }  else {
+        this.processVnpayPayment();
+      } else if(orderData.paymentMethod === 'COD') {
+
       // Process online order
       this.billService.processOnlineOrder(orderData).subscribe({
         next: (response) => {
@@ -260,6 +232,9 @@ export class CheckoutComponent implements OnInit {
           this.snackbarService.openSnackBar('Error placing order', 'Close');
         }
       });
+    }else{
+      this.loading = false;
+      this.snackbarService.openSnackBar('Please select a payment method', 'Close');
     }
    } else {
       this.snackbarService.openSnackBar('Please fill all required fields', 'Close');
@@ -288,5 +263,96 @@ export class CheckoutComponent implements OnInit {
       currency: 'VND' 
     }).format(price);
   }
+
+  private handleVNPayCallback(params: any): void {
+    this.loading = true;
   
+    this.vnpayService.verifyPayment(params).subscribe({
+      next: (response) => {
+        this.loading = false;
+  
+        if (response.status === 'success') {
+          // Xóa giỏ hàng và chuyển hướng sang trang success
+          this.cartService.clearCart().subscribe(() => {
+            this.cartService.cartItemCountSubject.next(0);
+            // Chuyển hướng trực tiếp đến trang payment-success với params
+            this.router.navigate(['/payment-success'], {
+              queryParams: {
+                orderId: params.vnp_TxnRef,
+                transactionNo: params.vnp_TransactionNo,
+                status: 'success'
+              }
+            });
+          });
+        } else {
+          this.snackbarService.openSnackBar(
+            'Payment failed: ' + (response.message || 'Unknown error'),
+            'Close'
+          );
+          this.router.navigate(['/cart']);
+        }
+      },
+      error: (error) => {
+        this.loading = false;
+        console.error('Payment verification error:', error);
+        this.snackbarService.openSnackBar(
+          'Error verifying payment. Please contact support.',
+          'Close'
+        );
+        this.router.navigate(['/cart']);
+      }
+    });
+  }
+
+ private processVnpayPayment(): void {
+    if (!this.totalAfterDiscount || this.totalAfterDiscount <= 0) {
+      this.snackbarService.openSnackBar('Invalid payment amount', 'Close');
+      return;
+    }
+
+    this.loading = true;
+    const orderUuid = this.generateOrderId();
+
+    this.vnpayService.createPayment({
+      amount: this.totalAfterDiscount,
+      orderId: orderUuid,
+      customerName: this.checkoutForm.get('customerName')?.value,
+      customerPhone: this.checkoutForm.get('customerPhone')?.value,
+      shippingAddress: this.checkoutForm.get('shippingAddress')?.value,
+      total: this.totalAmount,
+      discount: this.discountAmount,
+      totalAfterDiscount: this.totalAfterDiscount,
+      couponCode: this.appliedCoupon?.code,
+      bankCode: ''
+    }).subscribe({
+      next: (response: PaymentResponse) => {
+        if (response.paymentUrl) {
+          // Redirect tới trang thanh toán VNPAY
+          window.location.href = response.paymentUrl;
+        } else {
+          this.snackbarService.openSnackBar('Payment failed. Please try again.', 'Close');
+          this.loading = false;
+        }
+      },
+      error: (error) => {
+        console.error('Error creating payment:', error);
+        this.snackbarService.openSnackBar(
+          error.error?.message || 'Error creating payment',
+          'Close'
+        );
+        this.loading = false;
+      }
+    });
+}
+  private generateOrderId(): string {
+    return 'ORDER-' + new Date().getTime() + '-' + Math.random().toString(36).substr(2,9);
+  }
+}
+
+
+export interface PaymentResponse {
+  orderId: string;
+  paymentUrl?: string; // thêm thuộc tính paymentUrl
+  status: string;
+  message?: string;
 }
