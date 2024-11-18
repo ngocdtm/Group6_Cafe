@@ -2,6 +2,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { PlatformService } from './platform.service';
 
 export interface Product {
   id: number;
@@ -32,10 +33,14 @@ export class ProductService {
   private recentlyViewedUpdateSubject = new Subject<void>();
   recentlyViewedUpdate$ = this.recentlyViewedUpdateSubject.asObservable();
 
-  url = environment.apiUrl;
-  imageUrl = environment.imageUrl;
+  private url: string;
 
-  constructor(private httpClient:HttpClient) { }
+  constructor(
+    private httpClient: HttpClient,
+    private platformService: PlatformService
+  ) {
+    this.url = this.platformService.getApiUrl();
+  }
 
   getImageUrl(imagePath: string): string {
     if (!imagePath) return '';

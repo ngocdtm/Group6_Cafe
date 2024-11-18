@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { UserService } from './user.service';
+import { PlatformService } from './platform.service';
 
 
 @Injectable({
@@ -11,15 +12,18 @@ import { UserService } from './user.service';
 })
 export class CartService {
 
-  url = environment.apiUrl;
   cartItemCountSubject = new BehaviorSubject<number>(0);
   snackbarService: any;
   router: any;
 
+  private url: string;
+
   constructor(
     private httpClient: HttpClient,
-    private userService: UserService
+    private userService: UserService,
+    private platformService: PlatformService
   ) {
+    this.url = this.platformService.getApiUrl();
     this.initializeCart();
   }
 

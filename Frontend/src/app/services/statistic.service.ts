@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { PlatformService } from './platform.service';
 
 // Enums
 export enum OrderStatus {
@@ -82,12 +83,15 @@ export interface DashboardSummary {
   providedIn: 'root'
 })
 export class StatisticsService {
-  private url = environment.apiUrl;
+  private url: string;
 
   constructor(
     private httpClient: HttpClient,
+    private platformService: PlatformService,
     private datePipe: DatePipe
-  ) { }
+  ) {
+    this.url = this.platformService.getApiUrl();
+  }
   
   private getHeaders(): HttpHeaders {
     // Lấy token từ localStorage hoặc service quản lý auth

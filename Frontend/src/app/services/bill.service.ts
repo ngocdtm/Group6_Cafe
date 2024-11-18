@@ -2,6 +2,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { PlatformService } from './platform.service';
 
 export interface BillItem {
   id: number;
@@ -38,9 +39,14 @@ export interface Bill {
   providedIn: 'root'
 })
 export class BillService {
-  url = environment.apiUrl;
+  private url: string;
 
-  constructor(private httpClient: HttpClient) { }
+  constructor(
+    private httpClient: HttpClient,
+    private platformService: PlatformService
+  ) {
+    this.url = this.platformService.getApiUrl();
+  }
 
   // Generate offline bill
   generateOfflineBill(data: any): Observable<any> {

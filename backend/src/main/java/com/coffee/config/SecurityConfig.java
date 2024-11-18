@@ -24,6 +24,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -105,34 +106,69 @@ public class SecurityConfig {
                 .addResolver(new PathResourceResolver());
     }
 
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins("http://192.168.1.10:8081", "http://127.0.0.1:8081", "http://localhost:4200")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true)
-                .maxAge(3600);
-    }
+//    public void addCorsMappings(CorsRegistry registry) {
+//        registry.addMapping("/**")
+//                .allowedOriginPatterns (
+//                        "http://127.0.0.1:8080",
+//                        "http://192.168.1.10:8080",
+//                        "http://localhost:4200",
+//                        "http://localhost:8080",
+//                        "http://10.0.2.2:8080",
+//                        "capacitor://localhost",
+//                        "http://localhost",
+//                        "http://localhost:8100", // Ionic dev server
+//                        "http://10.0.2.2",       // Android emulator without port
+//                        "capacitor://10.0.2.2",  // Capacitor in Android emulator
+//                        "http://10.0.2.2:4200",   // Angular dev server in Android
+//                        "capacitor://10.0.2.2:8080",
+//                        // Thêm các origin mới
+//                        "http://localhost:80",
+//                        "capacitor://",
+//                        "ionic://",
+//                        "null"  // Cho phép requests không có origin
+//                )
+//                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+//                .allowedHeaders("*")
+//                .allowCredentials(true)
+//                .maxAge(3600);
+//    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://192.168.1.10:8081", "http://127.0.0.1:8081", "http://localhost:4200"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(true);
-
+        configuration.setAllowedOrigins(Arrays.asList("http://10.20.0.121", "http://localhost", "http://10.0.2.2", "http://192.168.0.118", "http://192.168.1.10", "http://localhost:4200"));  // Cập nhật thêm localhost và các địa chỉ khác
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
+        configuration.addAllowedHeader("*");
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 
 
+
+//    @Bean
+//    public CorsFilter corsFilter() {
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        CorsConfiguration corsConfig = new CorsConfiguration();
+//
+//        corsConfig.addAllowedOrigin("*");
+//        corsConfig.addAllowedOrigin("http://localhost"); // Cho phép localhost
+//        corsConfig.addAllowedOrigin("http://10.0.2.2"); // Cho phép Android Emulator
+//        corsConfig.addAllowedHeader("*"); // Cho phép tất cả headers
+//        corsConfig.addAllowedMethod("*"); // Cho phép tất cả phương thức (GET, POST, PUT, DELETE, ...)
+//        corsConfig.setAllowCredentials(true); // Cho phép credentials (nếu cần)
+//
+//        source.registerCorsConfiguration("/**", corsConfig);
+//        return new CorsFilter(source);
+//    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                .cors().and() // Kích hoạt CORS
+                .csrf().disable() // Tắt CSRF nếu không cần thiết
                 .cors(Customizer.withDefaults())
-                .csrf(csrf -> csrf.disable())
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(unauthorizedHandler)
                 )
@@ -141,6 +177,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
+                                "/error", "/favicon.ico",
                                 "/api/v1/user/signup",
                                 "/api/v1/user/login",
                                 "/api/v1/user/forgotPassword",

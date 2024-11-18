@@ -21,6 +21,7 @@ import { LoginPromptComponent } from './login-prompt/login-prompt.component';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { environment } from 'src/environments/environment';
 import { ServiceWorkerModule } from '@angular/service-worker';
+import { PlatformService } from './services/platform.service';
 
 const ngxUiLoaderConfig: NgxUiLoaderConfig = {
     text:"Loading...",
@@ -61,7 +62,12 @@ const ngxUiLoaderConfig: NgxUiLoaderConfig = {
       registrationStrategy: 'registerWhenStable:30000'
     })
   ],
-  providers: [DatePipe,HttpClientModule,{provide:HTTP_INTERCEPTORS, useClass:TokenInterceptorInterceptor,multi:true}],
+  providers: [
+    PlatformService,
+    DatePipe,
+    HttpClientModule,
+    {provide:HTTP_INTERCEPTORS, useClass:TokenInterceptorInterceptor,multi:true}
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

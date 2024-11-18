@@ -3,6 +3,7 @@ import { Injectable, Injector } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
+import { PlatformService } from './platform.service';
 
 export interface UserWrapper {
   id: number;
@@ -21,7 +22,7 @@ export interface UserWrapper {
 })
 export class UserService {
 
-  url = environment.apiUrl;
+  private url: string;
  
   private loggedIn = new BehaviorSubject<boolean>(false);
   private userName = new BehaviorSubject<string>('');
@@ -31,7 +32,9 @@ export class UserService {
 
   constructor(
     private httpClient: HttpClient,
+    private platformService: PlatformService,
     private injector: Injector) {
+      this.url = this.platformService.getApiUrl();
     this.checkInitialLoginStatus();
   }
 

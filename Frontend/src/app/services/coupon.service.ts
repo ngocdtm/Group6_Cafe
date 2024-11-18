@@ -2,16 +2,23 @@ import { DatePipe } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
+import { PlatformService } from './platform.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CouponService {
 
-  url = environment.apiUrl;
+  private url: string;
 
-  constructor(private httpClient:HttpClient,  private datePipe: DatePipe) { }
-
+  constructor(
+    private httpClient: HttpClient,
+    private platformService: PlatformService,
+    private datePipe: DatePipe
+  ) {
+    this.url = this.platformService.getApiUrl();
+  }
+  
   add(data:any){
     if (data.expirationDate) { data.expirationDate = this.datePipe.transform(data.expirationDate, 'yyyy-MM-dd'); }
     return this.httpClient.post(`${this.url}/api/v1/coupon/add`, data,{

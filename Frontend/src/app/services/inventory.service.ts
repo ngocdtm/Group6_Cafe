@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { PlatformService } from './platform.service';
 
 // Enums
 export enum TransactionType {
@@ -36,10 +37,15 @@ export interface InventoryTransactionWrapper {
   providedIn: 'root'
 })
 export class InventoryService {
-  private url = environment.apiUrl;
+  private url: string;
 
-  constructor(private httpClient: HttpClient) { }
-
+  constructor(
+    private httpClient: HttpClient,
+    private platformService: PlatformService
+  ) {
+    this.url = this.platformService.getApiUrl();
+  }
+  
   getInventoryStatus(productId: number): Observable<InventoryWrapper> {
     return this.httpClient.get<InventoryWrapper>(
       `${this.url}/api/v1/inventory/status/${productId}`
