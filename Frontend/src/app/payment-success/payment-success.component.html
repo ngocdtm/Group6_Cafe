@@ -1,0 +1,43 @@
+<div class="payment-success-container">
+  <div class="payment-success-card" *ngIf="!isLoading && paymentResult">
+    <div class="success-icon">
+      <mat-icon class="check-icon">check_circle</mat-icon>
+    </div>
+
+    <h1 class="success-title">Thanh toán thành công!</h1>
+    
+    <div class="payment-details">
+      <div class="detail-item">
+        <span class="label">Mã đơn hàng:</span>
+        <span class="value">{{paymentResult.orderId}}</span>
+      </div>
+      <div class="detail-item">
+        <span class="label">Mã giao dịch:</span>
+        <span class="value">{{paymentResult.transactionNo}}</span>
+      </div>
+    </div>
+
+    <div class="message">
+      Cảm ơn bạn đã mua hàng tại cửa hàng của chúng tôi!
+    </div>
+
+    <div class="action-buttons">
+      <button mat-raised-button color="primary" (click)="viewOrder()">
+        <mat-icon>receipt</mat-icon>
+        Xem đơn hàng
+      </button>
+      
+      <button mat-stroked-button color="primary" (click)="continueShopping()">
+        <mat-icon>shopping_cart</mat-icon>
+        Tiếp tục mua sắm
+      </button>
+
+      <button mat-stroked-button (click)="goToHome()">
+        <mat-icon>home</mat-icon>
+        Về trang chủ
+      </button>
+    </div>
+  </div>
+
+  <mat-spinner *ngIf="isLoading" diameter="50" class="loading-spinner"></mat-spinner>
+</div>

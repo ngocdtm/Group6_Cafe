@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { PwaUpdateService } from './services/pwa-update.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SwUpdate } from '@angular/service-worker';
 import { OnlineStatusService } from './services/online-status.service';

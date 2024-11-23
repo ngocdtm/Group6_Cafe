@@ -1,162 +1,190 @@
 <div class="cart-container">
-    <!-- Loading Spinner -->
-    <div class="loading-spinner" *ngIf="loading">
-        <mat-spinner diameter="40"></mat-spinner>
-    </div>  
-  
-    <h1>Checkout</h1>
-  
-    <div class="cart-content">
-      <!-- Checkout Form -->
-      <div class="lg:col-span-8">
-        <div class="bg-white rounded-lg shadow-lg p-8">
-          <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-4">Shipping Information</h2>
-          
-          <form [formGroup]="checkoutForm" (ngSubmit)="onSubmit()" class="space-y-6">
-            <!-- Customer Name -->
+  <!-- Loading Spinner -->
+  <div class="loading-spinner" *ngIf="loading">
+      <mat-spinner diameter="40"></mat-spinner>
+  </div>  
+
+  <h1>Checkout</h1>
+
+  <div class="cart-content">
+    <!-- Checkout Form -->
+    <div class="lg:col-span-8">
+      <div class="bg-white rounded-lg shadow-lg p-8">
+        <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-4">Shipping Information</h2>
+        
+        <form [formGroup]="checkoutForm" (ngSubmit)="onSubmit()" class="space-y-6">
+          <!-- Customer Name -->
+          <div class="form-group">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Full Name</mat-label>
+              <input matInput formControlName="customerName" required>
+              <mat-error *ngIf="checkoutForm.get('customerName')?.invalid && checkoutForm.get('customerName')?.touched">
+                Name is required
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="form-group">
               <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Full Name</mat-label>
-                <input matInput formControlName="customerName" required>
-                <mat-error *ngIf="checkoutForm.get('customerName')?.invalid && checkoutForm.get('customerName')?.touched">
-                  Name is required
+                <mat-label>Phone Number</mat-label>
+                <input matInput formControlName="customerPhone" required>
+                <mat-error *ngIf="checkoutForm.get('customerPhone')?.hasError('required') && checkoutForm.get('customerPhone')?.touched">
+                  Please enter a valid phone number
                 </mat-error>
               </mat-form-field>
             </div>
+          </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div class="form-group">
-                <mat-form-field appearance="outline" class="w-full">
-                  <mat-label>Phone Number</mat-label>
-                  <input matInput formControlName="customerPhone" required>
-                  <mat-error *ngIf="checkoutForm.get('customerPhone')?.invalid && checkoutForm.get('customerPhone')?.touched">
-                    Please enter a valid phone number
-                  </mat-error>
-                </mat-form-field>
-              </div>
-            </div>
-  
-            <!-- Shipping Address -->
-            <div class="form-group">
-              <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Shipping Address</mat-label>
-                <textarea matInput formControlName="shippingAddress" required rows="3"></textarea>
-                <mat-error *ngIf="checkoutForm.get('shippingAddress')?.invalid && checkoutForm.get('shippingAddress')?.touched">
-                  Shipping address is required
-                </mat-error>
-              </mat-form-field>
-            </div>
+          <!-- Shipping Address -->
+          <div class="form-group">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Shipping Address</mat-label>
+              <textarea matInput formControlName="shippingAddress" required rows="3"></textarea>
+              <mat-error *ngIf="checkoutForm.get('shippingAddress')?.hasError('required') && checkoutForm.get('shippingAddress')?.touched">
+                Shipping address is required
+              </mat-error>
+            </mat-form-field>
+          </div>
 
-            <!-- Coupon Section -->
-            <div class="form-group">
-              <h3 class="text-lg font-medium mb-4 text-gray-800">Have a Coupon?</h3>
-              <div class="flex gap-4">
-                <mat-form-field appearance="outline" class="flex-grow">
-                  <mat-label>Coupon Code</mat-label>
-                  <input matInput formControlName="couponCode" [disabled]="appliedCoupon">
-                </mat-form-field>
-                <button type="button" 
+          <!-- Coupon Section -->
+          <div class="form-group">
+            <h3 class="text-lg font-medium mb-4 text-gray-800">Have a Coupon?</h3>
+            <div class="flex gap-4">
+              <mat-form-field appearance="outline" class="flex-grow">
+                <mat-label>Coupon Code</mat-label>
+                <input matInput formControlName="couponCode" [disabled]="appliedCoupon">
+                <button matSuffix 
                         mat-raised-button 
-                        color="accent"
+                        color="primary"
                         [disabled]="!checkoutForm.get('couponCode')?.value || applyingCoupon || appliedCoupon"
                         (click)="applyCoupon()"
-                        class="h-14">
+                        class="h-10">
                   <mat-spinner diameter="20" *ngIf="applyingCoupon"></mat-spinner>
                   <span *ngIf="!applyingCoupon">Apply</span>
                 </button>
-              </div>
-              <!-- Applied Coupon Info -->
-              <div *ngIf="appliedCoupon" class="mt-2 p-3 bg-green-50 rounded-md">
-                <div class="flex justify-between items-center">
-                  <div>
-                    <p class="text-green-700">Coupon Applied: {{appliedCoupon.code}}</p>
-                    <p class="text-sm text-green-600">Discount: {{appliedCoupon.discount}}%</p>
+              </mat-form-field>
+            </div>
+            <!-- Applied Coupon Info -->
+            <div *ngIf="appliedCoupon" class="mt-2 p-4 bg-green-50 rounded-lg border border-green-200">
+              <div class="flex justify-between items-center">
+                <div class="flex-grow">
+                  <div class="flex items-center gap-2">
+                    <mat-icon class="text-green-600">local_offer</mat-icon>
+                    <span class="text-green-700 font-medium">{{appliedCoupon.code}}</span>
                   </div>
-                  <button mat-icon-button color="warn" (click)="removeCoupon()">
-                    <mat-icon>close</mat-icon>
-                  </button>
+                  <p class="text-sm text-green-600 mt-1">Discount applied: {{appliedCoupon.discount}} %</p>
+                </div>
+                <button mat-flat-button 
+                        color="warn" 
+                        (click)="removeCoupon()"
+                        class="h-10 px-4">
+                  Remove Coupon
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Method -->
+          <div class="form-group mt-6">
+            <h3 class="text-lg font-medium mb-4 text-gray-800">Payment Method</h3>
+            <div class="grid grid-cols-1 gap-4">
+              <!-- COD Option -->
+              <div class="payment-option" 
+                   [class.selected]="checkoutForm.get('paymentMethod')?.value === 'COD'"
+                   (click)="checkoutForm.patchValue({paymentMethod: 'COD'})">
+                <div class="flex items-center gap-4 p-4">
+                  <div class="payment-icon">
+                    <mat-icon>local_shipping</mat-icon>
+                  </div>
+                  <div class="flex-grow">
+                    <h4 class="font-medium">Cash on Delivery (COD)</h4>
+                    <p class="text-sm text-gray-600">Pay when you receive your order</p>
+                  </div>
+                  <mat-icon *ngIf="checkoutForm.get('paymentMethod')?.value === 'COD'" 
+                            class="text-primary">check_circle</mat-icon>
+                </div>
+              </div>
+          
+              <!-- VNPAY Option -->
+              <div class="payment-option"
+                   [class.selected]="checkoutForm.get('paymentMethod')?.value === 'VNPAY'"
+                   (click)="checkoutForm.patchValue({paymentMethod: 'VNPAY'})">
+                <div class="flex items-center gap-4 p-4">
+                  <div class="payment-icon">
+                    <mat-icon>payment</mat-icon>
+                  </div>
+                  <div class="flex-grow">
+                    <h4 class="font-medium">VNPAY</h4>
+                    <p class="text-sm text-gray-600">Pay online via VNPAY gateway</p>
+                  </div>
+                  <mat-icon *ngIf="checkoutForm.get('paymentMethod')?.value === 'VNPAY'"
+                            class="text-primary">check_circle</mat-icon>
                 </div>
               </div>
             </div>
-  
-            <!-- Payment Method -->
-            <div class="form-group">
-              <h3 class="text-lg font-medium mb-4 text-gray-800">Payment Method</h3>
-              <mat-radio-group formControlName="paymentMethod" class="flex flex-col gap-4">
-                <mat-radio-button value="COD" class="payment-option">
-                  <div class="flex items-center gap-3">
-                    <span class="material-icons">local_shipping</span>
-                    <div>
-                      <div class="font-medium">Cash on Delivery</div>
-                      <div class="text-sm text-gray-600">Pay when you receive your order</div>
-                    </div>
-                  </div>
-                </mat-radio-button>
-                <mat-radio-button value="BANK_TRANSFER" class="payment-option">
-                  <div class="flex items-center gap-3">
-                    <span class="material-icons">account_balance</span>
-                    <div>
-                      <div class="font-medium">Bank Transfer</div>
-                      <div class="text-sm text-gray-600">Pay via bank transfer</div>
-                    </div>
-                  </div>
-                </mat-radio-button>
-                <mat-radio-button value="VNPAY" class="payment-option">
-                  <div class="flex items-center gap-3">
-                    <span class="material-icons">credit_card</span>
-                    <div>
-                      <div class="font-medium">VNPay</div>
-                      <div class="text-sm text-gray-600">Pay securely with VNPay</div>
-                    </div>
-                  </div>
-                </mat-radio-button>
-              </mat-radio-group>
+          </div>
+
+          <button mat-raised-button color="primary" type="submit" 
+                  [disabled]="checkoutForm.invalid || loading || cartItems.length === 0"
+                  class="w-full h-12 text-lg mt-8">
+            <span *ngIf="!loading">Place Order</span>
+            <mat-spinner diameter="24" *ngIf="loading" class="mx-auto"></mat-spinner>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Order Summary -->
+    <mat-card class="cart-summary">
+      <h3>Order Summary</h3>
+        <!-- Cart Items -->
+        <div class="cart-items">
+          <mat-card *ngFor="let item of cartItems" class="cart-item">
+            <div class="item-image">    
+                  <img [src]="getImageUrl(item)" [alt]="item.product?.name || 'Product image'">
+            </div>        
+            <div class="item-details">
+              <h3>{{item.product?.name}}</h3>
+              <p class="text-sm text-gray-600">Quantity: {{item.quantity}}</p>
+              <p class="price">{{formatPrice(item.product?.price * item.quantity)}}</p>
             </div>
-  
-            <button mat-raised-button color="primary" type="submit" 
-                    [disabled]="checkoutForm.invalid || loading || cartItems.length === 0"
-                    class="w-full h-12 text-lg mt-8">
-              <span *ngIf="!loading">Place Order</span>
-              <mat-spinner diameter="24" *ngIf="loading" class="mx-auto"></mat-spinner>
-            </button>
-          </form>
+          </mat-card>
+         </div>
+        
+       <!-- Summary Details with discount display -->
+       <div class="summary-details">
+        <div class="summary-row">
+          <span>Subtotal:</span>
+          <span>{{formatPrice(totalAmount)}}</span>
+        </div>
+        
+        <!-- Show discount amount when coupon is applied -->
+        <div class="summary-row text-green-600" *ngIf="appliedCoupon">
+          <span>Discount:</span>
+          <span>-{{formatPrice(discountAmount)}}</span>
+        </div>
+        
+        <div class="summary-row">
+          <span>Shipping:</span>
+          <span>Free</span>
+        </div>
+        
+        <mat-divider></mat-divider>
+        
+        <div class="summary-row total">
+          <span>Total:</span>
+          <div class="flex flex-col items-end">
+            <span class="text-sm line-through text-gray-500" *ngIf="appliedCoupon">
+              {{formatPrice(totalAmount)}}
+            </span>
+            <span class="text-xl font-bold text-primary">
+              {{formatPrice(totalAfterDiscount)}}
+            </span>
+          </div>
         </div>
       </div>
-  
-      <!-- Order Summary -->
-      <mat-card class="cart-summary">
-        <h3>Order Summary</h3>
-          <!-- Cart Items -->
-          <div class="cart-items">
-            <mat-card *ngFor="let item of cartItems" class="cart-item">
-              <div class="item-image">    
-                    <img [src]="getImageUrl(item)" [alt]="item.product?.name || 'Product image'">
-              </div>        
-              <div class="item-details">
-                <h3>{{item.product?.name}}</h3>
-                <p class="text-sm text-gray-600">Quantity: {{item.quantity}}</p>
-                <p class="price">{{formatPrice(item.product?.price * item.quantity)}}</p>
-              </div>
-            </mat-card>
-           </div>
-          
-          <!-- Summary Details -->
-          <div class="summary-details">
-            <div class="summary-row">
-              <span>Subtotal:</span>
-              <span>{{formatPrice(totalAmount)}}</span>
-            </div>
-            <div class="summary-row">
-              <span>Shipping:</span>
-              <span>Free</span>
-            </div>
-            <mat-divider></mat-divider>
-            <div class="summary-row total">
-              <span>Total:</span>
-              <span>{{formatPrice(totalAmount)}}</span>
-            </div>
-          </div>
-        </mat-card>
-      
-    </div>
+      </mat-card>
+    
+  </div>
 </div>

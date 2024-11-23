@@ -72,7 +72,7 @@ public class ProductServiceImpl implements ProductService {
                     product.setDescription(description);
                     product.setPrice(price);
                     product.setOriginalPrice(originalPrice);
-                    product.setStatus("true");
+                    product.setStatus("OUT_OF_STOCK");
 
                     product = productRepository.save(product);
 

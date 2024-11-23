@@ -1,19 +1,28 @@
 package com.coffee.service.impl;
 
 import com.coffee.config.VNPayConfig;
-import com.coffee.entity.Bill;
-import com.coffee.entity.Payment;
+import com.coffee.entity.*;
 import com.coffee.enums.OrderStatus;
-import com.coffee.repository.BillRepository;
+import com.coffee.enums.OrderType;
+import com.coffee.repository.*;
+import com.coffee.security.JwtRequestFilter;
+import com.coffee.service.InventoryService;
+import com.coffee.service.ShoppingCartService;
 import com.coffee.service.VNPayService;
+import com.coffee.utils.CafeUtils;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -24,6 +33,27 @@ public class VNPayServiceImpl implements VNPayService {
     @Autowired
     private BillRepository billRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private InventoryRepository inventoryRepository;
+
+    @Autowired
+    private InventoryService inventoryService;
+
+    @Autowired
+    private InventorySnapshotRepository inventorySnapshotRepository;
+
+    @Autowired
+    private ShoppingCartService shoppingCartService;
+
+    @Autowired
+    private JwtRequestFilter jwtRequestFilter;
+
     @Override
     public String createPayment(Payment paymentDTO, HttpServletRequest request) throws UnsupportedEncodingException {
         log.info("Creating payment with data: {}", paymentDTO);
@@ -32,15 +62,71 @@ public class VNPayServiceImpl implements VNPayService {
         if (paymentDTO.getAmount() < 1000) {
             throw new IllegalArgumentException("Amount must be greater than 1000 VND");
         }
+        log.info("Received shipping address: '{}'", paymentDTO.getShippingAddress());
 
-        // Tạo Bill record trước khi tạo payment URL
+        Bill bill = createInitialBill(paymentDTO);
+        createBillItems(bill, paymentDTO.getOrderInfo()); // Add this line to create bill items
+
+        try {
+            billRepository.save(bill);
+        } catch (Exception e) {
+            log.error("Error saving bill: ", e);
+            throw new RuntimeException("Error saving bill", e);
+        }
+
+        // Continue with existing VNPAY payment URL generation code...
+        return generatePaymentUrl(paymentDTO, request);
+    }
+
+    private Bill createInitialBill(Payment paymentDTO) {
         Bill bill = new Bill();
         bill.setUuid(paymentDTO.getOrderId());
-        bill.setTotal(paymentDTO.getAmount());
+        bill.setTotal(paymentDTO.getTotal());
         bill.setOrderStatus(OrderStatus.PENDING);
         bill.setOrderDate(LocalDateTime.now());
-        billRepository.save(bill);
+        bill.setOrderType(OrderType.ONLINE);
+        bill.setPaymentMethod("VNPAY");
+        bill.setCustomerName(paymentDTO.getCustomerName());
+        bill.setCustomerPhone(paymentDTO.getCustomerPhone());
 
+        if (paymentDTO.getShippingAddress() != null && !paymentDTO.getShippingAddress().trim().isEmpty()) {
+            bill.setShippingAddress(paymentDTO.getShippingAddress().trim());
+        } else {
+            throw new IllegalArgumentException("Shipping address is required for online orders");
+        }
+
+        processCouponAndDiscount(bill, paymentDTO);
+        processUserInformation(bill);
+
+        return bill;
+    }
+
+    private void createBillItems(Bill bill, String orderInfo) {
+        try {
+            JSONArray jsonArray = CafeUtils.getJsonArrayFromString(orderInfo);
+            List<BillItem> billItems = new ArrayList<>();
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                Product product = productRepository.findById(jsonObject.getInt("id"))
+                        .orElseThrow(() -> new RuntimeException("Product not found"));
+
+                BillItem billItem = BillItem.createFromProduct(
+                        product,
+                        jsonObject.getInt("quantity"),
+                        jsonObject.getInt("price")
+                );
+                billItem.setBill(bill);
+                billItems.add(billItem);
+            }
+
+            bill.setBillItems(billItems);
+        } catch (JSONException e) {
+            throw new RuntimeException("Error processing order items", e);
+        }
+    }
+
+    private String generatePaymentUrl(Payment paymentDTO, HttpServletRequest request) throws UnsupportedEncodingException {
         Map<String, String> vnp_Params = new HashMap<>();
         vnp_Params.put("vnp_Version", "2.1.0");
         vnp_Params.put("vnp_Command", "pay");
@@ -67,7 +153,6 @@ public class VNPayServiceImpl implements VNPayService {
             vnp_Params.put("vnp_BankCode", paymentDTO.getBankCode());
         }
 
-        // Sort and build query string
         List<String> fieldNames = new ArrayList<>(vnp_Params.keySet());
         Collections.sort(fieldNames);
         StringBuilder hashData = new StringBuilder();
@@ -78,12 +163,10 @@ public class VNPayServiceImpl implements VNPayService {
             String fieldName = itr.next();
             String fieldValue = vnp_Params.get(fieldName);
             if ((fieldValue != null) && (fieldValue.length() > 0)) {
-                // Build hash data
                 hashData.append(fieldName);
                 hashData.append('=');
                 hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8.toString()));
 
-                // Build query
                 query.append(URLEncoder.encode(fieldName, StandardCharsets.UTF_8.toString()));
                 query.append('=');
                 query.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8.toString()));
@@ -98,81 +181,95 @@ public class VNPayServiceImpl implements VNPayService {
         String queryUrl = query.toString();
         String vnp_SecureHash = VNPayConfig.hmacSHA512(VNPayConfig.vnp_HashSecret, hashData.toString());
         queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
-        String paymentUrl = VNPayConfig.vnp_PayUrl + "?" + queryUrl;
 
-        log.info("Generated payment URL: {}", paymentUrl);
-        return paymentUrl;
+        return VNPayConfig.vnp_PayUrl + "?" + queryUrl;
+    }
+
+    private void processCouponAndDiscount(Bill bill, Payment paymentDTO) {
+        if (paymentDTO.getCouponCode() != null && !paymentDTO.getCouponCode().isEmpty()) {
+            bill.setCouponCode(paymentDTO.getCouponCode());
+
+            // Validate discount value
+            if (paymentDTO.getDiscount() != null && paymentDTO.getDiscount() >= 0 &&
+                    paymentDTO.getDiscount() <= paymentDTO.getTotal()) {
+                bill.setDiscount(paymentDTO.getDiscount());
+                bill.setTotalAfterDiscount(paymentDTO.getTotal() - paymentDTO.getDiscount());
+            } else {
+                throw new IllegalArgumentException("Invalid discount amount");
+            }
+        } else {
+            bill.setDiscount(0);
+            bill.setTotalAfterDiscount(paymentDTO.getTotal());
+        }
+    }
+
+    private void processUserInformation(Bill bill) {
+        String userEmail = jwtRequestFilter.getCurrentUser();
+        if (userEmail != null) {
+            User user = userRepository.findByEmail(userEmail);
+            if (user != null) {
+                bill.setUser(user);
+                bill.setCreatedByUser(userEmail);
+
+                // Only override customer info if not provided
+                if (bill.getCustomerName() == null || bill.getCustomerName().trim().isEmpty()) {
+                    bill.setCustomerName(user.getName());
+                }
+                if (bill.getCustomerPhone() == null || bill.getCustomerPhone().trim().isEmpty()) {
+                    bill.setCustomerPhone(user.getPhoneNumber());
+                }
+            }
+        }
+    }
+
+    private Map<String, String> collectRequestParameters(HttpServletRequest request) {
+        Map<String, String> fields = new HashMap<>();
+        Enumeration<String> params = request.getParameterNames();
+
+        while (params.hasMoreElements()) {
+            String fieldName = params.nextElement();
+            String fieldValue = request.getParameter(fieldName);
+            if ((fieldValue != null) && (fieldValue.length() > 0)) {
+                fields.put(fieldName, fieldValue);
+            }
+        }
+
+        return fields;
+    }
+
+    private String processFailedPayment(Bill bill, String reason) {
+        bill.setOrderStatus(OrderStatus.FAILED);
+        bill.setLastUpdatedDate(LocalDateTime.now());
+        bill.setFailureReason(reason);
+        billRepository.save(bill);
+        return "Payment Failed - " + reason;
     }
 
     @Override
+    @Transactional
     public String paymentCallback(HttpServletRequest request) {
         try {
-            // Collect all request parameters into a map
-            Map<String, String> fields = new HashMap<>();
-            for (Enumeration<String> params = request.getParameterNames(); params.hasMoreElements(); ) {
-                String fieldName = params.nextElement();
-                String fieldValue = request.getParameter(fieldName);
-                if ((fieldValue != null) && (fieldValue.length() > 0)) {
-                    fields.put(fieldName, fieldValue);
-                }
-            }
-
-            log.info("Received VNPay callback parameters: {}", fields);
-
-            // Get the secure hash from the request
+            Map<String, String> fields = collectRequestParameters(request);
             String vnp_SecureHash = fields.get("vnp_SecureHash");
+
             if (vnp_SecureHash == null) {
                 log.error("Missing secure hash");
                 return "Payment Failed - Missing security hash";
             }
 
-            // Remove hash-related fields before validation
             fields.remove("vnp_SecureHashType");
             fields.remove("vnp_SecureHash");
 
-            // Get important fields for processing
             String orderId = fields.get("vnp_TxnRef");
             String vnp_ResponseCode = fields.get("vnp_ResponseCode");
             String amount = fields.get("vnp_Amount");
             String bankCode = fields.get("vnp_BankCode");
             String payDate = fields.get("vnp_PayDate");
 
-            // Calculate secure hash
             String signValue = VNPayConfig.hashAllFields(fields);
-            log.info("Calculated hash: {}", signValue);
-            log.info("Received hash: {}", vnp_SecureHash);
 
             if (signValue.equals(vnp_SecureHash)) {
-                // Signature matches, process the payment
-                if ("00".equals(vnp_ResponseCode)) {
-                    Bill bill = billRepository.findByUuid(orderId);
-                    if (bill != null) {
-                        long vnpayAmount = Long.parseLong(amount) / 100;
-                        if (vnpayAmount == bill.getTotal()) {
-                            bill.setOrderStatus(OrderStatus.COMPLETED);
-                            bill.setLastUpdatedDate(LocalDateTime.now());
-                            bill.setBankCode(bankCode);
-                            bill.setPayDate(payDate);
-                            billRepository.save(bill);
-                            return "Payment Success";
-                        } else {
-                            bill.setOrderStatus(OrderStatus.FAILED);
-                            bill.setLastUpdatedDate(LocalDateTime.now());
-                            billRepository.save(bill);
-                            return "Payment Failed - Amount mismatch";
-                        }
-                    }
-                    return "Payment Failed - Bill not found";
-                } else {
-                    // Payment failed according to VNPay
-                    Bill bill = billRepository.findByUuid(orderId);
-                    if (bill != null) {
-                        bill.setOrderStatus(OrderStatus.FAILED);
-                        bill.setLastUpdatedDate(LocalDateTime.now());
-                        billRepository.save(bill);
-                    }
-                    return "Payment Failed - " + getResponseDescription(vnp_ResponseCode);
-                }
+                return processVerifiedPayment(orderId, vnp_ResponseCode, amount, bankCode, payDate);
             } else {
                 log.error("Invalid signature. Expected: {}, Got: {}", signValue, vnp_SecureHash);
                 return "Payment Failed - Invalid signature";
@@ -180,6 +277,86 @@ public class VNPayServiceImpl implements VNPayService {
         } catch (Exception e) {
             log.error("Error processing payment callback", e);
             return "Payment Failed - System error: " + e.getMessage();
+        }
+    }
+
+    @Transactional
+    private String processVerifiedPayment(String orderId, String responseCode, String amount,
+                                          String bankCode, String payDate) {
+        if ("00".equals(responseCode)) {
+            Bill bill = billRepository.findByUuid(orderId);
+            if (bill != null) {
+                long vnpayAmount = Long.parseLong(amount) / 100;
+                if (vnpayAmount == bill.getTotalAfterDiscount()) {
+                    return processSuccessfulPayment(bill, bankCode, payDate);
+                } else {
+                    return processFailedPayment(bill, "Amount mismatch");
+                }
+            }
+            return "Payment Failed - Bill not found";
+        } else {
+            Bill bill = billRepository.findByUuid(orderId);
+            if (bill != null) {
+                return processFailedPayment(bill, getResponseDescription(responseCode));
+            }
+            return "Payment Failed - " + getResponseDescription(responseCode);
+        }
+    }
+
+    @Transactional
+    private String processSuccessfulPayment(Bill bill, String bankCode, String payDate) {
+        try {
+            // Update bill status
+            bill.setOrderStatus(OrderStatus.PENDING);
+            bill.setLastUpdatedDate(LocalDateTime.now());
+            bill.setBankCode(bankCode);
+            bill.setPayDate(payDate);
+
+            // Update inventory for each item
+            for (BillItem billItem : bill.getBillItems()) {
+                updateInventoryForItem(billItem, bill.getUuid());
+            }
+
+            billRepository.save(bill);
+            // Clear the user's shopping cart after successful order
+            shoppingCartService.clearCart();
+            return "Payment Success";
+        } catch (Exception e) {
+            log.error("Error processing successful payment for bill {}", bill.getUuid(), e);
+            bill.setOrderStatus(OrderStatus.FAILED);
+            bill.setFailureReason("Error updating inventory: " + e.getMessage());
+            billRepository.save(bill);
+            return "Payment Failed - Inventory Update Error";
+        }
+    }
+
+    private void updateInventoryForItem(BillItem billItem, String orderUuid) {
+        try {
+            Integer productId = billItem.getOriginalProductId();
+            Optional<Inventory> inventoryOpt = inventoryRepository.findByProductId(productId);
+
+            if (inventoryOpt.isPresent()) {
+                Inventory inventory = inventoryOpt.get();
+                int quantity = billItem.getQuantity();
+
+                // Remove stock and create transaction record
+                inventoryService.removeStock(productId, quantity, "Order #" + orderUuid);
+
+                // Create inventory snapshot
+                InventorySnapshot snapshot = new InventorySnapshot();
+                snapshot.setProduct(inventory.getProduct());
+                snapshot.setQuantity(inventory.getQuantity());
+                snapshot.setSnapshotDate(LocalDate.now());
+                snapshot.setCreatedAt(LocalDateTime.now());
+                inventorySnapshotRepository.save(snapshot);
+            } else {
+                log.warn("Product with ID {} not found while updating inventory for Order #{}",
+                        productId, orderUuid);
+                throw new RuntimeException("Product inventory not found");
+            }
+        } catch (Exception ex) {
+            log.error("Error updating inventory for product: {}", billItem.getProductName(), ex);
+            throw new RuntimeException("Failed to update inventory", ex);
         }
     }
 

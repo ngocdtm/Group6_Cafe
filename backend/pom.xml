@@ -144,7 +144,7 @@
 			<artifactId>spring-boot-starter-mail</artifactId>
 			<version>2.5.6</version>
 		</dependency>
-<!--		VNPay-->
+		<!--		VNPay-->
 		<dependency>
 			<groupId>jakarta.servlet</groupId>
 			<artifactId>jakarta.servlet-api</artifactId>

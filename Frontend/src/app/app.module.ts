@@ -22,6 +22,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { environment } from 'src/environments/environment';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { PlatformService } from './services/platform.service';
+import { PaymentSuccessComponent } from './payment-success/payment-success.component';
 
 const ngxUiLoaderConfig: NgxUiLoaderConfig = {
     text:"Loading...",
@@ -43,7 +44,8 @@ const ngxUiLoaderConfig: NgxUiLoaderConfig = {
     SignupComponent,
     ForgotPasswordComponent,
     LoginComponent,
-    LoginPromptComponent
+    LoginPromptComponent,
+    PaymentSuccessComponent
    ],
   imports: [
     BrowserModule,

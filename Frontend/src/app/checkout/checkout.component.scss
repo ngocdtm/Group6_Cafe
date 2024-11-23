@@ -2,6 +2,59 @@
     padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
+    .payment-option {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+  
+      &:hover {
+        border-color: #90caf9;
+        background-color: #f8fafc;
+      }
+  
+      &.selected {
+        border-color: #1976d2;
+        background-color: #f0f7ff;
+  
+        .payment-icon {
+          mat-icon {
+            color: #1976d2;
+          }
+        }
+      }
+  
+      .payment-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #e3f2fd;
+        
+        mat-icon {
+          color: #666;
+        }
+      }
+    }
+    
+    // Add styles for line-through price
+    .line-through {
+      text-decoration: line-through;
+      color: #666;
+    }
+    
+    // Enhanced summary details
+    .summary-details {
+      .summary-row {
+        &.total {
+          margin-top: 1rem;
+          padding-top: 1rem;
+          border-top: 1px solid #e2e8f0;
+        }
+      }
+    }
   }
  
   .cart-header {

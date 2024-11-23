@@ -9,6 +9,7 @@ import { CheckoutComponent } from './checkout/checkout.component';
 import { ProfileComponent } from './profile/profile.component';
 import { BillHistoryComponent } from './customer-bill/bill-history/bill-history.component';
 import { RecentlyViewedComponent } from './recently-viewed/recently-viewed.component';
+import { PaymentSuccessComponent } from './payment-success/payment-success.component';
 
 const routes: Routes = [
   {
@@ -23,7 +24,8 @@ const routes: Routes = [
       { path: 'checkout', component: CheckoutComponent },
       { path: 'profile', component: ProfileComponent },
       { path: 'bill-history', component: BillHistoryComponent },
-      { path: 'recently-viewed', component: RecentlyViewedComponent }
+      { path: 'recently-viewed', component: RecentlyViewedComponent },
+      { path: 'payment-success', component: PaymentSuccessComponent}
       // { path: 'new', component: NewComponent }, // Uncomment when you have a NewComponent
     ]
   }

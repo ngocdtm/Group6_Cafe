@@ -6,17 +6,25 @@ import { BillService } from '../services/bill.service';
 import { UserService } from '../services/user.service';
 import { SnackbarService } from '../services/snackbar.service';
 import { ProductService } from '../services/product.service';
-import { VnpayService } from '../services/vnpay.service';
-import { query } from '@angular/animations';
+import { VnpayService, PaymentResponse  } from '../services/vnpay.service';
+
+interface CartItem {
+  productId: number;
+  quantity: number;
+  product: {
+    price: number;
+    images: Array<{imagePath: string}>;
+  };
+}
 
 @Component({
   selector: 'app-checkout',
   templateUrl: './checkout.component.html',
   styleUrls: ['./checkout.component.scss']
 })
-export class CheckoutComponent implements OnInit {
 
-  
+
+export class CheckoutComponent implements OnInit {
   checkoutForm: FormGroup;
   cartItems: any[] = [];
   totalAmount: number = 0;
@@ -43,43 +51,32 @@ export class CheckoutComponent implements OnInit {
       customerName: ['', [Validators.required]],
       customerPhone: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
       shippingAddress: ['', [Validators.required]],
-      paymentMethod: ['COD', [Validators.required]], // Default to COD
-      couponCode: [''] // New form control for coupon
+      paymentMethod: ['', [Validators.required]], // Default to COD
+      couponCode: [''],
+      bankCode: [''] 
     });
   }
 
   ngOnInit(): void {
-    // Check if user is logged in
-    this.userService.isLoggedIn().subscribe(loggedIn => {
-      if (!loggedIn) {
-        this.router.navigate(['/login']);
-        return;
-      }
-      this.loadUserInfo();
-      this.loadUserProfile();
-      this.loadCart();
-    });
     this.route.queryParams.subscribe(params => {
-      if (params['vnp_ResponseCode']){
-        this.handleVNPayCallBack(params);
+      if (params['vnp_ResponseCode']) {
+        this.handleVNPayCallback(params);
+      } else {
+        this.userService.isLoggedIn().subscribe(loggedIn => {
+          if (!loggedIn) {
+            this.router.navigate(['/login']);
+            return;
+          }
+          this.initializeCheckout();
+        });
       }
-    })
+    });
   }
 
-  private handleVNPayCallBack(params: any): void {
-    const responseCode = params['vnp_ResponseCode'];
-    const orderId = params['vnp_TxnRef'];
-
-    if(responseCode === '00'){
-      //payment successful
-      this.snackbarService.openSnackBar('Payment complete successfully!', 'Close');
-      this.router.navigate(['order-confirmation'],{
-        queryParams: {orderId: orderId}
-      });
-    } else {
-      //payment failed
-      this.snackbarService.openSnackBar('Payment failed. Please try again.', 'Close');
-    }
+  private initializeCheckout(): void {
+    this.loadUserInfo();
+    this.loadUserProfile();
+    this.loadCart();
   }
 
   private loadUserInfo(): void {
@@ -202,68 +199,98 @@ export class CheckoutComponent implements OnInit {
   onSubmit(): void {
     if (this.checkoutForm.valid && this.cartItems.length > 0) {
       this.loading = true;
+      const paymentMethod = this.checkoutForm.get('paymentMethod')?.value;
 
-      // Prepare order data with coupon information
-      const orderData = {
-        ...this.checkoutForm.value,
-        productDetails: JSON.stringify(this.cartItems.map(item => ({
-          id: item.productId,
-          quantity: item.quantity,
-          price: item.product.price
-        }))),
-        total: this.totalAmount,
-        couponCode: this.appliedCoupon?.code || null,
-        discount: this.discountAmount,
-        totalAfterDiscount: this.totalAfterDiscount
-      };
-      if (orderData.paymentMethod === 'VNPAY'){
-        //process vnpay payment
-        this.vnpayService.createPayment(this.totalAfterDiscount, orderData.uuid).subscribe({
-        next: (response) => {
-          if(response.paymentUrl){
-            window.location.href = response.paymentUrl;
-          } else {
-            this.snackbarService.openSnackBar('Error creating payment', 'Close');
-          }
-          this.loading = false;
-        },
-        error: (error) => {
-          console.error('Error creating payment:', error);
-          this.snackbarService.openSnackBar('Error creating payment', 'Close');
-          this.loading = false;
-        }  
-        })
-      }  else {
-      // Process online order
-      this.billService.processOnlineOrder(orderData).subscribe({
-        next: (response) => {
-          this.loading = false;
-          this.snackbarService.openSnackBar('Order placed successfully!', 'Close');
-          
-          // Download bill PDF
-          this.downloadBill(response.uuid);
-          
-          // Clear cart and update cart count immediately before redirecting
-        this.cartService.clearCart().subscribe(() => {
-          // Cập nhật cart count về 0 ngay lập tức
-          this.cartService.cartItemCountSubject.next(0);
-          
-          // Redirect to order confirmation
-          this.router.navigate(['/order-confirmation'], {
-            queryParams: { orderId: response.uuid }
-          });
-        });
-      },
-        error: (error) => {
-          this.loading = false;
-          console.error('Error processing order:', error);
-          this.snackbarService.openSnackBar('Error placing order', 'Close');
-        }
-      });
-    }
-   } else {
+      if (paymentMethod === 'VNPAY') {
+        this.processVnpayPayment();
+      } else if (paymentMethod === 'COD') {
+        this.processCodPayment();
+      } else {
+        this.loading = false;
+        this.snackbarService.openSnackBar('Please select a valid payment method', 'Close');
+      }
+    } else {
       this.snackbarService.openSnackBar('Please fill all required fields', 'Close');
     }
+  }
+
+  private processCodPayment(): void {
+    const orderData = {
+      ...this.checkoutForm.value,
+      productDetails: JSON.stringify(this.cartItems.map(item => ({
+        id: item.productId,
+        quantity: item.quantity,
+        price: item.product.price
+      }))),
+      total: this.totalAmount,
+      couponCode: this.appliedCoupon?.code || null,
+      discount: this.discountAmount,
+      totalAfterDiscount: this.totalAfterDiscount
+    };
+
+    this.billService.processOnlineOrder(orderData).subscribe({
+      next: (response) => {
+        this.loading = false;
+        this.snackbarService.openSnackBar('Order placed successfully!', 'Close');
+        this.downloadBill(response.uuid);
+        this.clearCartAndRedirect(response.uuid);
+      },
+      error: (error) => {
+        this.loading = false;
+        console.error('Error processing order:', error);
+        this.snackbarService.openSnackBar('Error placing order', 'Close');
+      }
+    });
+  }
+
+  private handleVNPayCallback(params: any): void {
+    this.loading = true;
+    this.vnpayService.verifyPayment(params).subscribe({
+      next: (response) => {
+        this.loading = false;
+        if (response.status === 'success') {
+          this.clearCartAndRedirect(params.vnp_TxnRef, params.vnp_TransactionNo);
+        } else {
+          this.handlePaymentFailure(response.message);
+        }
+      },
+      error: (error) => {
+        this.loading = false;
+        console.error('Payment verification error:', error);
+        this.handlePaymentFailure('Error verifying payment');
+      }
+    });
+  }
+
+  private clearCartAndRedirect(orderId: string, transactionNo?: string): void {
+    this.cartService.clearCart().subscribe(() => {
+      this.cartService.cartItemCountSubject.next(0);
+      if (transactionNo) {
+        this.router.navigate(['/payment-success'], {
+          queryParams: {
+            orderId: orderId,
+            transactionNo: transactionNo,
+            status: 'success'
+          }
+        });
+      } else {
+        this.router.navigate(['/order-confirmation'], {
+          queryParams: { orderId: orderId }
+        });
+      }
+    });
+  }
+
+  private handlePaymentFailure(message: string): void {
+    this.snackbarService.openSnackBar(
+      `Payment failed: ${message || 'Unknown error'}`,
+      'Close'
+    );
+    this.router.navigate(['/cart']);
+  }
+
+  private generateOrderId(): string {
+    return `ORDER-${new Date().getTime()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
   private downloadBill(uuid: string): void {
@@ -288,5 +315,50 @@ export class CheckoutComponent implements OnInit {
       currency: 'VND' 
     }).format(price);
   }
-  
+
+  private processVnpayPayment(): void {
+    if (!this.totalAfterDiscount || this.totalAfterDiscount <= 0) {
+      this.snackbarService.openSnackBar('Invalid payment amount', 'Close');
+      return;
+    }
+
+    const orderItems = this.cartItems.map(item => ({
+      id: item.productId,
+      quantity: item.quantity,
+      price: item.product.price
+    }));
+
+    const paymentData = {
+      amount: this.totalAfterDiscount,
+      orderId: this.generateOrderId(),
+      customerName: this.checkoutForm.get('customerName')?.value,
+      customerPhone: this.checkoutForm.get('customerPhone')?.value,
+      shippingAddress: this.checkoutForm.get('shippingAddress')?.value,
+      total: this.totalAmount,
+      discount: this.discountAmount,
+      totalAfterDiscount: this.totalAfterDiscount,
+      couponCode: this.appliedCoupon?.code,
+      bankCode: this.checkoutForm.get('bankCode')?.value || ''
+    };
+
+    this.vnpayService.createPayment(paymentData, orderItems).subscribe({
+      next: (response: PaymentResponse) => {
+        if (response.paymentUrl) {
+          window.location.href = response.paymentUrl;
+        } else {
+          this.snackbarService.openSnackBar('Payment creation failed', 'Close');
+          this.loading = false;
+        }
+      },
+      error: (error) => {
+        console.error('Error creating payment:', error);
+        this.snackbarService.openSnackBar(
+          error.error?.message || 'Error creating payment',
+          'Close'
+        );
+        this.loading = false;
+      }
+    });
+  }
 }
+
