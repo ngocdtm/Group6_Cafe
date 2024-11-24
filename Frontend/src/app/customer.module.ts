@@ -20,6 +20,7 @@ import { ProfileComponent } from './profile/profile.component';
 import { BillHistoryComponent } from './customer-bill/bill-history/bill-history.component';
 import { RecentlyViewedComponent } from './recently-viewed/recently-viewed.component';
 import { MatDividerModule } from '@angular/material/divider';
+import { DynamicBackgroundComponent } from './dynamic-background/dynamic-background.component';
 
 
 @NgModule({
@@ -34,7 +35,8 @@ import { MatDividerModule } from '@angular/material/divider';
     CheckoutComponent,
     ProfileComponent,
     BillHistoryComponent,
-    RecentlyViewedComponent
+    RecentlyViewedComponent,
+    DynamicBackgroundComponent
   ],
   imports: [
     FormsModule,

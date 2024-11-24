@@ -1,0 +1,31 @@
+<div class="dynamic-background">
+    <div class="image-slider">
+      <div class="slide" *ngFor="let image of images; let i = index" 
+           [ngStyle]="{'background-image': 'url(' + image.url + ')'}"
+           [class.active]="currentImageIndex === i">
+        <div class="title-container" [class.show]="currentImageIndex === i">
+          <h1 class="image-title">{{image.title}}</h1>
+          <p class="image-subtitle">{{image.subtitle}}</p>
+        </div>
+      </div>
+    </div>
+    <div class="overlay"></div>
+    <div class="content">
+      <ng-content></ng-content>
+    </div>
+    <div class="progress-container">
+      <div class="progress-item" *ngFor="let image of images; let i = index">
+        <div class="progress-label" [class.active]="currentImageIndex === i">
+          {{image.title}}
+        </div>
+        <div class="progress-bar" 
+             [class.active]="currentImageIndex === i"
+             (click)="selectImage(i)">
+          <div class="progress-fill" 
+               [style.animation-duration]="slideDuration + 'ms'"
+               [class.running]="currentImageIndex === i">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
