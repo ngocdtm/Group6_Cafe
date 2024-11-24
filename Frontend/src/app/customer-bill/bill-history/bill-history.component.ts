@@ -1,10 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { BillService } from '../../services/bill.service';
+import { BillItem, BillService } from '../../services/bill.service';
 import { BillDetailsDialogComponent } from '../bill-details-dialog/bill-details-dialog.component';
 import { ThemePalette } from '@angular/material/core';
 import { ConfirmationComponent } from '../../material-component/dialog/confirmation/confirmation.component';
+import { ReviewDialogComponent } from '../review-dialog/review-dialog.component';
+import { ReviewListDialogComponent } from '../review-list-dialog/review-list-dialog.component';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatTableDataSource } from '@angular/material/table';
 
 @Component({
   selector: 'app-bill-history',
@@ -13,25 +17,33 @@ import { ConfirmationComponent } from '../../material-component/dialog/confirmat
 })
 
 export class BillHistoryComponent implements OnInit {
-  dataSource: any[] = [];
-  displayedColumns: string[] = ['orderDate', 'total', 'orderStatus', 'paymentMethod', 'actions'];
+  dataSource: MatTableDataSource<any>;
+  displayedColumns: string[] = ['orderDate', 'total', 'orderStatus', 'paymentMethod', 'actions', 'review'];
   isLoading = false;
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
     private billService: BillService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
-  ) {}
+  ) {
+    this.dataSource = new MatTableDataSource<any>([]);
+  }
 
   ngOnInit(): void {
     this.loadBills();
   }
 
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+  }
+  
   loadBills(): void {
     this.isLoading = true;
     this.billService.getBills().subscribe({
       next: (response) => {
-        this.dataSource = response;
+        this.dataSource.data = response;
         this.isLoading = false;
       },
       error: (error) => {
@@ -42,6 +54,30 @@ export class BillHistoryComponent implements OnInit {
     });
   }
 
+  openReviewsDialog(bill: any): void {
+    this.dialog.open(ReviewListDialogComponent, {
+      width: '800px',
+      data: { bill }
+    });
+  }
+  
+  openReviewDialog(item: BillItem, billId: number): void {
+    const dialogRef = this.dialog.open(ReviewDialogComponent, {
+      width: '500px',
+      data: {
+        billId: billId,
+        productId: item.originalProductId,
+        productName: item.productName
+      }
+    });
+  
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadBills(); // Refresh list after successful review
+      }
+    });
+  }
+  
   openBillDetails(bill: any): void {
     const dialogRef = this.dialog.open(BillDetailsDialogComponent, {
       width: '800px',
