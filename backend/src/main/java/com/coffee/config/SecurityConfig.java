@@ -79,6 +79,9 @@ public class SecurityConfig {
     @Value("${app.file.avatar-dir}")
     private String avatarDir;
 
+    @Value("${app.file.review-dir}")
+    private String reviewDir;
+
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // Product images path
         Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
@@ -86,52 +89,31 @@ public class SecurityConfig {
         // Avatar path
         Path avatarPath = Paths.get(avatarDir).toAbsolutePath().normalize();
 
+        // Review path
+        Path reviewrPath = Paths.get(reviewDir).toAbsolutePath().normalize();
+
         // Create directories if they don't exist
         try {
             Files.createDirectories(uploadPath);
             Files.createDirectories(avatarPath);
+            Files.createDirectories(reviewrPath);
         } catch (IOException e) {
             throw new RuntimeException("Could not create upload directories!", e);
         }
 
-        registry.addResourceHandler("/uploads/**", "/images/**", "/uploads/images/**", "/avatars/**","/uploads/avatars/**")
+        registry.addResourceHandler("/uploads/**", "/images/**", "/uploads/images/**", "/avatars/**","/uploads/avatars/**", "/review/**","/uploads/review/**")
                 .addResourceLocations(
                         uploadPath.toUri().toString(),
                         avatarPath.toUri().toString(),
+                        reviewrPath.toUri().toString(),
                         "file:./uploads/",
-                        "file:./uploads/avatars/"
+                        "file:./uploads/avatars/",
+                        "file:./uploads/review/"
                 )
                 .setCachePeriod(3600)
                 .resourceChain(true)
                 .addResolver(new PathResourceResolver());
     }
-
-//    public void addCorsMappings(CorsRegistry registry) {
-//        registry.addMapping("/**")
-//                .allowedOriginPatterns (
-//                        "http://127.0.0.1:8080",
-//                        "http://192.168.1.10:8080",
-//                        "http://localhost:4200",
-//                        "http://localhost:8080",
-//                        "http://10.0.2.2:8080",
-//                        "capacitor://localhost",
-//                        "http://localhost",
-//                        "http://localhost:8100", // Ionic dev server
-//                        "http://10.0.2.2",       // Android emulator without port
-//                        "capacitor://10.0.2.2",  // Capacitor in Android emulator
-//                        "http://10.0.2.2:4200",   // Angular dev server in Android
-//                        "capacitor://10.0.2.2:8080",
-//                        // Thêm các origin mới
-//                        "http://localhost:80",
-//                        "capacitor://",
-//                        "ionic://",
-//                        "null"  // Cho phép requests không có origin
-//                )
-//                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-//                .allowedHeaders("*")
-//                .allowCredentials(true)
-//                .maxAge(3600);
-//    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -144,24 +126,6 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
-
-
-//    @Bean
-//    public CorsFilter corsFilter() {
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        CorsConfiguration corsConfig = new CorsConfiguration();
-//
-//        corsConfig.addAllowedOrigin("*");
-//        corsConfig.addAllowedOrigin("http://localhost"); // Cho phép localhost
-//        corsConfig.addAllowedOrigin("http://10.0.2.2"); // Cho phép Android Emulator
-//        corsConfig.addAllowedHeader("*"); // Cho phép tất cả headers
-//        corsConfig.addAllowedMethod("*"); // Cho phép tất cả phương thức (GET, POST, PUT, DELETE, ...)
-//        corsConfig.setAllowCredentials(true); // Cho phép credentials (nếu cần)
-//
-//        source.registerCorsConfiguration("/**", corsConfig);
-//        return new CorsFilter(source);
-//    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -184,6 +148,7 @@ public class SecurityConfig {
                                 "/uploads/**",
                                 "/images/**",
                                 "/avatars/**",
+                                "/review/**",
                                 "/api/v1/product/images/**",
                                 "/api/v1/product/get",
                                 "/api/v1/category/get",
@@ -196,7 +161,8 @@ public class SecurityConfig {
                                 "/api/v1/user/avatars/**",
                                 "/api/v1/inventory/status/**",
                                 "/api/v1/vnpay/payment-callback",
-                                "/api/v1/vnpay/create-payment"
+                                "/api/v1/vnpay/create-payment",
+                                "/api/v1/reviews/images/**"
                         ).permitAll()
                         .requestMatchers("/api/**").authenticated()
                 )

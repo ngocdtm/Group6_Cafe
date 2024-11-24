@@ -21,6 +21,8 @@ import { BillHistoryComponent } from './customer-bill/bill-history/bill-history.
 import { RecentlyViewedComponent } from './recently-viewed/recently-viewed.component';
 import { MatDividerModule } from '@angular/material/divider';
 import { DynamicBackgroundComponent } from './dynamic-background/dynamic-background.component';
+import { ReviewDialogComponent } from './customer-bill/review-dialog/review-dialog.component';
+import { ReviewListDialogComponent } from './customer-bill/review-list-dialog/review-list-dialog.component';
 
 
 @NgModule({
@@ -36,7 +38,9 @@ import { DynamicBackgroundComponent } from './dynamic-background/dynamic-backgro
     ProfileComponent,
     BillHistoryComponent,
     RecentlyViewedComponent,
-    DynamicBackgroundComponent
+    DynamicBackgroundComponent,
+    ReviewDialogComponent,
+    ReviewListDialogComponent
   ],
   imports: [
     FormsModule,
