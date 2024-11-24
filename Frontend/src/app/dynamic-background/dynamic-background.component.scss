@@ -1,0 +1,170 @@
+.dynamic-background {
+    position: relative;
+    width: 100%;
+    height: 600px;
+    overflow: hidden;
+    background-color: #000; /* Fallback color */
+    will-change: transform; /* GPU acceleration hint */
+  }
+
+  .image-slider {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+  }
+
+  .slide {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 1s ease-in-out, transform 6s ease-in-out;
+    transform: scale(1.1);
+    will-change: transform, opacity;
+  }
+
+  .slide.active {
+    opacity: 1;
+    z-index: 1;
+    transform: scale(1);
+  }
+
+  .title-container {
+    position: absolute;
+    left: 20%;
+    top: 40%;
+    transform: translateY(-50%);
+    color: white;
+    opacity: 0;
+    transition: all 0.8s ease-out;
+    z-index: 2;
+  }
+
+  .title-container.show {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+
+  .image-title {
+    font-size: 3.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  }
+
+  .image-subtitle {
+    font-size: 1.5rem;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+  }
+
+  .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      rgba(0,0,0,0.2),
+      rgba(0,0,0,0.4)
+    );
+    z-index: 1;
+  }
+
+  .content {
+    position: relative;
+    z-index: 2;
+    color: white;
+  }
+
+  .progress-container {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .progress-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .progress-label {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.9rem;
+    width: 120px;
+    text-align: right;
+    transition: color 0.3s ease;
+    opacity: 0.7;
+  }
+
+  .progress-label.active {
+    color: white;
+    opacity: 1;
+  }
+
+  .progress-bar {
+    width: 3px;
+    height: 30px;
+    background: rgba(255,255,255,0.3);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: background-color 0.3s ease;
+  }
+
+  .progress-bar:hover {
+    background: rgba(255,255,255,0.5);
+  }
+
+  .progress-bar.active {
+    background: rgba(255,255,255,0.8);
+  }
+
+  .progress-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0;
+    background: white;
+    transform-origin: bottom;
+  }
+
+  .progress-fill.running {
+    animation: fillProgress linear forwards;
+  }
+
+  @keyframes fillProgress {
+    from {
+      height: 0;
+    }
+    to {
+      height: 100%;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .progress-container {
+      left: 10px;
+    }
+
+    .progress-label {
+      width: 80px;
+      font-size: 0.8rem;
+    }
+
+    .image-title {
+      font-size: 2.5rem;
+    }
+
+    .image-subtitle {
+      font-size: 1.2rem;
+    }
+  }
