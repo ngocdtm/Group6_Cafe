@@ -165,8 +165,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .cors().and() // Kích hoạt CORS
+        http.cors().and() // Kích hoạt CORS
                 .csrf().disable() // Tắt CSRF nếu không cần thiết
                 .cors(Customizer.withDefaults())
                 .exceptionHandling(exception -> exception
