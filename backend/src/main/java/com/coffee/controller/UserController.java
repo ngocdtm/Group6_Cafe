@@ -245,12 +245,8 @@ public class UserController {
     public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
         try {
 
-
             Path filePath = this.fileStorageLocation.resolve(filename).normalize();
             Resource resource = new UrlResource(filePath.toUri());
-
-
-
 
             if (resource.exists() || resource.isReadable()) {
                 // Determine the media type of the file
