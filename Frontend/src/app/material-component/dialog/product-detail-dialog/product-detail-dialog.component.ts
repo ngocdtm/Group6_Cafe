@@ -1,7 +1,9 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { forkJoin, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { CategoryService } from 'src/app/services/category.service';
-import { ProductService } from 'src/app/services/product.service';
+import { ProductImage, ProductService, RelatedProduct } from 'src/app/services/product.service';
 
 @Component({
   selector: 'app-product-detail-dialog',
@@ -56,26 +58,47 @@ export class ProductDetailDialogComponent implements OnInit {
   selectImage(index: number): void {
     this.selectedImageIndex = index;
   }
+
   loadRelatedProducts() {
     if (!this.data?.id) {
       console.error('No product ID provided');
       return;
     }
-
+  
     this.isLoading = true;
+  
     this.productService.getRelatedProducts(this.data.id).subscribe({
-      next: (products) => {
-        // console.log('Related products with images:', products);
-        this.relatedProducts = products;
-        this.isLoading = false;
+      next: (products: RelatedProduct[]) => {
+        // Lấy active images cho mỗi sản phẩm liên quan
+        const productsWithImages: Observable<RelatedProduct>[] = products.map((product) =>
+          this.productService.getActiveImages(product.id).pipe(
+            map((activeImages: ProductImage[]) => ({
+              ...product,
+              images: activeImages,
+            }))
+          )
+        );
+  
+        // Đợi tất cả các Observable hoàn thành
+        forkJoin(productsWithImages).subscribe({
+          next: (completedProducts: RelatedProduct[]) => {
+            this.relatedProducts = completedProducts;
+            this.isLoading = false;
+          },
+          error: (error) => {
+            console.error('Error loading related products images:', error);
+            this.isLoading = false;
+          },
+        });
       },
       error: (error) => {
         console.error('Error loading related products:', error);
         this.relatedProducts = [];
         this.isLoading = false;
-      }
+      },
     });
   }
+
   openProduct(product: any): void {
     // console.log('Opening product:', product); // Để debug
     this.dialogRef.close(product);
@@ -84,16 +107,4 @@ export class ProductDetailDialogComponent implements OnInit {
   close(): void {
     this.dialogRef.close();
   }
-}
-export interface RelatedProduct {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  originalPrice: number | null;
-  images: ProductImage[];
-}
-export interface ProductImage {
-  id: number;
-  imagePath: string;
 }

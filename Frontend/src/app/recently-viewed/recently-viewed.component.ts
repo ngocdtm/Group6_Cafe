@@ -3,7 +3,8 @@ import { ProductService } from '../services/product.service';
 import { UserService } from '../services/user.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ProductDetailDialogComponent } from '../material-component/dialog/product-detail-dialog/product-detail-dialog.component';
-import { Subscription } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-recently-viewed',
@@ -83,12 +84,33 @@ export class RecentlyViewedComponent implements OnInit {
     this.isLoading = true;
     const subscription = this.productService.getRecentlyViewedProducts().subscribe({
       next: (products) => {
-        this.recentlyViewedProducts = products;
-        this.isLoading = false;
+        // Load active images for each product
+        const productsWithActiveImages = products.map((product: { id: number; }) =>
+          this.productService.getActiveImages(product.id).pipe(
+            map(activeImages => ({
+              ...product,
+              images: activeImages
+            }))
+          )
+        );
+
+        // Wait for all active images to be loaded
+        forkJoin(productsWithActiveImages).subscribe({
+          next: (completedProducts) => {
+            this.recentlyViewedProducts = completedProducts;
+            this.isLoading = false;
+          },
+          error: (error) => {
+            console.error('Error loading product images:', error);
+            if (this.isLoggedIn) {
+              this.error = 'Failed to load product images';
+            }
+            this.isLoading = false;
+          }
+        });
       },
       error: (error) => {
         console.error('Error loading recently viewed products:', error);
-        // Only set error if user is logged in
         if (this.isLoggedIn) {
           this.error = 'Failed to load recently viewed products';
         }
