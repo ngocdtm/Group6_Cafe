@@ -1,7 +1,9 @@
 package com.coffee.controller;
 
 import com.coffee.service.ProductReviewService;
+import com.coffee.wrapper.ProductRatingWrapper;
 import com.coffee.wrapper.ProductReviewWrapper;
+import com.coffee.wrapper.ProductWrapper;
 import com.coffee.wrapper.ReviewWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -11,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -84,6 +87,21 @@ public class ProductReviewController {
             @PathVariable Integer billId,
             @PathVariable Integer productId) {
         return reviewService.isProductReviewed(billId, productId);
+    }
+
+    @Operation(
+            summary = "Get a product rating & comment by id",
+            description = "Endpoint to get a product rating & comment by id."
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/rating/{productId}")
+    public ResponseEntity<ProductRatingWrapper> getProductRating(@PathVariable Integer productId) {
+        try {
+            return reviewService.getProductRating(productId);
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        }
+        return new ResponseEntity<>(new ProductRatingWrapper(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Value("${app.file.review-dir}")

@@ -14,6 +14,7 @@ import com.coffee.security.JwtRequestFilter;
 import com.coffee.service.FileStorageService;
 import com.coffee.service.ProductReviewService;
 import com.coffee.utils.CafeUtils;
+import com.coffee.wrapper.ProductRatingWrapper;
 import com.coffee.wrapper.ProductReviewWrapper;
 import com.coffee.wrapper.ReviewWrapper;
 import com.itextpdf.text.exceptions.InvalidImageException;
@@ -211,6 +212,42 @@ public class ProductReviewServiceImpl implements ProductReviewService {
 
             boolean isReviewed = reviewRepository.existsByUserAndBillAndProduct_Id(user, bill, productId);
             return new ResponseEntity<>(isReviewed, HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public ResponseEntity<ProductRatingWrapper> getProductRating(Integer productId) {
+        try {
+            List<ProductReview> reviews = reviewRepository.findByProductId(productId);
+            ProductRatingWrapper ratingDTO = new ProductRatingWrapper();
+
+            if (reviews.isEmpty()) {
+                ratingDTO.setAverageRating(0.0);
+                ratingDTO.setTotalReviews(0);
+                return new ResponseEntity<>(ratingDTO, HttpStatus.OK);
+            }
+
+            // Calculate average rating
+            double averageRating = reviews.stream()
+                    .mapToInt(ProductReview::getRating)
+                    .average()
+                    .orElse(0.0);
+
+            // Calculate rating distribution
+            Map<Integer, Integer> distribution = reviews.stream()
+                    .collect(Collectors.groupingBy(
+                            ProductReview::getRating,
+                            Collectors.collectingAndThen(Collectors.counting(), Long::intValue)
+                    ));
+
+            ratingDTO.setAverageRating(Math.round(averageRating * 10.0) / 10.0); // Round to 1 decimal
+            ratingDTO.setTotalReviews(reviews.size());
+            ratingDTO.getRatingDistribution().putAll(distribution);
+
+            return new ResponseEntity<>(ratingDTO, HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
