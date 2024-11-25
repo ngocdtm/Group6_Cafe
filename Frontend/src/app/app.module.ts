@@ -23,7 +23,8 @@ import { environment } from 'src/environments/environment';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { PlatformService } from './services/platform.service';
 import { PaymentSuccessComponent } from './payment-success/payment-success.component';
-
+import { ChatModule } from './chat/chat.module';
+import { AdminChatComponent } from './admin-chat/admin-chat.component';
 const ngxUiLoaderConfig: NgxUiLoaderConfig = {
     text:"Loading...",
     textColor: "#FFFFFF",
@@ -58,6 +59,7 @@ const ngxUiLoaderConfig: NgxUiLoaderConfig = {
     FlexLayoutModule,
     SharedModule,
     HttpClientModule,
+    ChatModule,
     NgxUiLoaderModule.forRoot(ngxUiLoaderConfig),
     ServiceWorkerModule.register('ngsw-worker.js', {
       enabled: environment.production,

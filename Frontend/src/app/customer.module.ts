@@ -20,6 +20,7 @@ import { ProfileComponent } from './profile/profile.component';
 import { BillHistoryComponent } from './customer-bill/bill-history/bill-history.component';
 import { RecentlyViewedComponent } from './recently-viewed/recently-viewed.component';
 import { MatDividerModule } from '@angular/material/divider';
+import { ChatModule } from './chat/chat.module';
 
 
 @NgModule({
@@ -46,6 +47,7 @@ import { MatDividerModule } from '@angular/material/divider';
     MatSliderModule,
     ReactiveFormsModule,
     MatProgressSpinnerModule,
+    ChatModule
   ],
   providers: [CustomerMenuItems]
 })

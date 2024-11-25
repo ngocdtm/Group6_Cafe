@@ -5,14 +5,20 @@ import { FlexLayoutModule } from '@angular/flex-layout';
 import { DashboardComponent } from './dashboard.component';
 import { DashboardRoutes } from './dashboard.routing';
 import { MaterialModule } from '../shared/material-module';
-
+import { AdminChatComponent } from '../admin-chat/admin-chat.component';
+import { FormsModule } from '@angular/forms';
 @NgModule({
   imports: [
     CommonModule,
     MaterialModule,
     FlexLayoutModule,
-    RouterModule.forChild(DashboardRoutes)
+    RouterModule.forChild(DashboardRoutes),
+    CommonModule,
+    FormsModule
   ],
-  declarations: [DashboardComponent]
+  exports: [
+    AdminChatComponent
+  ],
+  declarations: [DashboardComponent,AdminChatComponent]
 })
 export class DashboardModule { }

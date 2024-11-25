@@ -1,0 +1,85 @@
+<div class="chat-widget">
+    <!-- Sidebar -->
+    <div class="chat-sidebar">
+      <div class="sidebar-header">
+        <h2>Messages</h2>
+      </div>
+      
+      <div class="user-list">
+        <div *ngFor="let user of chatUsers" 
+             (click)="selectUser(user)"
+             class="user-item"
+             [class.active]="selectedUser?.userId === user.userId">
+          <div class="avatar">
+            {{user.name.charAt(0)}}
+          </div>
+          <div class="user-info">
+            <div class="name">{{user.name}}</div>
+            <div class="last-message">{{user.lastMessage}}</div>
+          </div>
+          <div class="unread-badge" *ngIf="user.unreadCount">
+            {{user.unreadCount}}
+          </div>
+        </div>
+      </div>
+    </div>
+  
+  
+    <!-- Main Chat Area -->
+    <div class="chat-main">
+      <!-- Chat Header -->
+      <div class="chat-header">
+        <div *ngIf="selectedUser" class="user-info">
+          <div class="avatar">
+            {{selectedUser.name.charAt(0)}}
+          </div>
+          <div class="user-name">
+            {{selectedUser.name}}
+          </div>
+        </div>
+      </div>
+  
+  
+      <!-- Messages Container -->
+      <div class="messages-container" #messageContainer>
+        <div class="loading" *ngIf="loading">
+          <div class="spinner"></div>
+          Loading messages...
+        </div>
+        
+        <div class="message-wrapper" 
+             *ngFor="let message of messages"
+             [class.my-message]="message.fromUserId === adminId">
+          <div class="message">
+            <div class="message-content">{{message.content}}</div>
+            <div class="timestamp">{{message.createdDate | date:'short'}}</div>
+          </div>
+        </div>
+  
+  
+        <div class="no-messages" *ngIf="!loading && messages.length === 0">
+          No messages yet. Start a conversation!
+        </div>
+      </div>
+  
+  
+      <!-- Message Input -->
+      <div class="message-input">
+        <input
+          type="text"
+          [(ngModel)]="newMessage"
+          (keyup.enter)="sendMessage()"
+          placeholder="Type a message..."
+          [disabled]="!selectedUser || loading">
+        
+        <button 
+          (click)="sendMessage()"
+          [disabled]="!newMessage.trim() || !selectedUser || loading">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  
+  
