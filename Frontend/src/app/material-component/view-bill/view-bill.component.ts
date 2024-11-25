@@ -65,11 +65,14 @@ export class ViewBillComponent implements OnInit {
       (response: any) => {
         this.ngxService.stop();
         // Transform the date strings to Date objects
-        const processedData = response.map((bill: Bill) => ({
+        const processedData = response
+        .map((bill: Bill) => ({
           ...bill,
-          orderDate: bill.orderDate
-        }));
-        this.dataSource = new MatTableDataSource(processedData);
+          orderDate: new Date(bill.orderDate) // Chuyển đổi chuỗi thành đối tượng Date nếu cần
+        }))
+        .sort((a: Bill, b: Bill) => b.orderDate.getTime() - a.orderDate.getTime()); // Sắp xếp giảm dần theo thời gian
+
+      this.dataSource = new MatTableDataSource(processedData);
       },
       (error: any) => {
         this.ngxService.stop();

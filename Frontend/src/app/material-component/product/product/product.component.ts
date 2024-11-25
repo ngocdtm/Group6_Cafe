@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { forkJoin } from 'rxjs';
 import { CategoryService } from 'src/app/services/category.service';
 import { ProductService } from 'src/app/services/product.service';
 import { SnackbarService } from 'src/app/services/snackbar.service';
@@ -33,6 +34,7 @@ export class ProductComponent implements OnInit {
   deletedImageIds: number[] = [];
   activeImages: ImageItem[] = [];
   deletedImages: ImageItem[] = [];
+  imagesToRestore: ImageItem[] = [];
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public dialogData:any,
@@ -98,20 +100,17 @@ export class ProductComponent implements OnInit {
   }
 
   restoreImage(image: ImageItem): void {
-    this.productService.restoreImage(image.id).subscribe({
-      next: (response: any) => {
-        // Move image from deleted to active
-        this.deletedImages = this.deletedImages.filter(img => img.id !== image.id);
-        this.activeImages.push(image);
-        this.existingImages = this.activeImages; // Update existingImages for consistency
-        
-        this.snackbarService.openSnackBar("Image restored successfully", "success");
-      },
-      error: (error: any) => {
-        this.handleError(error);
-      }
-    });
+    if (!this.imagesToRestore.find(img => img.id === image.id)) {
+      this.imagesToRestore.push(image); // Thêm ảnh vào danh sách khôi phục
+      this.deletedImages = this.deletedImages.filter(img => img.id !== image.id); // Loại khỏi danh sách đã xóa
+      this.activeImages.push(image); // Hiển thị lại trong giao diện
+      this.existingImages = this.activeImages; // Đồng bộ với danh sách hiện tại
+  
+      // Đánh dấu form là "dirty"
+      this.productForm.markAsDirty();
+    }
   }
+  
 
   onFileSelected(event: any): void {
     const files = Array.from(event.target.files) as File[];
@@ -168,7 +167,7 @@ export class ProductComponent implements OnInit {
 
   handleSubmit(): void {
     const formData = new FormData();
-    
+  
     // Append basic form data
     const formValue = this.productForm.value;
     Object.keys(formValue).forEach(key => {
@@ -176,11 +175,12 @@ export class ProductComponent implements OnInit {
         formData.append(key, formValue[key]);
       }
     });
-    
+  
+    // Handle editing logic
     if (this.dialogAction === 'Edit') {
       formData.append('id', this.dialogData.data.id);
-      
-      // Safely append deleted image IDs
+  
+      // Append deleted image IDs
       if (this.deletedImageIds && this.deletedImageIds.length > 0) {
         this.deletedImageIds.forEach(id => {
           if (id !== null && id !== undefined) {
@@ -189,23 +189,24 @@ export class ProductComponent implements OnInit {
         });
       }
     }
-    
+  
     // Append new images
     if (this.newImages && this.newImages.length > 0) {
       this.newImages.forEach(file => {
         formData.append('files', file);
       });
     }
-
+  
     // Log formData for debugging
     formData.forEach((value, key) => {
       console.log(`${key}:`, value);
     });
-
+  
+    // Perform the update or add operation
     if (this.dialogAction === 'Edit') {
       this.productService.update(formData).subscribe({
         next: (response: any) => {
-          this.handleSuccess(response);
+          this.restoreImages(() => this.handleSuccess(response)); // Restore images after successful update
         },
         error: (error: any) => {
           this.handleError(error);
@@ -222,6 +223,30 @@ export class ProductComponent implements OnInit {
       });
     }
   }
+  
+  private restoreImages(callback: () => void): void {
+    if (this.imagesToRestore.length > 0) {
+      const restoreObservables = this.imagesToRestore.map(image =>
+        this.productService.restoreImage(image.id)
+      );
+  
+      // Thực hiện tất cả các yêu cầu khôi phục
+      forkJoin(restoreObservables).subscribe({
+        next: () => {
+          console.log('All images restored successfully.');
+          this.imagesToRestore = []; // Xóa danh sách sau khi khôi phục
+          callback(); // Gọi callback khi hoàn thành
+        },
+        error: (error: any) => {
+          console.error('Error restoring images:', error);
+          callback(); // Vẫn gọi callback để hoàn thành xử lý form
+        }
+      });
+    } else {
+      callback(); // Nếu không có ảnh để khôi phục, chỉ gọi callback
+    }
+  }
+  
 
   private handleSuccess(response: any): void {
     this.dialogRef.close();

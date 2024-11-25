@@ -12,6 +12,8 @@ export class ViewDetailProductComponent implements OnInit {
   dataSource: any[] = [];
   data: any;
   imageUrls: string[] = [];
+  onEditProduct: any;
+  onDeleteProduct: any;
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public dialogData: any,
