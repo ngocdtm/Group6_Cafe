@@ -24,12 +24,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.resource.PathResourceResolver;
-
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,11 +35,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
+
 @Configuration
 @EnableScheduling
 @EnableWebSecurity
 @EnableWebMvc
 public class SecurityConfig {
+
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtRequestFilter jwtRequestFilter;
@@ -49,12 +49,14 @@ public class SecurityConfig {
     @Autowired
     private InventorySnapshotService snapshotService;
 
-//    // Run at 23:59 every day
+
+    //    // Run at 23:59 every day
 //    @Scheduled(cron = "0 59 23 * * *")
     @Scheduled(cron = "0 0 0 * * ?") // Chạy lúc 12h đêm hàng ngày
     public void scheduleSnapshotCreation() {
         snapshotService.createDailySnapshot();
     }
+
 
     @Autowired
     public SecurityConfig(CustomUserDetailsService userDetailsService, JwtRequestFilter jwtRequestFilter, UnauthorizedHandler unauthorizedHandler) {
@@ -63,18 +65,22 @@ public class SecurityConfig {
         this.unauthorizedHandler = unauthorizedHandler;
     }
 
+
     @Bean(name = BeanIds.AUTHENTICATION_MANAGER)
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance();
     }
 
+
     @Value("${app.file.upload-dir}")
     private String uploadDir;
+
 
     @Value("${app.file.avatar-dir}")
     private String avatarDir;
@@ -85,6 +91,7 @@ public class SecurityConfig {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // Product images path
         Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
+
 
         // Avatar path
         Path avatarPath = Paths.get(avatarDir).toAbsolutePath().normalize();
@@ -118,10 +125,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://10.20.0.121", "http://localhost", "http://10.0.2.2", "http://192.168.0.118", "http://192.168.1.10", "http://localhost:4200"));  // Cập nhật thêm localhost và các địa chỉ khác
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
-        configuration.addAllowedHeader("*");
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
+        configuration.setAllowedOrigins(Arrays.asList("http://192.168.1.10:8081", "http://127.0.0.1:8081", "http://localhost:4200"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -130,9 +139,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors().and() // Kích hoạt CORS
-                .csrf().disable() // Tắt CSRF nếu không cần thiết
                 .cors(Customizer.withDefaults())
+                .csrf(csrf -> csrf.disable())
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(unauthorizedHandler)
                 )
@@ -168,7 +176,7 @@ public class SecurityConfig {
                 )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
+
         return http.build();
     }
 }
-

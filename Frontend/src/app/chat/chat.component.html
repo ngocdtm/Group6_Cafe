@@ -1,0 +1,51 @@
+<div class="chat-widget">
+    <div class="chat-button" (click)="toggleChat()" *ngIf="!isAdmin">
+      <span class="unread-badge" *ngIf="unreadMessages.length > 0">
+        {{unreadMessages.length}}
+      </span>
+      <i class="fas fa-comments"></i>
+    </div>
+    
+    <div class="chat-container" [class.open]="isChatOpen || isAdmin">
+      <div class="chat-header" *ngIf="isAdmin">
+        <h3>Customer Support</h3>
+      </div>
+      
+      <div class="chat-header" *ngIf="!isAdmin">
+        <h3>Chat Support</h3>
+        <button class="close-btn" (click)="toggleChat()">×</button>
+      </div>
+        
+      <div class="messages-container" #messageContainer>
+        <div class="loading" *ngIf="loading">Loading...</div>
+        <div class="error" *ngIf="error">{{error}}</div>
+        
+        <div class="message-wrapper" *ngFor="let message of messages">
+          <div class="message" [class.my-message]="isMyMessage(message)">
+            <div class="message-content">
+              <p>{{message.content}}</p>
+              <span class="timestamp">{{message.timestamp | date:'short'}}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="no-messages" *ngIf="!loading && messages.length === 0">
+          No messages yet. Start a conversation!
+        </div>
+      </div>
+      
+      <div class="message-input">
+        <input
+          type="text"
+          [(ngModel)]="newMessage"
+          (keyup.enter)="sendMessage()"
+          placeholder="Type your message..."
+          [disabled]="loading">
+        <button
+          (click)="sendMessage()"
+          [disabled]="!newMessage.trim() || loading">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>

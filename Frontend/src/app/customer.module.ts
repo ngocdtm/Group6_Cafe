@@ -20,9 +20,11 @@ import { ProfileComponent } from './profile/profile.component';
 import { BillHistoryComponent } from './customer-bill/bill-history/bill-history.component';
 import { RecentlyViewedComponent } from './recently-viewed/recently-viewed.component';
 import { MatDividerModule } from '@angular/material/divider';
+import { ChatModule } from './chat/chat.module';
 import { DynamicBackgroundComponent } from './dynamic-background/dynamic-background.component';
 import { ReviewDialogComponent } from './customer-bill/review-dialog/review-dialog.component';
 import { ReviewListDialogComponent } from './customer-bill/review-list-dialog/review-list-dialog.component';
+
 
 
 @NgModule({
@@ -52,6 +54,7 @@ import { ReviewListDialogComponent } from './customer-bill/review-list-dialog/re
     MatSliderModule,
     ReactiveFormsModule,
     MatProgressSpinnerModule,
+    ChatModule
   ],
   providers: [CustomerMenuItems]
 })
