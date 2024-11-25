@@ -170,7 +170,9 @@ public class SecurityConfig {
                                 "/api/v1/inventory/status/**",
                                 "/api/v1/vnpay/payment-callback",
                                 "/api/v1/vnpay/create-payment",
-                                "/api/v1/reviews/images/**"
+                                "/api/v1/reviews/images/**",
+                                "/api/v1/reviews/rating/**",
+                                "/api/v1/reviews/product/**"
                         ).permitAll()
                         .requestMatchers("/api/**").authenticated()
                 )

@@ -14,6 +14,7 @@ public class ProductReviewWrapper {
     private Integer productId;
     private String productName;
     private String userName;
+    private String userAvatar;
     private Integer rating;
     private String comment;
     private String reviewDate;
@@ -24,6 +25,7 @@ public class ProductReviewWrapper {
         wrapper.setId(review.getId());
         wrapper.setProductId(review.getProduct().getId());
         wrapper.setProductName(review.getProduct().getName());
+        wrapper.setUserAvatar(review.getUser().getAvatar());
         wrapper.setUserName(review.getUser().getName());
         wrapper.setRating(review.getRating());
         wrapper.setComment(review.getComment());
