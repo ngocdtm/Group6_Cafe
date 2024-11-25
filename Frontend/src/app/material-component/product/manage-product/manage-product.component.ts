@@ -31,6 +31,8 @@ export class ManageProductComponent implements OnInit {
   searchText: string = '';
   selectedTab: number = 0;
 
+  // private pollingInterval: any;
+
   constructor(
     public productService: ProductService,
     private ngxService: NgxUiLoaderService,
@@ -45,7 +47,21 @@ export class ManageProductComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadAllData();
+    // this.startPolling();
   }
+
+  // startPolling(): void {
+  //   this.loadAllData(); // Gọi lần đầu để lấy dữ liệu ban đầu
+  //   this.pollingInterval = setInterval(() => {
+  //     this.loadAllData(); // Gọi lại để cập nhật dữ liệu
+  //   }, 5000); // 5000ms = 5 giây, có thể điều chỉnh theo nhu cầu
+  // }
+  
+  // ngOnDestroy(): void {
+  //   if (this.pollingInterval) {
+  //     clearInterval(this.pollingInterval); // Dừng Polling khi component bị hủy
+  //   }
+  // }
 
   loadAllData() {
     this.ngxService.start();
@@ -150,6 +166,7 @@ export class ManageProductComponent implements OnInit {
       this.ngxService.start();
       this.restoreProduct(values.id);
       dialogRef.close();
+      this.loadAllData(); // Tải lại dữ liệu sau khi khôi phục
     });
   }
 
@@ -207,18 +224,29 @@ export class ManageProductComponent implements OnInit {
       }
     );
   }
+
   handleViewAction(values:any){
     const dialogConfig = new MatDialogConfig();
     dialogConfig.data = {
       data:values
     };
     dialogConfig.width = "100%";
-    const dialogRef = this.dialog.open(ViewDetailProductComponent,dialogConfig);
-    this.router.events.subscribe(()=>{
-      dialogRef.close();
-    });
-  }
 
+    const dialogRef = this.dialog.open(ViewDetailProductComponent, dialogConfig);
+
+  const sub = dialogRef.componentInstance.onEditProduct.subscribe(() => {
+    this.loadAllData(); // Tải lại dữ liệu sau khi chỉnh sửa
+  });
+
+  const deleteSub = dialogRef.componentInstance.onDeleteProduct.subscribe(() => {
+    this.loadAllData(); // Tải lại dữ liệu sau khi xóa
+  });
+
+  this.router.events.subscribe(() => {
+    dialogRef.close();
+  });
+  }
+  
    applyFilters() {
     const filterFunction = (data: any): boolean => {
       const matchesSearch = this.searchText ? 
@@ -271,25 +299,28 @@ export class ManageProductComponent implements OnInit {
       dialogRef.close();
     });
     const sub = dialogRef.componentInstance.onAddProduct.subscribe((response)=>{
-      this.tableData();
+      this.loadAllData(); // Tải lại dữ liệu sau khi thêm
     });
   }
 
-  handleEditAction(values:any){
+  handleEditAction(values: any): void {
     const dialogConfig = new MatDialogConfig();
     dialogConfig.data = {
       action: 'Edit',
-      data: values
+      data: values,
     };
-    dialogConfig.width = "850px";
-    const dialogRef = this.dialog.open(ProductComponent,dialogConfig);
-    this.router.events.subscribe(()=>{
+    dialogConfig.width = '850px';
+  
+    const dialogRef = this.dialog.open(ProductComponent, dialogConfig);
+  
+    const sub = dialogRef.componentInstance.onEditProduct.subscribe(() => {
+      this.loadAllData(); // Tải lại dữ liệu sau khi chỉnh sửa
+    });
+  
+    this.router.events.subscribe(() => {
       dialogRef.close();
     });
-    const sub = dialogRef.componentInstance.onEditProduct.subscribe((response)=>{
-      this.tableData();
-    });
-  }
+  }  
 
   handleDeleteAction(values:any){
     const dialogConfig = new MatDialogConfig();
@@ -302,6 +333,7 @@ export class ManageProductComponent implements OnInit {
       this.ngxService.start();
       this.deleteProduct(values.id);
       dialogRef.close();
+      this.loadAllData(); // Tải lại dữ liệu sau khi xóa
     });
   }
 
@@ -329,6 +361,7 @@ export class ManageProductComponent implements OnInit {
       this.ngxService.stop();
       this.responseMessage = response?.message;
       this.snackbarService.openSnackBar(this.responseMessage, "success");
+      this.loadAllData(); // Tải lại dữ liệu sau khi cập nhật trạng thái
     },(error:any)=>{
       this.ngxService.stop();
       console.log(error);
