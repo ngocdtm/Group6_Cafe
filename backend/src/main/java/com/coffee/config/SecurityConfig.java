@@ -1,6 +1,5 @@
 package com.coffee.config;
 
-
 import com.coffee.security.CustomUserDetailsService;
 import com.coffee.security.JwtRequestFilter;
 import com.coffee.security.UnauthorizedHandler;
@@ -29,9 +28,6 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.resource.PathResourceResolver;
-
-
-
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -89,6 +85,8 @@ public class SecurityConfig {
     @Value("${app.file.avatar-dir}")
     private String avatarDir;
 
+    @Value("${app.file.review-dir}")
+    private String reviewDir;
 
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // Product images path
@@ -98,38 +96,31 @@ public class SecurityConfig {
         // Avatar path
         Path avatarPath = Paths.get(avatarDir).toAbsolutePath().normalize();
 
+        // Review path
+        Path reviewrPath = Paths.get(reviewDir).toAbsolutePath().normalize();
 
         // Create directories if they don't exist
         try {
             Files.createDirectories(uploadPath);
             Files.createDirectories(avatarPath);
+            Files.createDirectories(reviewrPath);
         } catch (IOException e) {
             throw new RuntimeException("Could not create upload directories!", e);
         }
 
-
-        registry.addResourceHandler("/uploads/**", "/images/**", "/uploads/images/**", "/avatars/**","/uploads/avatars/**")
+        registry.addResourceHandler("/uploads/**", "/images/**", "/uploads/images/**", "/avatars/**","/uploads/avatars/**", "/review/**","/uploads/review/**")
                 .addResourceLocations(
                         uploadPath.toUri().toString(),
                         avatarPath.toUri().toString(),
+                        reviewrPath.toUri().toString(),
                         "file:./uploads/",
-                        "file:./uploads/avatars/"
+                        "file:./uploads/avatars/",
+                        "file:./uploads/review/"
                 )
                 .setCachePeriod(3600)
                 .resourceChain(true)
                 .addResolver(new PathResourceResolver());
     }
-
-
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins("http://192.168.1.10:8081", "http://127.0.0.1:8081", "http://localhost:4200")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true)
-                .maxAge(3600);
-    }
-
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -145,9 +136,6 @@ public class SecurityConfig {
         return source;
     }
 
-
-
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -160,28 +148,31 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(authorize -> authorize
-                                .requestMatchers(
-                                        "/api/v1/user/signup",
-                                        "/api/v1/user/login",
-                                        "/api/v1/user/forgotPassword",
-                                        "/uploads/**",
-                                        "/images/**",
-                                        "/avatars/**",
-                                        "/api/v1/product/images/**",
-                                        "/api/v1/product/get",
-                                        "/api/v1/category/get",
-                                        "/api/v1/product/getByCategory/**",
-                                        "/api/v1/product/getById/**",
-                                        "/api/v1/product/search",
-                                        "/api/v1/product/related/**",
+                        .requestMatchers(
+                                "/error", "/favicon.ico",
+                                "/api/v1/user/signup",
+                                "/api/v1/user/login",
+                                "/api/v1/user/forgotPassword",
+                                "/uploads/**",
+                                "/images/**",
+                                "/avatars/**",
+                                "/review/**",
+                                "/api/v1/product/images/**",
+                                "/api/v1/product/get",
+                                "/api/v1/category/get",
+                                "/api/v1/product/getByCategory/**",
+                                "/api/v1/product/getById/**",
+                                "/api/v1/product/search",
+                                "/api/v1/product/related/**",
 //                                "/api/v1/user/profile",
 //                                "/api/v1/user/avatar",
-                                        "/api/v1/user/avatars/**",
-                                        "/api/v1/inventory/status/**",
-                                        "/api/v1/vnpay/payment-callback",
-                                        "/api/v1/vnpay/create-payment"
-                                ).permitAll()
-                                .requestMatchers("/api/**").authenticated()
+                                "/api/v1/user/avatars/**",
+                                "/api/v1/inventory/status/**",
+                                "/api/v1/vnpay/payment-callback",
+                                "/api/v1/vnpay/create-payment",
+                                "/api/v1/reviews/images/**"
+                        ).permitAll()
+                        .requestMatchers("/api/**").authenticated()
                 )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -189,6 +180,3 @@ public class SecurityConfig {
         return http.build();
     }
 }
-
-
-

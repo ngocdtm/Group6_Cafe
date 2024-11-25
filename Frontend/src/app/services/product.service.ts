@@ -11,6 +11,20 @@ export interface Product {
   // Add other product fields as needed
 }
 
+export interface RelatedProduct {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  originalPrice: number | null;
+  images: ProductImage[];
+}
+export interface ProductImage {
+  id: number;
+  imagePath: string;
+  deleted?: string
+}
+
 export interface ProductHistory {
   id: number;
   modifiedDate: string;
@@ -77,12 +91,12 @@ export class ProductService {
     return this.httpClient.get(`${this.url}/api/v1/product/getById/${id}`);
   }
 
-  searchProducts(keyword: string) {
+  searchProducts(keyword: string) : Observable<any> {
   return this.httpClient.get(`${this.url}/api/v1/product/search?keyword=${keyword}`);
   }
 
-  getRelatedProducts(productId: number): Observable<any> {
-    return this.httpClient.get(`${this.url}/api/v1/product/related/${productId}`);
+  getRelatedProducts(productId: number): Observable<RelatedProduct[]> {
+    return this.httpClient.get<RelatedProduct[]>(`${this.url}/api/v1/product/related/${productId}`);
   }
 
   addToRecentlyViewed(productId: number): Observable<any> {
@@ -128,8 +142,8 @@ export class ProductService {
     return this.httpClient.post(`${this.url}/api/v1/product/restore/${id}`, {});
   }
 
-  getActiveImages(productId: number): Observable<any> {
-    return this.httpClient.get(`${this.url}/api/v1/product/images/active/${productId}`);
+  getActiveImages(productId: number): Observable<ProductImage[]> {
+    return this.httpClient.get<ProductImage[]>(`${this.url}/api/v1/product/images/active/${productId}`);
   }
 
   getDeletedImages(productId: number): Observable<any> {

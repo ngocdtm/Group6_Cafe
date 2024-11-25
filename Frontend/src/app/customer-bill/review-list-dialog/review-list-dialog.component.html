@@ -1,0 +1,43 @@
+<h2 mat-dialog-title>Product Reviews</h2>
+    
+    <mat-dialog-content>
+      <div class="products-list">
+        <mat-card *ngFor="let item of billItems" class="product-card">
+          <mat-card-header>
+            <mat-card-title>{{item.productName}}</mat-card-title>
+          </mat-card-header>
+          
+          <mat-card-content>
+            <ng-container *ngIf="reviewsMap[item.originalProductId]; let review">
+              <div class="review-content">
+                <div class="rating-display">
+                  <mat-icon *ngFor="let star of [1,2,3,4,5]"
+                          [class.filled]="star <= review.rating"
+                          [class.unfilled]="star > review.rating">
+                    star
+                  </mat-icon>
+                </div>
+                <p class="review-date">{{review.reviewDate | date:'MMM d, y, h:mm a'}}</p>
+                <p class="review-comment">{{review.comment}}</p>
+                <div class="review-images" *ngIf="review.images?.length">
+                    <img *ngFor="let img of review.images" 
+                    [src]="getImageUrl(img)" 
+                    alt="Review image">
+                </div>
+              </div>
+            </ng-container>
+            
+            <div class="no-review" *ngIf="!reviewsMap[item.originalProductId]">
+              <button mat-raised-button color="primary" 
+                      (click)="openReviewDialog(item)">
+                Write a Review
+              </button>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-dialog-content>
+    
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close>Close</button>
+    </mat-dialog-actions>

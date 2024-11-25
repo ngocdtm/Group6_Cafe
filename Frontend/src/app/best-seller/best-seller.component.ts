@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CategoryService } from '../services/category.service';
-import { ProductService } from '../services/product.service';
+import { ProductImage, ProductService } from '../services/product.service';
 import { CartService } from '../services/cart.service';
 import { UserService } from '../services/user.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -45,10 +45,19 @@ export class BestSellerComponent implements OnInit {
   loadProducts() {
     this.productService.getProduct().subscribe(
       (data: any) => {
-        // Lọc sản phẩm có status true ngay khi load
-        this.products = data.filter((product: any) => product.status !== "false");
+        this.products = data.filter((product: any) => product.status !== "false" && product.deleted !== "true");
+        
+        // Lấy active images cho mỗi sản phẩm
+        this.products.forEach(product => {
+          this.productService.getActiveImages(product.id).subscribe(
+            (images: ProductImage[]) => {
+              product.images = images;
+            },
+            error => console.error(`Error loading images for product ${product.id}:`, error)
+          );
+        });
+        
         this.filteredProducts = [...this.products];
-        // Load inventory information for each product
         this.loadInventoryInfo();
       },
       (error) => {
@@ -162,7 +171,7 @@ export class BestSellerComponent implements OnInit {
     if (product.images && product.images.length > 0) {
       return this.productService.getImageUrl(product.images[0].imagePath);
     }
-    return 'assets/default-product-image.png'; // Đường dẫn đến ảnh mặc định
+    return 'assets/default-product-image.png';
   }
 
   openProductDetail(product: any) {

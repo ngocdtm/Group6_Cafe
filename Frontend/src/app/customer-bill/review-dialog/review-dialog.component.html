@@ -1,0 +1,49 @@
+<h2 mat-dialog-title>Review Product: {{data.productName}}</h2>
+    
+    <mat-dialog-content>
+      <form [formGroup]="reviewForm" class="review-form">
+        <div class="rating-container">
+          <label>Rating:</label>
+          <mat-button-toggle-group formControlName="rating">
+            <mat-button-toggle *ngFor="let star of [1,2,3,4,5]" [value]="star">
+              {{star}} <mat-icon>star</mat-icon>
+            </mat-button-toggle>
+          </mat-button-toggle-group>
+          <mat-error *ngIf="reviewForm.get('rating')?.touched && reviewForm.get('rating')?.invalid">
+            Please select a rating
+          </mat-error>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Comment</mat-label>
+          <textarea matInput formControlName="comment" rows="4" 
+                    placeholder="Share your experience with this product..."></textarea>
+        </mat-form-field>
+
+        <div class="image-upload">
+          <button type="button" mat-stroked-button (click)="fileInput.click()">
+            <mat-icon>add_photo_alternate</mat-icon> Add Photos
+          </button>
+          <input #fileInput type="file" accept="image/*" multiple
+                 (change)="onFileSelected($event)" style="display: none">
+          
+          <div class="preview-container" *ngIf="selectedFiles.length > 0">
+            <div *ngFor="let file of selectedFiles; let i = index" class="preview-item">
+              <img [src]="previewUrls[i]" alt="Preview">
+              <button mat-icon-button color="warn" (click)="removeFile(i)">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close>Cancel</button>
+      <button mat-raised-button color="primary" 
+              [disabled]="reviewForm.invalid || isSubmitting"
+              (click)="submitReview()">
+        Submit Review
+      </button>
+    </mat-dialog-actions>

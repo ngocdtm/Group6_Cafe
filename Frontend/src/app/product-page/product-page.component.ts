@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CategoryService } from '../services/category.service';
-import { ProductService } from '../services/product.service';
+import { ProductImage, ProductService } from '../services/product.service';
 import { CartService } from '../services/cart.service';
 import { UserService } from '../services/user.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -61,11 +61,19 @@ export class ProductPageComponent implements OnInit {
   loadProducts() {
     this.productService.getProduct().subscribe(
       (data: any) => {
-        // Lọc sản phẩm có status true ngay khi load
-        this.products = data.filter((product: any) => product.status !== "false");
-        // console.log('Products loaded:', this.products);
-        this.updatePriceRange();
-        this.filterProducts();
+        this.products = data.filter((product: any) => product.status !== "false" && product.deleted !== "true");
+        
+        // Lấy active images cho mỗi sản phẩm
+        this.products.forEach(product => {
+          this.productService.getActiveImages(product.id).subscribe(
+            (images: ProductImage[]) => {
+              product.images = images;
+            },
+            error => console.error(`Error loading images for product ${product.id}:`, error)
+          );
+        });
+        
+        this.filteredProducts = [...this.products];
         this.loadInventoryInfo();
       },
       (error) => {
@@ -195,6 +203,13 @@ export class ProductPageComponent implements OnInit {
     return 'assets/default-product-image.png';
   }
 
+  openProductDetail(product: any) {
+    this.dialog.open(ProductDetailDialogComponent, {
+      data: product,
+      panelClass: 'product-detail-dialog'
+    });
+  }
+
   formatPrice(price: number): string {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
   }
@@ -203,10 +218,4 @@ export class ProductPageComponent implements OnInit {
     this.filterProducts();
   }
 
-  openProductDetail(product: any) {
-    this.dialog.open(ProductDetailDialogComponent, {
-      data: product,
-      panelClass: 'product-detail-dialog'
-    });
-  }
 }

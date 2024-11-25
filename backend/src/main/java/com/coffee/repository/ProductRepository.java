@@ -28,7 +28,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     ProductWrapper getProductById(@Param("id") Integer id);
 
     @Query("SELECT new com.coffee.wrapper.ProductWrapper(p.id, p.name, p.description, p.price, p.originalPrice, p.status,p.category.id, p.category.name) " +
-            "FROM Product p WHERE LOWER(p.name) LIKE LOWER(concat('%', :keyword, '%')) " +
+            "FROM Product p WHERE p.deleted = 'false' AND p.status != 'false' AND LOWER(p.name) LIKE LOWER(concat('%', :keyword, '%')) " +
             "OR LOWER(p.description) LIKE LOWER(concat('%', :keyword, '%'))")
     List<ProductWrapper> searchProducts(String keyword);
 

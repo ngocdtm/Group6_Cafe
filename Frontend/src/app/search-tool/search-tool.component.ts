@@ -2,10 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { ProductService } from '../services/product.service';
+import { ProductImage, ProductService } from '../services/product.service';
 import { ProductDetailDialogComponent } from '../material-component/dialog/product-detail-dialog/product-detail-dialog.component';
-import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map, switchMap } from 'rxjs/operators';
+import { forkJoin, of } from 'rxjs';
 
 @Component({
   selector: 'app-search-tool',
@@ -31,7 +31,23 @@ export class SearchToolComponent implements OnInit {
       switchMap(term => {
         if (!term || term.length < 2) return of([]);
         this.isLoading = true;
-        return this.productService.searchProducts(term);
+        return this.productService.searchProducts(term).pipe(
+          // Sau khi có kết quả search, lấy active images cho mỗi sản phẩm
+          switchMap(products => {
+            if (products.length === 0) return of([]);
+            
+            const productsWithImages = products.slice(0, 5).map((product: { id: number; }) =>
+              this.productService.getActiveImages(product.id).pipe(
+                map(activeImages => ({
+                  ...product,
+                  images: activeImages
+                }))
+              )
+            );
+
+            return forkJoin(productsWithImages);
+          })
+        );
       })
     ).subscribe(
       (results: any) => {
@@ -77,15 +93,15 @@ export class SearchToolComponent implements OnInit {
     if (product.images && product.images.length > 0) {
       return this.productService.getImageUrl(product.images[0].imagePath);
     }
-    return 'assets/default-product-image.png'; // Đường dẫn đến ảnh mặc định
+    return 'assets/default-product-image.png';
   }
 
   openProductDetail(product: any) {
+    // Không cần gọi lại API vì đã có active images
     this.dialog.open(ProductDetailDialogComponent, {
       data: product,
       panelClass: 'product-detail-dialog'
     });
   }
-
   
 }

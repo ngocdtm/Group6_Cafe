@@ -134,8 +134,7 @@ public class UserServiceImpl implements UserService {
         user.setEmail(requestMap.get("email"));
         user.setPhoneNumber(requestMap.get("phoneNumber"));
         user.setPassword(passwordEncoder.encode(requestMap.get("password")));
-        // Set initial status as INACTIVE for new users pending admin approval
-        user.setStatus(UserStatus.INACTIVE);
+        user.setStatus(UserStatus.ACTIVE);
 
 
         // Convert string role to enum, default to CUSTOMER if not specified

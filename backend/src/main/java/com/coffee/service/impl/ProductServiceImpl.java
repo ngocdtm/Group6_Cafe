@@ -189,8 +189,20 @@ public class ProductServiceImpl implements ProductService {
                                 convertToJson(product));
                     }
 
-                    // Track image deletions
+                    // Check active images count and validate deletion
                     if(deletedImageIds != null && !deletedImageIds.isEmpty()) {
+                        List<ProductImage> activeImages = productImageRepository.findActiveImagesByProductId(id);
+                        int activeImageCount = activeImages.size();
+
+                        // If there's only one active image and trying to delete it
+                        if (activeImageCount <= 1 && deletedImageIds.size() >= activeImageCount) {
+                            return CafeUtils.getResponseEntity(
+                                    "Cannot delete the last active image of the product",
+                                    HttpStatus.BAD_REQUEST
+                            );
+                        }
+
+                        // Proceed with deletion if validation passes
                         List<String> deletedImages = new ArrayList<>();
                         for(Integer imageId : deletedImageIds) {
                             Optional<ProductImage> optionalImage = productImageRepository.findById(imageId);
@@ -268,6 +280,7 @@ public class ProductServiceImpl implements ProductService {
 //                    String previousState = convertToJson(product);
 
                     // Soft delete the product
+                    product.setStatus("false");
                     product.setDeleted("true");
                     product.setDeletedDate(LocalDateTime.now());
                     product.setRestoredDate(null);
@@ -564,6 +577,7 @@ public class ProductServiceImpl implements ProductService {
                     Product product = optional.get();
                     if("true".equals(product.getDeleted())) {
                         // Restore product
+                        product.setStatus("true");
                         product.setDeleted("false");
                         product.setRestoredDate(LocalDateTime.now());
 

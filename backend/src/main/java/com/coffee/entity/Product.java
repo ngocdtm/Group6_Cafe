@@ -30,7 +30,7 @@ import java.util.List;
 @NamedQuery(name = "Product.getRelatedProducts",
         query = "SELECT new com.coffee.wrapper.ProductWrapper(p.id, p.name, p.description, p.price, p.originalPrice, p.status, p.category.id, p.category.name) " +
                 "FROM Product p " +
-                "WHERE p.category.id = :categoryId " +
+                "WHERE p.deleted = 'false' AND p.status != 'false' AND p.category.id = :categoryId " +
                 "AND p.id != :productId " +
                 "AND p.status = 'true' " +
                 "ORDER BY " +
