@@ -23,6 +23,20 @@
           <img [src]="getFirstImageUrl(product)" [alt]="product.name">
           <h3>{{product.name}}</h3>
           <p>{{ formatPrice(product.price) }}</p>
+
+           <!-- Add rating section -->
+    <div class="product-rating">
+      <div class="stars">
+        <mat-icon *ngFor="let star of [1,2,3,4,5]"
+                  [class.filled]="getRating(product.id) >= star">
+          star
+        </mat-icon>
+      </div>
+      <span class="rating-text">
+        {{getRating(product.id) | number:'1.1-1'}} 
+        ({{getTotalReviews(product.id)}} reviews)
+      </span>
+    </div>
          
          <!-- Thêm phần hiển thị inventory status -->
       <div class="inventory-status">
@@ -45,4 +59,4 @@
   </div>
 </div>
 </div>
-<app-chat [isAdmin]="false"></app-chat>
+<!-- <app-chat [isAdmin]="false"></app-chat> -->

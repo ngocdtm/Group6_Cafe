@@ -30,6 +30,76 @@
       </div>
     </div>
 
+     <!-- Add rating summary section -->
+  <div class="rating-summary" *ngIf="productRating">
+    <div class="average-rating">
+      <h3>{{productRating.averageRating | number:'1.1-1'}}</h3>
+      <div class="stars">
+        <mat-icon *ngFor="let star of [1,2,3,4,5]"
+                  [class.filled]="productRating.averageRating >= star">
+          star
+        </mat-icon>
+      </div>
+      <span>{{productRating.totalReviews}} reviews</span>
+    </div>
+    
+    <div class="rating-distribution">
+      <div class="rating-bar" *ngFor="let rating of [5,4,3,2,1]">
+        <span>{{rating}} stars</span>
+        <div class="bar-container">
+          <div class="bar" 
+          [style.width.%]="productRating.totalReviews > 0 
+            ? (productRating.ratingDistribution[rating] / productRating.totalReviews) * 100 
+            : 0">
+          </div>
+        </div>
+        <span>{{productRating.ratingDistribution[rating] || 0}}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reviews section -->
+  <div class="reviews-section">
+    <h3>Customer Reviews</h3>
+    
+    <div *ngIf="isLoadingReviews" class="loading-spinner">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+
+    <div class="review-list" *ngIf="!isLoadingReviews">
+      <div class="review-item" *ngFor="let review of reviews">
+        <div class="review-header">
+          <img [src]="getUserAvatarUrl(review.userAvatar)" class="user-avatar" alt="User avatar">
+          <div class="review-info">
+            <h4>{{review.userName}}</h4>
+            <div class="stars">
+              <mat-icon *ngFor="let star of [1,2,3,4,5]"
+                        [class.filled]="review.rating >= star">
+                star
+              </mat-icon>
+            </div>
+            <span class="review-date">{{review.reviewDate | date:'medium'}}</span>
+          </div>
+        </div>
+
+        <p class="review-comment">{{review.comment}}</p>
+
+        <div class="review-images" *ngIf="review.images?.length">
+          <div class="image-grid">
+            <img *ngFor="let image of review.images"
+                 [src]="getReviewImageUrl(image)"
+                 alt="Review image">
+          </div>
+        </div>
+      </div>
+
+      <button mat-button *ngIf="reviews.length > 0"
+              (click)="loadMoreReviews()"
+              class="load-more-btn">
+        Load More Reviews
+      </button>
+    </div>
+
     <div class="related-products-section">
       <h3>Sản phẩm liên quan</h3>
       
