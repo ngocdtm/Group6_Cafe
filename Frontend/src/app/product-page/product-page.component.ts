@@ -26,9 +26,9 @@ export class ProductPageComponent implements OnInit {
   productRatings: { [key: number]: any } = {};
 
   minPrice: number = 0;
-  maxPrice: number = 1000000;
+  maxPrice: number = 100000;
   currentMinPrice: number = 0;
-  currentMaxPrice: number = 1000000;
+  currentMaxPrice: number = 100000;
 
   constructor(
     private categoryService: CategoryService,

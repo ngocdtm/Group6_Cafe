@@ -17,8 +17,8 @@
       <div class="price-filter">
         <h3>Price Range</h3>
         <div class="price-slider">
-          <input type="range" [min]="minPrice" [max]="maxPrice" [(ngModel)]="currentMinPrice" (input)="onMinPriceChange($event)">
-          <!-- <input type="range" [min]="minPrice" [max]="maxPrice" [(ngModel)]="currentMaxPrice" (input)="onMaxPriceChange($event)"> -->
+          <!-- <input type="range" [min]="minPrice" [max]="maxPrice" [(ngModel)]="currentMinPrice" (input)="onMinPriceChange($event)"> -->
+          <input type="range" [min]="minPrice" [max]="maxPrice" [(ngModel)]="currentMaxPrice" (input)="onMaxPriceChange($event)">
           <p>{{ formatPrice(currentMinPrice) }} - {{ formatPrice(currentMaxPrice) }}</p>
         </div>
       </div>

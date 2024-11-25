@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogConfig, MatDialogRef } from '@angular/material/dialog';
 import { forkJoin, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CategoryService } from 'src/app/services/category.service';
@@ -34,7 +34,8 @@ export class ProductDetailDialogComponent implements OnInit {
     private productService: ProductService,
     private reviewService: ReviewService,
     private userService: UserService,
-    private categoryService: CategoryService
+    private categoryService: CategoryService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit() {
@@ -162,9 +163,20 @@ export class ProductDetailDialogComponent implements OnInit {
     });
   }
 
-  openProduct(product: any): void {
-    // console.log('Opening product:', product); // Để debug
-    this.dialogRef.close(product);
+  openRelatedProduct(product: any): void {
+    const dialogConfig = new MatDialogConfig();
+    dialogConfig.width = '800px'; // Điều chỉnh kích thước popup nếu cần
+    dialogConfig.data = { id: product.id, ...product }; // Truyền ID và dữ liệu sản phẩm vào dialog
+  
+    const dialogRef = this.dialog.open(ProductDetailDialogComponent, dialogConfig);
+  
+    // Xử lý khi dialog đóng
+    dialogRef.afterClosed().subscribe((result: any) => {
+      if (result) {
+        console.log('Dialog closed with result:', result);
+        // Thực hiện các hành động sau khi dialog đóng nếu cần
+      }
+    });
   }
 
   close(): void {

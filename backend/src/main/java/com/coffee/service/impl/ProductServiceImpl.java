@@ -4,6 +4,7 @@ import com.coffee.constants.CafeConstants;
 import com.coffee.entity.*;
 import com.coffee.repository.*;
 import com.coffee.security.JwtRequestFilter;
+import com.coffee.service.InventoryService;
 import com.coffee.service.ProductService;
 import com.coffee.service.UserService;
 import com.coffee.utils.CafeUtils;
@@ -50,6 +51,9 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     JwtRequestFilter jwtRequestFilter;
 
+    @Autowired
+    InventoryService inventoryService;
+
     @Value("${app.file.upload-dir}")
     private String uploadPath;
 
@@ -72,7 +76,7 @@ public class ProductServiceImpl implements ProductService {
                     product.setDescription(description);
                     product.setPrice(price);
                     product.setOriginalPrice(originalPrice);
-                    product.setStatus("OUT_OF_STOCK");
+                    product.setStatus("true");
 
                     product = productRepository.save(product);
 
@@ -95,6 +99,14 @@ public class ProductServiceImpl implements ProductService {
                         imageData.put("action", "ADD_IMAGES");
                         imageData.put("images", savedImagePaths);
                         saveProductHistory(product, "ADD_IMAGES", null, new ObjectMapper().writeValueAsString(imageData));
+                    }
+
+                    // Automatically add 5 units of stock for the new product
+                    ResponseEntity<String> stockResponse = inventoryService.addStock(product.getId(), 5, "Initial stock for new product");
+
+                    if (stockResponse.getStatusCode() != HttpStatus.OK) {
+                        // Handle stock addition failure if needed
+                        return CafeUtils.getResponseEntity("Product added but stock addition failed", HttpStatus.PARTIAL_CONTENT);
                     }
 
                     return CafeUtils.getResponseEntity("Product Added successfully", HttpStatus.OK);
