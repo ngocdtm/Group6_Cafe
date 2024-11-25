@@ -4,6 +4,8 @@ import { forkJoin, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CategoryService } from 'src/app/services/category.service';
 import { ProductImage, ProductService, RelatedProduct } from 'src/app/services/product.service';
+import { ReviewService } from 'src/app/services/review.service';
+import { UserService } from 'src/app/services/user.service';
 
 @Component({
   selector: 'app-product-detail-dialog',
@@ -18,10 +20,20 @@ export class ProductDetailDialogComponent implements OnInit {
   relatedProducts: RelatedProduct[] = [];
   isLoading: boolean = true;
 
+  // rating & comment
+  productRating: any;
+  reviews: any[] = [];
+  currentPage: number = 0;
+  pageSize: number = 5;
+  totalReviews: number = 0;
+  isLoadingReviews: boolean = false;
+
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
     private dialogRef: MatDialogRef<ProductDetailDialogComponent>,
     private productService: ProductService,
+    private reviewService: ReviewService,
+    private userService: UserService,
     private categoryService: CategoryService
   ) {}
 
@@ -36,6 +48,57 @@ export class ProductDetailDialogComponent implements OnInit {
     }
     this.loadCategoryName();
     this.loadRelatedProducts();
+    this.loadProductRating();
+    this.loadReviews();
+  }
+
+  loadProductRating() {
+    if (this.data?.id) {
+      this.reviewService.getProductRating(this.data.id).subscribe(
+        rating => this.productRating = rating
+      );
+    }
+  }
+
+  loadReviews() {
+    if (this.data?.id) {
+      this.isLoadingReviews = true;
+      this.reviewService.getProductReviews(this.data.id, this.currentPage, this.pageSize)
+        .subscribe(
+          (response: any) => {
+            // Map reviews to ensure avatar is processed correctly
+            const processedReviews = response.map((review: any) => ({
+              ...review,
+              userAvatar: review.userAvatar || null  // Ensure avatar field exists
+            }));
+  
+            // Append or replace reviews based on current page
+            this.reviews = this.currentPage === 0 
+              ? processedReviews 
+              : [...this.reviews, ...processedReviews];
+  
+            this.isLoadingReviews = false;
+            this.totalReviews = this.reviews.length;
+          },
+          error => {
+            console.error('Error loading reviews:', error);
+            this.isLoadingReviews = false;
+          }
+        );
+    }
+  }
+
+  loadMoreReviews() {
+    this.currentPage++;
+    this.loadReviews();
+  }
+
+  getReviewImageUrl(imagePath: string): string {
+    return this.reviewService.getImageUrl(imagePath);
+  }
+
+  getUserAvatarUrl(avatarPath: string): string {
+    return avatarPath ? this.userService.getAvatar(avatarPath) : 'assets/default-avatar.png';
   }
 
   loadCategoryName() {

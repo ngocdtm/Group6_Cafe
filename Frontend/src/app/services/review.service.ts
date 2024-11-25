@@ -39,4 +39,8 @@ export class ReviewService {
   getImageUrl(imagePath: string): string {
     return `${this.url}/api/v1/reviews/images/${imagePath}`;
   }
+
+  getProductRating(productId: number): Observable<any> {
+    return this.httpClient.get(`${this.url}/api/v1/reviews/rating/${productId}`);
+  }
 }

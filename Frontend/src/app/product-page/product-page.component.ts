@@ -9,6 +9,7 @@ import { LoginPromptComponent } from '../login-prompt/login-prompt.component';
 import { ProductDetailDialogComponent } from '../material-component/dialog/product-detail-dialog/product-detail-dialog.component';
 import { LoginComponent } from '../login/login.component';
 import { InventoryService, InventoryWrapper } from '../services/inventory.service';
+import { ReviewService } from '../services/review.service';
 
 @Component({
   selector: 'app-product-page',
@@ -22,6 +23,7 @@ export class ProductPageComponent implements OnInit {
   selectedCategory: string = 'all';
   isLoggedIn: boolean = false;
   inventoryMap: { [key: number]: InventoryWrapper } = {};
+  productRatings: { [key: number]: any } = {};
 
   minPrice: number = 0;
   maxPrice: number = 1000000;
@@ -32,6 +34,7 @@ export class ProductPageComponent implements OnInit {
     private categoryService: CategoryService,
     private productService: ProductService,
     private cartService: CartService,
+    private reviewService: ReviewService,
     private userService: UserService,
     private inventoryService: InventoryService,
     private dialog: MatDialog,
@@ -61,25 +64,37 @@ export class ProductPageComponent implements OnInit {
   loadProducts() {
     this.productService.getProduct().subscribe(
       (data: any) => {
-        this.products = data.filter((product: any) => product.status !== "false" && product.deleted !== "true");
+        this.products = data.filter((product: any) => 
+          product.status !== "false" && product.deleted !== "true"
+        );
         
-        // Lấy active images cho mỗi sản phẩm
+        // Load images and ratings for each product
         this.products.forEach(product => {
           this.productService.getActiveImages(product.id).subscribe(
             (images: ProductImage[]) => {
               product.images = images;
-            },
-            error => console.error(`Error loading images for product ${product.id}:`, error)
+            }
+          );
+          
+          this.reviewService.getProductRating(product.id).subscribe(
+            (rating: any) => {
+              this.productRatings[product.id] = rating;
+            }
           );
         });
         
         this.filteredProducts = [...this.products];
         this.loadInventoryInfo();
-      },
-      (error) => {
-        console.error('Error loading products:', error);
       }
     );
+  }
+
+  getRating(productId: number): number {
+    return this.productRatings[productId]?.averageRating || 0;
+  }
+
+  getTotalReviews(productId: number): number {
+    return this.productRatings[productId]?.totalReviews || 0;
   }
 
   loadInventoryInfo() {
