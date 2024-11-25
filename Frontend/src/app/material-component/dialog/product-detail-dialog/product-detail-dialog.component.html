@@ -118,7 +118,7 @@
       <div *ngIf="!isLoading && relatedProducts.length > 0" class="related-products-grid">
         <div *ngFor="let product of relatedProducts" 
              class="related-product-card"
-             (click)="openProduct(product)">
+             (click)="openRelatedProduct(product)">
           <div class="product-image">
             <!-- Hiển thị ảnh đầu tiên của sản phẩm -->
             <img *ngIf="product.images && product.images.length > 0"
