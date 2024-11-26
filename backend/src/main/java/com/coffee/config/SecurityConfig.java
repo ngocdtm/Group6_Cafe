@@ -125,7 +125,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://10.20.0.121", "http://localhost", "http://10.0.2.2", "http://192.168.0.118", "http://192.168.1.10", "http://localhost:4200"));  // Cập nhật thêm localhost và các địa chỉ khác
+        configuration.setAllowedOrigins(Arrays.asList("http://10.20.0.121", "http://localhost", "http://10.0.2.2", "http://192.168.0.118", "http://192.168.1.10", "http://192.168.43.13","http://localhost:4200"));  // Cập nhật thêm localhost và các địa chỉ khác
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
         configuration.addAllowedHeader("*");
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
