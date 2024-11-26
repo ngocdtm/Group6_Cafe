@@ -427,7 +427,7 @@ public class BillServiceImpl implements BillService {
         log.info("Inside get bills");
         try {
             List<Bill> billList;
-            if (jwtRequestFilter.isAdmin()) {
+            if (jwtRequestFilter.isAdmin() || jwtRequestFilter.isEmployee()) {
                 billList = billRepository.getAllBills();
             } else {
                 billList = billRepository.getBillByUserName(jwtRequestFilter.getCurrentUser());
