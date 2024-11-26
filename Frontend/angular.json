@@ -23,10 +23,10 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "serviceWorker": true,
-            "ngswConfigPath": "src/ngsw-config.json",
+            "serviceWorker": false,
+            "ngswConfigPath": "null",
             "allowedCommonJsDependencies": ["file-saver"],
-            "outputPath": "dist/Frontend",
+            "outputPath": "www",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -35,8 +35,7 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
-              "src/manifest.webmanifest",
-              "src/ngsw-worker.js"
+              "src/manifest.webmanifest"
             ],
             "styles": [
               "./node_modules/@angular/material/prebuilt-themes/purple-green.css",
@@ -47,6 +46,14 @@
             "scripts": []
           },
           "configurations": {
+            "mobile": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.mobile.ts"
+                }
+              ]
+            },
             "production": {
               "fileReplacements": [
                 {
@@ -64,8 +71,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "1.5mb",
-                  "maximumError": "1.5mb"
+                  "maximumWarning": "2mb",
+                  "maximumError": "5mb"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -82,8 +89,14 @@
             "browserTarget": "Frontend:build"
           },
           "configurations": {
-            "production": {
+           "production": {
               "browserTarget": "Frontend:build:production"
+            },
+            "web": {
+              "browserTarget": "Frontend:build:web"
+            },
+            "mobile": {
+              "browserTarget": "Frontend:build:mobile"
             }
           }
         },
@@ -133,6 +146,12 @@
           "configurations": {
             "production": {
               "devServerTarget": "Frontend:serve:production"
+            },
+            "web": {
+              "devServerTarget": "Frontend:serve:web"
+            },
+            "mobile": {
+              "devServerTarget": "Frontend:serve:mobile"
             }
           }
         }

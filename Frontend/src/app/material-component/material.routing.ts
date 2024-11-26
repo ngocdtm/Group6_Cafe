@@ -31,7 +31,7 @@ export const MaterialRoutes: Routes = [
     component:ManageOrderComponent,
     canActivate:[RouteGuardService],
     data:{
-      expectedRole: ['ADMIN']
+      expectedRole: ['ADMIN','EMPLOYEE']
     }
   },
   {
@@ -39,7 +39,7 @@ export const MaterialRoutes: Routes = [
     component:ViewBillComponent,
     canActivate:[RouteGuardService],
     data:{
-      expectedRole: ['ADMIN']
+      expectedRole: ['ADMIN','EMPLOYEE']
     }
   },
   {
@@ -71,7 +71,7 @@ export const MaterialRoutes: Routes = [
     component:StatisticsDashboardComponent,
     canActivate:[RouteGuardService],
     data:{
-      expectedRole: ['ADMIN']
+      expectedRole: ['ADMIN', 'EMPLOYEE']
     }
   }
 ];
