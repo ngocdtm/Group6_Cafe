@@ -2,6 +2,7 @@ package com.coffee.repository;
 
 
 import com.coffee.entity.User;
+import com.coffee.enums.UserRole;
 import com.coffee.enums.UserStatus;
 import com.coffee.wrapper.UserWrapper;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -38,5 +39,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Query("SELECT new com.coffee.wrapper.UserWrapper(u.id,u.name,u.email,u.phoneNumber,u.status,u.address,u.loyaltyPoints,u.avatar,u.role) FROM User u WHERE u.role='EMPLOYEE'")
     List<UserWrapper> getAllEmployees();
+
+    List<User> findByRole(UserRole role);
 }
 

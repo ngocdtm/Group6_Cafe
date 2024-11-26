@@ -34,19 +34,18 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     this.currentUserId = parseInt(localStorage.getItem('userId') || '0');
     this.loadUnreadMessages();
    
-    // Giảm interval time xuống (ví dụ: 2 giây)
+    // Interval để load tin nhắn thường xuyên
     setInterval(() => {
-        if (this.selectedUserId) {
-            this.loadMessages(this.selectedUserId);
-        }
-        this.loadUnreadMessages();
-    }, 5000); // Thay đổi từ 5000 xuống 2000
-
-
+      if (this.selectedUserId) {
+        this.loadMessages(this.selectedUserId);
+      }
+      this.loadUnreadMessages();
+    }, 4000); // 4 giây
+  
     if (this.isAdmin) {
-        this.isChatOpen = true;
+      this.isChatOpen = true;
     }
-}
+  }
   ngAfterViewChecked() {
     this.scrollToBottom();
   }
@@ -105,59 +104,79 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     });
 }
 
-  loadUnreadMessages() {
-    this.chatService.getUnreadMessages().subscribe({
-      next: (response: ChatMessage[]) => {
-        this.unreadMessages = response;
-      },
-      error: (error) => {
-        console.error('Error loading unread messages:', error);
-      }
-    });
-  }
+loadUnreadMessages() {
+  this.chatService.getUnreadMessages().subscribe({
+    next: (response: ChatMessage[]) => {
+      // Lọc tin nhắn chưa đọc phù hợp với người dùng hiện tại
+      this.unreadMessages = response
+        .filter(msg => msg.toUserId === this.currentUserId)
+        // Sắp xếp theo thứ tự thời gian mới nhất
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
+      // Nếu không có admin được chọn, tự động chọn admin từ tin nhắn chưa đọc
+      if (!this.selectedUserId && this.unreadMessages.length > 0) {
+        this.autoSelectAdminForChat();
+      }
+    },
+    error: (error) => {
+      console.error('Error loading unread messages:', error);
+    }
+  });
+}
+ // Phương thức tự động chọn admin để chat dựa trên tin nhắn chưa đọc
+  autoSelectAdminForChat() {
+    if (this.unreadMessages.length > 0) {
+      // Chọn admin của tin nhắn chưa đọc gần đây nhất
+      const latestUnreadMessage = this.unreadMessages[0];
+      this.selectedUserId = latestUnreadMessage.fromUserId;
+      this.loadMessages(this.selectedUserId);
+    }
+  }
   sendMessage() {
     if (!this.newMessage.trim() || !this.selectedUserId) {
-        console.log('Message empty or no selectedUserId');
-        return;
+      console.log('Message empty or no selectedUserId');
+      return;
     }
      
     const messageData = {
-        content: this.newMessage.trim(),
-        toUserId: this.selectedUserId.toString()
+      content: this.newMessage.trim(),
+      toUserId: this.selectedUserId.toString()
     };
      
     console.log('Preparing to send message:', messageData);
     this.loading = true;
      
     this.chatService.sendMessage(messageData).subscribe({
-        next: (response) => {
-            console.log('Message sent successfully:', response);
-            // Thêm tin nhắn mới vào mảng messages ngay lập tức
-            const newMessage: ChatMessage = {
-                id: response.id, // Giả sử API trả về id của tin nhắn mới
-                content: this.newMessage.trim(),
-                fromUserId: this.currentUserId!,
-                toUserId: this.selectedUserId!,
-                timestamp: new Date(),
-                read: false
-            };
-            this.messages = [...this.messages, newMessage];
-            
-            this.newMessage = '';
-            this.scrollToBottom();
-            this.loading = false;
-            
-            // Vẫn load lại messages để đồng bộ với server
-            this.loadMessages(this.selectedUserId!);
-        },
-        error: (error) => {
-            console.error('Error details:', error);
-            this.error = `Failed to send message: ${error.message || 'Unknown error'}`;
-            this.loading = false;
-        }
+      next: (response: any) => {  // Thêm kiểu any để linh hoạt hơn
+        console.log('Message sent successfully:', response);
+        
+        // Tạo tin nhắn mới với thông tin từ response hoặc mặc định
+        const newMessage: ChatMessage = {
+          id: response?.id || Date.now(), // Sử dụng timestamp nếu không có ID
+          content: this.newMessage.trim(),
+          fromUserId: this.currentUserId!,
+          toUserId: this.selectedUserId!,
+          timestamp: new Date(),
+          read: false
+        };
+        
+        // Thêm tin nhắn mới vào mảng
+        this.messages = [...this.messages, newMessage];
+        
+        this.newMessage = '';
+        this.scrollToBottom();
+        this.loading = false;
+        
+        // Load lại tin nhắn để đảm bảo đồng bộ với server
+        this.loadMessages(this.selectedUserId!);
+      },
+      error: (error) => {
+        console.error('Error details:', error);
+        this.error = `Failed to send message: ${error.message || 'Unknown error'}`;
+        this.loading = false;
+      }
     });
-}
+  }
 
   markMessageAsRead(messageId: number) {
     this.chatService.markAsRead(messageId).subscribe({

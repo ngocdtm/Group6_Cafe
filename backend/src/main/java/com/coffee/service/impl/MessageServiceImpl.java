@@ -105,11 +105,6 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public ResponseEntity<String> sendMessage(Map<String, String> requestMap) {
         try {
-            if (!validateSendMessage(requestMap)) {
-                log.error("Invalid request data: {}", requestMap);
-                return CafeUtils.getResponseEntity(CafeConstants.INVALID_DATA, HttpStatus.BAD_REQUEST);
-            }
-
             String currentUsername = jwtFilter.getCurrentUser();
             log.info("Current username from token: {}", currentUsername);
 
@@ -124,30 +119,77 @@ public class MessageServiceImpl implements MessageService {
                 return CafeUtils.getResponseEntity("Sender user not found", HttpStatus.NOT_FOUND);
             }
 
-            Integer toUserId = Integer.parseInt(requestMap.get("toUserId"));
-            User toUser = userRepository.findById(toUserId).orElse(null);
-            if (toUser == null) {
-                log.error("Recipient user not found for ID: {}", toUserId);
-                return CafeUtils.getResponseEntity("Recipient user not found", HttpStatus.NOT_FOUND);
+            // Nếu là CUSTOMER, gửi tin nhắn đến tất cả ADMIN
+            if (fromUser.getRole() == UserRole.CUSTOMER) {
+                // Tìm tất cả các ADMIN
+                List<User> adminUsers = userRepository.findByRole(UserRole.ADMIN);
+
+                if (adminUsers.isEmpty()) {
+                    log.error("No admin users found");
+                    return CafeUtils.getResponseEntity("No admin users available", HttpStatus.NOT_FOUND);
+                }
+
+                // Kiểm tra và validate content
+                if (requestMap.get("content") == null ||
+                        requestMap.get("content").trim().isEmpty()) {
+                    log.error("Invalid content for message");
+                    return CafeUtils.getResponseEntity(CafeConstants.INVALID_DATA, HttpStatus.BAD_REQUEST);
+                }
+
+                // Lưu tin nhắn cho từng ADMIN, mỗi lần chỉ lưu 1 bản
+                for (User toUser : adminUsers) {
+                    // Kiểm tra xem đã có tin nhắn trùng chưa
+                    boolean messageExists = messageRepository.existsByFromUserAndToUserAndContent(
+                            fromUser, toUser, requestMap.get("content")
+                    );
+
+                    if (!messageExists) {
+                        Message message = new Message();
+                        message.setContent(requestMap.get("content"));
+                        message.setFromUser(fromUser);
+                        message.setToUser(toUser);
+                        message.setCreatedDate(new Date());
+                        message.setSeen(false);
+
+                        messageRepository.save(message);
+                    }
+                }
+
+                log.info("Message sent successfully from customer {} to all admins", fromUser.getId());
+                return CafeUtils.getResponseEntity("Message Sent Successfully to All Admins", HttpStatus.OK);
             }
+            else {
+                // Xử lý gửi tin nhắn bình thường cho các vai trò khác
+                // Giữ nguyên logic cũ yêu cầu toUserId
+                if (!validateSendMessage(requestMap)) {
+                    log.error("Invalid request data: {}", requestMap);
+                    return CafeUtils.getResponseEntity(CafeConstants.INVALID_DATA, HttpStatus.BAD_REQUEST);
+                }
 
-            Message message = new Message();
-            message.setContent(requestMap.get("content"));
-            message.setFromUser(fromUser);
-            message.setToUser(toUser);
-            message.setCreatedDate(new Date());
-            message.setSeen(false);
+                Integer toUserId = Integer.parseInt(requestMap.get("toUserId"));
+                User toUser = userRepository.findById(toUserId).orElse(null);
+                if (toUser == null) {
+                    log.error("Recipient user not found for ID: {}", toUserId);
+                    return CafeUtils.getResponseEntity("Recipient user not found", HttpStatus.NOT_FOUND);
+                }
 
-            messageRepository.save(message);
-            log.info("Message sent successfully from user {} to user {}", fromUser.getId(), toUserId);
+                Message message = new Message();
+                message.setContent(requestMap.get("content"));
+                message.setFromUser(fromUser);
+                message.setToUser(toUser);
+                message.setCreatedDate(new Date());
+                message.setSeen(false);
 
-            return CafeUtils.getResponseEntity("Message Sent Successfully:" + message.getId(), HttpStatus.OK);
+                messageRepository.save(message);
+                log.info("Message sent successfully from user {} to user {}", fromUser.getId(), toUserId);
+
+                return CafeUtils.getResponseEntity("Message Sent Successfully:" + message.getId(), HttpStatus.OK);
+            }
         } catch (Exception ex) {
             log.error("Error in sendMessage: ", ex);
             return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
     @Override
     public ResponseEntity<List<MessageWrapper>> getUnreadMessages() {
         try {
