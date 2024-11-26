@@ -113,12 +113,17 @@ export class AdminChatComponent implements OnInit, OnDestroy {
   
     this.chatService.getMessages(user.userId).subscribe({
       next: (messages) => {
-        this.messages = messages;
+        // Lọc chỉ lấy các tin nhắn giữa admin và user được chọn
+        this.messages = messages.filter((msg: { fromUserId: number | null; toUserId: number | null; }) => 
+          (msg.fromUserId === this.adminId && msg.toUserId === user.userId) || 
+          (msg.fromUserId === user.userId && msg.toUserId === this.adminId)
+        );
+        
         this.loading = false;
   
         // Đánh dấu các tin nhắn chưa đọc là đã đọc
         messages
-          .filter((msg: { seen: any; fromUserId: number; }) => !msg.seen && msg.fromUserId === user.userId)
+          .filter((msg: { seen: any; fromUserId: number; toUserId: number | null; }) => !msg.seen && msg.fromUserId === user.userId && msg.toUserId === this.adminId)
           .forEach((msg: { id: number; }) => this.chatService.markAsRead(msg.id).subscribe());
   
         // Cập nhật lại unreadCount cho user được chọn
@@ -133,6 +138,7 @@ export class AdminChatComponent implements OnInit, OnDestroy {
       }
     });
   }
+  
   onSubmit(event: Event) {
     event.preventDefault();
     this.sendMessage();
